@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon --watch ./ --ext ts --exec ts-node index.ts",
+    "lint": "eslint .",
+    "start": "node dist/index.js",
+    "test": "vitest --run",
+    "tsc": "tsc --noEmit"
+  },
+  "dependencies": {
+    "pg": "^8.14.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/pg": "^8.11.11",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.9",
+    "pkg": "^5.8.1",
+    "ts-node": "^10.9.2"
+  }
+}

@@ -1,0 +1,49 @@
+services:
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /app/client
+    command: pnpm dev
+    ports:
+      - "8080:5173"
+    volumes:
+      - ./client:/app/client
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - /app/client/node_modules
+    environment:
+      - VITE_API_BASE=/api
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /app/server
+    command: pnpm dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server:/app/server
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - /app/server/node_modules
+    environment:
+      - MINERVA_DATABASE_URL=postgres://postgres:postgres@postgres:5432/minerva
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:17.4
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: minerva
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

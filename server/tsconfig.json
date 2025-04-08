@@ -1,8 +1,10 @@
 {
-    "extends": "../tsconfig.base.json",
-    "compilerOptions": {
-      "outDir": "../dist/server"
-    },
-    "include": ["index.ts"],
-    "exclude": ["test", "**/*.test.ts"]
-  }
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist/server"
+  },
+  "ts-node": {
+    "esm": true
+  },
+  "include": ["index.ts"]
+}

@@ -1,8 +1,24 @@
 {
-"devDependencies": {
-	"typescript": "^5.8.3",
-	"vitest": "3.1.1",
-	"eslint": "^9.24.0",
-	"@types/node": "^22.14.0"
+	"name": "minerva",
+	"private": true,
+	"type": "module",
+	"scripts": {
+  		"dev": "docker compose -f docker-compose.dev.yml up --build",
+  		"prod": "docker compose -f docker-compose.prod.yml up --build"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.24.0",
+		"@types/node": "^22.14.0",
+		"@typescript-eslint/eslint-plugin": "^8.29.1",
+		"@typescript-eslint/parser": "^8.29.1",
+		"eslint": "^9.24.0",
+		"eslint-plugin-vue": "^10.0.0",
+		"globals": "^16.0.0",
+		"nodemon": "^3.1.9",
+		"tsx": "^4.19.3",
+		"typescript": "^5.8.3",
+		"typescript-eslint": "^8.29.1",
+		"vite": "^6.2.5",
+		"vitest": "3.1.1"
 	}
 }

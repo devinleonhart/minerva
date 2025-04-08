@@ -11,15 +11,16 @@
     "tsc": "tsc --noEmit"
   },
   "dependencies": {
-    "pg": "^8.14.1",
-    "express": "^5.1.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "pg": "^8.14.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/pg": "^8.11.11",
-    "pkg": "^5.8.1"
+    "pkg": "^5.8.1",
+    "prisma": "^6.5.0"
   }
 }

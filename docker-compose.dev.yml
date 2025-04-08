@@ -28,10 +28,28 @@ services:
       - ./server:/app/server
       - ./tsconfig.base.json:/app/tsconfig.base.json
       - /app/server/node_modules
+    env_file:
+      - .env
     environment:
-      - MINERVA_DATABASE_URL=postgres://postgres:postgres@postgres:5432/minerva
+      - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
     depends_on:
       - postgres
+
+  prisma:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["tail", "-f", "/dev/null"]
+    env_file:
+      - .env
+    environment:
+      - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
+    depends_on:
+      - postgres
+    ports:
+      - "5555:5555"
+    volumes:
+      - .:/app
 
   postgres:
     image: postgres:17.4

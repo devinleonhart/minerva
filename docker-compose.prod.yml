@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:3000"
+    env_file:
+      - .env
     environment:
       - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
     depends_on:

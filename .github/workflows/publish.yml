@@ -1,0 +1,45 @@
+name: CI Pipeline
+
+on:
+  push:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.11.0
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run Lint
+        run: pnpm -r lint
+
+      - name: Run Tests
+        run: pnpm -r test
+
+      - name: Run Type Check
+        run: pnpm -r tsc
+
+  build-and-push:
+    needs: quality
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build and Push
+        run: |
+          docker build -t devleo/minerva:latest .
+          docker push devleo/minerva:latest

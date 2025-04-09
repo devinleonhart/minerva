@@ -1,0 +1,28 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:3000"
+    env_file:
+      - .env
+    environment:
+      - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:17.4
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: minerva
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:

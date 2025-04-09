@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+  output = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MINERVA_DATABASE_URL")
+}
+
+model Recipe {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  name          String        @db.VarChar(255)
+  description   String
+  ingredients   RecipeIngredient[]
+}
+
+model Ingredient {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  description   String
+  secured       Boolean       @default(false)
+  recipes       RecipeIngredient[]
+}
+
+model RecipeIngredient {
+  recipeId      Int
+  ingredientId  Int
+  recipe        Recipe       @relation(fields: [recipeId], references: [id])
+  ingredient    Ingredient   @relation(fields: [ingredientId], references: [id])
+
+  @@id([recipeId, ingredientId])
+}

@@ -3,7 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import routes from './routes/index'
+import routes from './src/routes/index'
 
 const serverPort = 3000
 

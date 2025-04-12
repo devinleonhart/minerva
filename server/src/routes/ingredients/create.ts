@@ -1,6 +1,6 @@
 // create.ts
 import { Router } from 'express'
-import { PrismaClient } from '../../generated/prisma'
+import { PrismaClient } from '../../../generated/prisma'
 import { handleUnknownError } from '../../utils/handleUnknownError'
 
 const prisma = new PrismaClient()
@@ -11,6 +11,7 @@ router.post('/', async (req, res) => {
 
   if (!name || !description) {
     res.status(400).json({ error: 'Name and description are required.' })
+    return
   }
 
   try {

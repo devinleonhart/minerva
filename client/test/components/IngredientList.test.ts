@@ -24,7 +24,7 @@ describe('IngredientList.vue', () => {
       ingredients: mockIngredients
     }
 
-    vi.mocked(useIngredientStore).mockReturnValue(mockStore as any)
+    vi.mocked(useIngredientStore).mockReturnValue(mockStore)
 
     const wrapper = mount(IngredientList)
     await flushPromises()

@@ -22,6 +22,7 @@ model Ingredient {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   description   String
+  name          String        @db.VarChar(255)
   secured       Boolean       @default(false)
   recipes       RecipeIngredient[]
 }

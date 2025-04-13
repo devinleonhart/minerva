@@ -10,7 +10,8 @@
     "tsc": "tsc --noEmit",
     "test": "vitest run",
     "prisma": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma",
-    "generate": "npx prisma generate --schema=./prisma/schema.prisma",
+    "generate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma generate --schema=./server/prisma/schema.prisma",
+    "generate:ci": "npx prisma generate --schema=./prisma/schema.prisma",
     "migrate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate dev --schema=./server/prisma/schema.prisma",
     "reset": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate reset --schema=./server/prisma/schema.prisma",
     "studio": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma studio --schema=./server/prisma/schema.prisma"

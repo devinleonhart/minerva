@@ -26,6 +26,9 @@ jobs:
       - name: Run Tests
         run: pnpm -r test
 
+      - name: Generate Prisma Client
+        run: pnpm --filter server generate
+
       - name: Run Type Check
         run: pnpm -r tsc
 

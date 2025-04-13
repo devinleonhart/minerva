@@ -1,9 +1,9 @@
-import { PrismaClient } from '../../../generated/prisma'
 import { Router } from 'express'
+import { PrismaClient } from '../../../generated/prisma'
 import { handleUnknownError } from '../../utils/handleUnknownError'
 
-const router = Router()
 const prisma = new PrismaClient()
+const router = Router()
 
 router.post('/', async (req, res) => {
   const { name, description } = req.body

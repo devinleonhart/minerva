@@ -1,9 +1,10 @@
 import { Router } from 'express'
 import { parseId } from '../../utils/parseId'
 import { handleUnknownError } from '../../utils/handleUnknownError'
-import prisma from '../../utils/prisma'
+import { PrismaClient } from '../../../generated/prisma'
 
 const router = Router()
+const prisma = new PrismaClient()
 
 router.get('/:id', async (req, res) => {
   try {

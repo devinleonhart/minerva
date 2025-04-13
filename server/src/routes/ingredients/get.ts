@@ -1,10 +1,9 @@
 import { Router } from 'express'
-import { PrismaClient } from '../../../generated/prisma'
 import { parseId } from '../../utils/parseId'
 import { handleUnknownError } from '../../utils/handleUnknownError'
+import prisma from '../../utils/prisma'
 
 const router = Router()
-const prisma = new PrismaClient()
 
 router.get('/:id', async (req, res) => {
   try {
@@ -23,8 +22,7 @@ router.get('/:id', async (req, res) => {
         res.json(ingredient)
       }
     }
-  }
-  catch (error) {
+  } catch (error) {
     handleUnknownError(res, 'fetching ingredient', error)
   }
 })
@@ -33,8 +31,7 @@ router.get('/', async (req, res) => {
   try {
     const ingredients = await prisma.ingredient.findMany()
     res.json(ingredients)
-  }
-  catch (error) {
+  } catch (error) {
     handleUnknownError(res, 'fetching ingredients', error)
   }
 })

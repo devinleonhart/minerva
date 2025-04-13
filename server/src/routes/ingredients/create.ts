@@ -1,4 +1,3 @@
-// create.ts
 import { Router } from 'express'
 import { handleUnknownError } from '../../utils/handleUnknownError'
 import prisma from '../../utils/prisma'

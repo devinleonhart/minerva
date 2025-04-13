@@ -1,17 +1,12 @@
 // test/api/ingredients/create.test.ts
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import request from 'supertest'
 import express from 'express'
 import createRouter from '../../../src/routes/ingredients/create'
-import { seed } from '../../db/seed'
 
 const app = express()
 app.use(express.json())
 app.use('/api/ingredients', createRouter)
-
-beforeEach(async () => {
-  await seed()
-})
 
 describe('POST /api/ingredients', () => {
   it('creates a new ingredient when valid', async () => {

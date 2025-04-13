@@ -7,7 +7,9 @@
     "build": "tsc",
     "dev": "nodemon --watch ./ --ext ts --exec tsx index.ts",
     "lint": "eslint .",
-    "test": "docker compose -f ../docker-compose.dev.yml -f ../docker-compose.test.yml run --rm server pnpm vitest --run",
+    "migrate:test": "MINERVA_DATABASE_URL=postgres://postgres:postgres@postgres:5432/minerva_test npx prisma migrate reset --force --skip-seed --skip-generate --schema=./prisma/schema.prisma",
+    "test": "docker compose -f ../docker-compose.dev.yml -f ../docker-compose.test.yml run  --rm -e MINERVA_DATABASE_URL=postgres://postgres:postgres@postgres:5432/minerva_test server sh -c \"npx tsx test/test-runner.ts\"",
+    "generate:test": "MINERVA_DATABASE_URL=postgres://postgres:postgres@postgres:5432/minerva_test npx prisma generate --schema=./prisma/schema.prisma",
     "tsc": "tsc --noEmit",
     "prisma": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma",
     "generate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma generate --schema=./server/prisma/schema.prisma",
@@ -29,6 +31,7 @@
     "@types/pg": "^8.11.11",
     "@types/supertest": "^6.0.3",
     "pkg": "^5.8.1",
-    "supertest": "^7.1.0"
+    "supertest": "^7.1.0",
+    "tsx": "^4.19.3"
   }
 }

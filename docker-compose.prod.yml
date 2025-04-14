@@ -8,6 +8,7 @@ services:
     env_file:
       - .env
     environment:
+      - NODE_ENV=production
       - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
     depends_on:
       - postgres
@@ -21,7 +22,6 @@ services:
       POSTGRES_DB: minerva
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
 

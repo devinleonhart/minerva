@@ -8,8 +8,6 @@ services:
     ports:
       - "8080:5173"
     volumes:
-      - ./client:/app/client
-      - ./tsconfig.base.json:/app/tsconfig.base.json
       - /app/client/node_modules
     environment:
       - VITE_API_BASE=/api
@@ -25,8 +23,6 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./server:/app/server
-      - ./tsconfig.base.json:/app/tsconfig.base.json
       - /app/server/node_modules
     env_file:
       - .env
@@ -34,6 +30,7 @@ services:
       - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
     depends_on:
       - postgres
+    entrypoint: ["sh", "-c", "pnpm prisma:migrate:ci && pnpm dev"]
 
   prisma:
     build:
@@ -48,8 +45,6 @@ services:
       - postgres
     ports:
       - "5555:5555"
-    volumes:
-      - .:/app
 
   postgres:
     image: postgres:17.4
@@ -62,7 +57,6 @@ services:
       POSTGRES_DB: minerva
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
   pgdata:

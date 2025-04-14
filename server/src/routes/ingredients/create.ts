@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { PrismaClient } from '../../../generated/prisma'
-import { handleUnknownError } from '../../utils/handleUnknownError'
+import { PrismaClient } from '@prisma/client'
+import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const prisma = new PrismaClient()
 const router = Router()

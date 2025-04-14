@@ -1,1 +1,1 @@
-export { Prisma, Ingredient, Recipe } from '../../server/generated/prisma'
+export { Prisma, Ingredient, Recipe } from '@prisma/client'

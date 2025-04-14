@@ -9,12 +9,11 @@
     "lint": "eslint .",
     "tsc": "tsc --noEmit",
     "test": "vitest run",
-    "prisma": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma",
-    "generate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma generate --schema=./server/prisma/schema.prisma",
-    "generate:ci": "npx prisma generate --schema=./prisma/schema.prisma",
-    "migrate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate dev --schema=./server/prisma/schema.prisma",
-    "reset": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate reset --schema=./server/prisma/schema.prisma",
-    "studio": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma studio --schema=./server/prisma/schema.prisma"
+    "prisma:generate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma generate --schema=./prisma/schema.prisma",
+    "prisma:migrate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate dev --schema=./prisma/schema.prisma",
+    "prisma:migrate:ci": "prisma migrate deploy",
+    "prisma:reset": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate reset --schema=./prisma/schema.prisma",
+    "prisma:studio": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma studio --schema=./prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",

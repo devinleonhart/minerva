@@ -1,4 +1,4 @@
-FROM node:20.11.0 AS builder
+FROM node:20.11.0
 
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
@@ -21,6 +21,7 @@ COPY server/package.json /app/server/
 COPY server/prisma /app/server/prisma/
 COPY server/src /app/server/src/
 COPY server/tsconfig.json /app/server/
+COPY server/index.ts /app/server/
 
 # Copy shared configuration
 COPY tsconfig.base.json /app/
@@ -29,13 +30,3 @@ COPY tsconfig.base.json /app/
 RUN pnpm install --shamefully-hoist
 RUN cd /app/server && npx prisma generate --schema=./prisma/schema.prisma
 RUN pnpm -r build
-
-# Production image
-FROM node:20.11.0
-
-WORKDIR /app
-COPY --from=builder /app/dist /app/dist
-COPY --from=builder /app/node_modules /app/node_modules
-COPY --from=builder /app/server/node_modules /app/server/node_modules
-
-CMD ["node", "dist/server/index.js"]

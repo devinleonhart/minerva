@@ -7,20 +7,29 @@
     "build": "tsc",
     "dev": "nodemon --watch ./ --ext ts --exec tsx index.ts",
     "lint": "eslint .",
-    "test": "vitest --run",
-    "tsc": "tsc --noEmit"
+    "tsc": "tsc --noEmit",
+    "test": "vitest run",
+    "prisma:generate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma generate --schema=./prisma/schema.prisma",
+    "prisma:generate:ci": "npx prisma generate --schema=./prisma/schema.prisma",
+    "prisma:migrate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate dev --schema=./prisma/schema.prisma",
+    "prisma:migrate:ci": "prisma migrate deploy",
+    "prisma:reset": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate reset --schema=./prisma/schema.prisma",
+    "prisma:studio": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma studio --schema=./prisma/schema.prisma"
   },
   "dependencies": {
+    "@prisma/client": "^6.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
-    "pg": "^8.14.1"
+    "pg": "^8.14.1",
+    "prisma": "^6.5.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/pg": "^8.11.11",
     "pkg": "^5.8.1",
-    "prisma": "^6.5.0"
+    "tsx": "^4.19.3",
+    "vitest": "^1.3.1"
   }
 }

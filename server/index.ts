@@ -3,6 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import routes from './src/routes/index.js'
 
 const serverPort = 3000
 
@@ -15,18 +16,12 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 app.use(express.static(clientDist))
-
-app.get('/api/data', async (req, res) => {
-  const mockData = [
-    { id: 1, name: 'Dragon Scale', description: 'Rare and magical scale.', secured: true },
-    { id: 2, name: 'Phoenix Feather', description: 'Fiery feather of rebirth.', secured: false },
-    { id: 3, name: 'Unicorn Fur', description: 'Purity crystalized.', secured: true }
-  ]
-  res.json(mockData)
-})
+app.use('/api', routes)
 
 app.use((req, res) => {
   res.sendFile(path.join(clientDist, 'index.html'))
 })
 
+console.log(`Running in NODE_ENV: ${process.env.NODE_ENV || 'development'}`)
+console.log(`MINERVA_DATABASE_URL: ${process.env.MINERVA_DATABASE_URL}`)
 app.listen(serverPort, () => console.log(`Serving magic from port ${serverPort}!`))

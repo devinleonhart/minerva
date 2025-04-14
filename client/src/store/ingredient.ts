@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 import type { IngredientForm, IngredientStore } from '#/store/ingredient'
-import type { Prisma } from '#/prisma'
+import type { Prisma } from '#/prisma-types'
 
 export const useIngredientStore = defineStore('ingredient', {
   state: (): IngredientStore => ({
@@ -14,6 +14,13 @@ export const useIngredientStore = defineStore('ingredient', {
         await axios.post('/api/ingredients/', toIngredientCreateInput(ingredient))
       } catch (error) {
         console.error('Error adding ingredient:', error)
+      }
+    },
+    async deleteIngredient(id: number) {
+      try {
+        await axios.delete(`/api/ingredients/${id}`)
+      } catch (error) {
+        console.error('Error deleting ingredient:', error)
       }
     },
     async getIngredients() {

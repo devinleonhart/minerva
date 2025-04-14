@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const prisma = new PrismaClient()
-const router = Router()
+const router: Router = Router()
 
 router.post('/', async (req, res) => {
   const { name, description } = req.body

@@ -14,23 +14,14 @@ jobs:
         with:
           node-version: 20.11.0
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
       - name: Install dependencies
-        run: pnpm install
+        run: npm install -g pnpm && pnpm install
 
       - name: Run Prisma Generate
         run: pnpm --filter server prisma:generate:ci
 
-      - name: Run Lint
-        run: pnpm -r lint
-
-      - name: Run Tests
-        run: pnpm -r test
-
-      - name: Run Type Check
-        run: pnpm -r tsc
+      - name: Perform Quality Checks
+        run: pnpm quality
 
   build-and-push:
     needs: quality

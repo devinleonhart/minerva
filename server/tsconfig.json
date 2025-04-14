@@ -1,10 +1,8 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
+    "composite": true,
     "outDir": "../dist/server"
   },
-  "ts-node": {
-    "esm": true
-  },
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts"]
 }

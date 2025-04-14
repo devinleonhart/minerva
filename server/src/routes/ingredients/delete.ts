@@ -6,7 +6,7 @@ import { handleUnknownError } from '../../utils/handleUnknownError.js'
 const prisma = new PrismaClient()
 const router: Router = Router()
 
-router.get('/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const id = parseId(req)
     if (id === null) {
@@ -14,26 +14,18 @@ router.get('/:id', async (req, res) => {
       return
     }
     else {
-      const ingredient = await prisma.ingredient.findUnique({ where: { id } })
+      console.log('Deleting ingredient with ID:', id)
+      const ingredient = await prisma.ingredient.delete({ where: { id } })
       if (!ingredient) {
         res.status(404).json({ error: 'Ingredient not found' })
         return
       }
       else {
-        res.json(ingredient)
+        res.status(204).send()
       }
     }
   } catch (error) {
-    handleUnknownError(res, 'fetching ingredient', error)
-  }
-})
-
-router.get('/', async (req, res) => {
-  try {
-    const ingredients = await prisma.ingredient.findMany()
-    res.json(ingredients)
-  } catch (error) {
-    handleUnknownError(res, 'fetching ingredients', error)
+    handleUnknownError(res, 'deleting ingredient', error)
   }
 })
 

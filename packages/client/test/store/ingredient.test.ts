@@ -3,8 +3,6 @@ import { setActivePinia, createPinia } from 'pinia'
 import axios from 'axios'
 import { useIngredientStore, toIngredientCreateInput } from '../../src/store/ingredient'
 
-vi.mock('axios')
-
 describe('Ingredient Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())

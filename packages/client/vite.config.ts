@@ -14,11 +14,19 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./test/setup.ts'],
     server: {
       deps: {
         inline: ['pinia', 'vue', 'vue-router', 'axios']
       }
     }
+  },
+  optimizeDeps: {
+    include: ['pinia', 'vue', 'vue-router', 'axios']
+  },
+  ssr: {
+    noExternal: ['pinia', 'vue', 'vue-router']
   },
   server: {
     host: true,

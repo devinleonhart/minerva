@@ -32,12 +32,13 @@ services:
       - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
     depends_on:
       - postgres
-    entrypoint: ["sh", "-c", "pnpm prisma:migrate:ci && pnpm dev"]
+    entrypoint: ["sh", "-c", "cd /app/packages/server && pnpm prisma:migrate:ci && pnpm dev"]
 
   prisma:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    working_dir: /app/packages/server
     command: ["tail", "-f", "/dev/null"]
     env_file:
       - .env

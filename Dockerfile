@@ -29,4 +29,5 @@ COPY tsconfig.json tsconfig.build.json /app/
 # Install dependencies and build
 RUN pnpm install --shamefully-hoist
 RUN cd /app/packages/server && npx prisma generate --schema=./prisma/schema.prisma
-RUN pnpm -r build
+RUN cd /app/packages/client && pnpm build
+RUN cd /app/packages/server && pnpm build

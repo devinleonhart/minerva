@@ -22,12 +22,6 @@ export default defineConfig({
       }
     }
   },
-  optimizeDeps: {
-    include: ['pinia', 'vue', 'vue-router', 'axios']
-  },
-  ssr: {
-    noExternal: ['pinia', 'vue', 'vue-router']
-  },
   server: {
     host: true,
     port: 5173,

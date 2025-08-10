@@ -13,7 +13,12 @@ export default defineConfig({
     emptyOutDir: true
   },
   test: {
-    environment: 'jsdom'
+    environment: 'jsdom',
+    server: {
+      deps: {
+        inline: ['pinia', 'vue', 'vue-router', 'axios']
+      }
+    }
   },
   server: {
     host: true,

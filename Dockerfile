@@ -48,8 +48,10 @@ COPY --from=production-build /app/packages/server/package.json /app/server/packa
 COPY --from=production-build /app/pnpm-lock.yaml /app/
 COPY --from=production-build /app/package.json /app/
 
+WORKDIR /app/server
 RUN pnpm install --prod --shamefully-hoist
 
+WORKDIR /app
 RUN pnpm add prisma
 
 CMD ["sh", "-c", "cd /app/server && npx prisma migrate deploy && node /app/dist/server/index.js"]

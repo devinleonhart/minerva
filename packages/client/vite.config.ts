@@ -15,10 +15,10 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./test/setup.ts'],
     server: {
       deps: {
-        inline: ['pinia', 'vue', 'vue-router', 'axios']
+        inline: ['pinia', 'vue', 'vue-router', 'axios'],
+        external: ['@vue/test-utils']
       }
     }
   },

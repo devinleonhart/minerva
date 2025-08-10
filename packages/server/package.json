@@ -8,7 +8,7 @@
     "dev": "../../node_modules/.bin/nodemon --watch ./ --ext ts --exec ../../node_modules/.bin/tsx index.ts",
     "lint": "../../node_modules/.bin/eslint .",
     "tsc": "echo 'TypeScript checking is handled from the root workspace'",
-    "test": "vitest run",
+    "test": "../../node_modules/.bin/vitest run",
     "prisma:generate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma generate --schema=./prisma/schema.prisma",
     "prisma:generate:ci": "npx prisma generate --schema=./prisma/schema.prisma",
     "prisma:migrate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate dev --schema=./prisma/schema.prisma",
@@ -30,7 +30,6 @@
     "@types/pg": "^8.11.11",
     "nodemon": "^3.1.9",
     "pkg": "^5.8.1",
-    "tsx": "^4.19.3",
-    "vitest": "^3.1.1"
+    "tsx": "^4.19.3"
   }
 }

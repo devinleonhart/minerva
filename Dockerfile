@@ -44,12 +44,10 @@ WORKDIR /app
 
 COPY --from=production-build /app/dist /app/dist
 COPY --from=production-build /app/packages/server/prisma /app/server/prisma
-COPY --from=production-build /app/packages/server/package.json /app/server/package.json
+COPY --from=production-build /app/packages/server/package.json /app/package.json
 
-WORKDIR /app/server
 RUN pnpm install --prod
 
-WORKDIR /app
 RUN pnpm add prisma
 
 CMD ["sh", "-c", "cd /app/server && npx prisma migrate deploy && node /app/dist/server/index.js"]

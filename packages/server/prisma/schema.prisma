@@ -20,13 +20,13 @@ enum IngredientQuality {
 
 model Recipe {
   id            Int           @id @default(autoincrement())
-  potionId      Int           @unique
+  potionId      Int?          @unique
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   name          String        @db.VarChar(255)
   description   String
   ingredients   RecipeIngredient[]
-  potions       Potion        @relation(fields: [potionId], references: [id])
+  potions       Potion?       @relation(fields: [potionId], references: [id])
 }
 
 model Ingredient {

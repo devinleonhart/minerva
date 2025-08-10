@@ -49,6 +49,15 @@ RUN cd /app/packages/server && npx prisma generate --schema=./prisma/schema.pris
 RUN pnpm --filter client build
 RUN pnpm --filter server build
 
+# Prisma CLI stage (minimal, just for migrations)
+FROM node:24.4.1 AS prisma-cli
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /app
+COPY --from=production-build /app/pnpm-lock.yaml /app/
+COPY --from=production-build /app/package.json /app/
+RUN pnpm add prisma
+
 # Production runtime stage
 FROM node:24.4.1 AS production
 
@@ -66,5 +75,8 @@ COPY --from=production-build /app/package.json /app/
 # Install only production dependencies
 RUN pnpm install --prod --shamefully-hoist
 
+# Copy Prisma CLI from dedicated stage
+COPY --from=prisma-cli /app/node_modules/.bin/prisma /app/node_modules/.bin/prisma
+
 # Set production command
-CMD ["sh", "-c", "cd /app/server && pnpm prisma:migrate:ci && node /app/dist/server/index.js"]
+CMD ["sh", "-c", "cd /app/server && /app/node_modules/.bin/prisma migrate deploy && node /app/dist/server/index.js"]

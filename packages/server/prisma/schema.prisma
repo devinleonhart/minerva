@@ -12,6 +12,12 @@ enum PotionQuality {
   LQ
 }
 
+enum IngredientQuality {
+  NORMAL
+  HQ
+  LQ
+}
+
 model Recipe {
   id            Int           @id @default(autoincrement())
   potionId      Int           @unique
@@ -31,6 +37,7 @@ model Ingredient {
   name          String        @db.VarChar(255)
   secured       Boolean       @default(false)
   recipes       RecipeIngredient[]
+  inventoryItems InventoryItem[]
 }
 
 model Potion {
@@ -48,4 +55,14 @@ model RecipeIngredient {
   ingredient    Ingredient   @relation(fields: [ingredientId], references: [id])
 
   @@id([recipeId, ingredientId])
+}
+
+model InventoryItem {
+  id            Int               @id @default(autoincrement())
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  ingredientId  Int
+  ingredient    Ingredient        @relation(fields: [ingredientId], references: [id])
+  quality       IngredientQuality @default(NORMAL)
+  quantity      Int               @default(1)
 }

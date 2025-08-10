@@ -25,5 +25,4 @@ app.use((req, res) => {
 })
 
 console.log(`Running in NODE_ENV: ${process.env.NODE_ENV || 'development'}`)
-console.log(`MINERVA_DATABASE_URL: ${process.env.MINERVA_DATABASE_URL}`)
 app.listen(serverPort, () => console.log(`Serving magic from port ${serverPort}!`))

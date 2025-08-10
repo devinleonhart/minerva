@@ -45,11 +45,9 @@ WORKDIR /app
 COPY --from=production-build /app/dist /app/dist
 COPY --from=production-build /app/packages/server/prisma /app/server/prisma
 COPY --from=production-build /app/packages/server/package.json /app/server/package.json
-COPY --from=production-build /app/pnpm-lock.yaml /app/
-COPY --from=production-build /app/package.json /app/
 
 WORKDIR /app/server
-RUN pnpm install --prod --shamefully-hoist
+RUN pnpm install --prod
 
 WORKDIR /app
 RUN pnpm add prisma

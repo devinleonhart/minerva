@@ -35,6 +35,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Debug directory structure
+        run: |
+          pwd
+          ls -la
+          echo "pnpm-lock.yaml exists: $(test -f pnpm-lock.yaml && echo 'YES' || echo 'NO')"
+          echo "Current directory contents:"
+          find . -name "pnpm-lock.yaml" -type f
+          echo "Git status:"
+          git status --porcelain
+          echo "Git remote:"
+          git remote -v
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 

@@ -24,7 +24,7 @@ COPY packages/server/tsconfig.json /app/packages/server/
 COPY packages/server/index.ts /app/packages/server/
 
 # Copy shared configuration
-COPY tsconfig.base.json /app/
+COPY tsconfig.json tsconfig.build.json /app/
 
 # Install dependencies and build
 RUN pnpm install --shamefully-hoist

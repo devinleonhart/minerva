@@ -2,7 +2,8 @@ services:
   client:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      target: development
     working_dir: /app/packages/client
     command: pnpm dev
     ports:
@@ -18,14 +19,15 @@ services:
   server:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      target: development
     working_dir: /app/packages/server
     command: pnpm dev
     ports:
       - "3000:3000"
     volumes:
       - ./packages/server:/app/packages/server
-      - /app/packages/server/node_modules
+      - /app/packages/client/node_modules
     env_file:
       - .env
     environment:
@@ -37,7 +39,8 @@ services:
   prisma:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      target: development
     working_dir: /app/packages/server
     command: ["tail", "-f", "/dev/null"]
     env_file:

@@ -7,13 +7,20 @@ datasource db {
   url      = env("MINERVA_DATABASE_URL")
 }
 
+enum PotionQuality {
+  HQ
+  LQ
+}
+
 model Recipe {
   id            Int           @id @default(autoincrement())
+  potionId      Int           @unique
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   name          String        @db.VarChar(255)
   description   String
   ingredients   RecipeIngredient[]
+  potions       Potion        @relation(fields: [potionId], references: [id])
 }
 
 model Ingredient {
@@ -24,6 +31,14 @@ model Ingredient {
   name          String        @db.VarChar(255)
   secured       Boolean       @default(false)
   recipes       RecipeIngredient[]
+}
+
+model Potion {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  quality       String?        @db.VarChar(255)
+  recipe        Recipe?
 }
 
 model RecipeIngredient {

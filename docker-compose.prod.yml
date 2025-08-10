@@ -12,7 +12,7 @@ services:
       - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
     depends_on:
       - postgres
-    entrypoint: ["sh", "-c", "cd /app/server && pnpm prisma:migrate:ci && node /app/dist/server/index.js"]
+    entrypoint: ["sh", "-c", "cd /app/packages/server && pnpm prisma:migrate:ci && node /app/dist/server/index.js"]
 
   postgres:
     image: postgres:17.4

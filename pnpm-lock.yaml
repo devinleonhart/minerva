@@ -48,7 +48,7 @@ importers:
         specifier: 3.1.1
         version: 3.1.1(@types/node@22.14.0)(@vitest/ui@3.1.1)(jsdom@26.0.0)(tsx@4.19.3)
 
-  client:
+  packages/client:
     dependencies:
       axios:
         specifier: ^1.8.4
@@ -91,7 +91,7 @@ importers:
         specifier: ^2.2.8
         version: 2.2.8(typescript@5.8.3)
 
-  server:
+  packages/server:
     dependencies:
       '@prisma/client':
         specifier: ^6.6.0
@@ -156,7 +156,7 @@ packages:
     resolution: {integrity: sha512-W1lG5vUwFvfMd8HVXqdfbuG7RuaSrTCCD8cl8fP8wOivdbtbIg2Db3IWUcgvfxKbbn6ZBGYRW/Zk1MIwK49mgw==}
     engines: {node: '>=6.9.0'}
     dependencies:
-      '@babel/types': 7.19.0
+      '@babel/types': 7.27.0
       '@jridgewell/gen-mapping': 0.3.8
       jsesc: 2.5.2
     dev: true
@@ -174,7 +174,7 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
     dependencies:
-      '@babel/types': 7.19.0
+      '@babel/types': 7.27.0
     dev: true
 
   /@babel/parser@7.27.0:

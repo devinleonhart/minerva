@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
     "baseUrl": ".",
@@ -8,6 +8,5 @@
       "#/*": ["types/*"]
     }
   },
-  "include": ["src", "types"],
-  "references": [{ "path": "../server" }]
+  "include": ["src", "types"]
 }

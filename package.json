@@ -2,14 +2,18 @@
 	"name": "minerva",
 	"private": true,
 	"type": "module",
-	"scripts": {
-  		"dev": "docker compose -f docker-compose.dev.yml up --build",
-  		"prod": "docker compose -f docker-compose.prod.yml up --build",
-		"test": "pnpm -r test",
-		"lint": "pnpm -r lint",
-		"tsc": "pnpm -r tsc",
-		"quality": "pnpm test && pnpm lint && pnpm tsc"
-	},
+	    "scripts": {
+        "dev": "docker compose -f docker-compose.dev.yml up --build",
+        "prod": "docker compose -f docker-compose.prod.yml up --build",
+        "test": "pnpm -r test",
+        "lint": "pnpm -r lint",
+        "tsc": "tsc --build tsconfig.build.json",
+        "quality": "pnpm test && pnpm lint && pnpm tsc",
+        "clean": "rm -rf dist packages/*/dist packages/*/node_modules",
+        "build": "pnpm clean && pnpm install && pnpm -r build",
+        "dev:client": "cd packages/client && pnpm dev",
+        "dev:server": "cd packages/server && pnpm dev"
+    },
 	"devDependencies": {
 		"@eslint/js": "^9.24.0",
 		"@types/node": "^22.14.0",

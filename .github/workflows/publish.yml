@@ -38,14 +38,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Clean build artifacts
-        run: pnpm clean
-
       - name: Run Prisma Generate
         run: pnpm --filter server prisma:generate:ci
 
       - name: Perform Quality Checks
         run: pnpm quality
+
+      - name: Clean build artifacts
+        run: pnpm clean
 
       - name: Build packages
         run: pnpm build

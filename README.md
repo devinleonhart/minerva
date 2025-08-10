@@ -25,8 +25,8 @@ A full-stack web application for managing alchemy ingredients and recipes in the
 
 ### Prerequisites
 
-- **Node.js** 20.11.0 or higher
-- **pnpm** (recommended) or npm
+- **Node.js** 24.4.1 or higher
+- **pnpm** 9.0.0 or higher
 - **Docker** and **Docker Compose** (for full-stack development)
 - **PostgreSQL** (or use Docker)
 

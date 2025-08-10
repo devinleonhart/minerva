@@ -267,7 +267,7 @@ minerva/
 │       └── package.json       # Server dependencies
 ├── dist/                      # Build output (generated)
 ├── docker-compose.dev.yml     # Development environment
-├── docker-compose.prod.yml    # Production environment
+
 ├── Dockerfile                 # Production Docker image
 ├── Dockerfile.dev             # Development Docker image
 ├── package.json               # Root workspace configuration

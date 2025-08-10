@@ -36,7 +36,7 @@ importers:
         specifier: ^5.9.2
         version: 5.9.2
       typescript-eslint:
-        specifier: ^8.39.0
+        specifier: ^8.8.0
         version: 8.39.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2)
       vitest:
         specifier: ^3.2.4
@@ -96,6 +96,9 @@ importers:
       pg:
         specifier: ^8.16.3
         version: 8.16.3
+      prisma:
+        specifier: ^6.13.0
+        version: 6.13.0(typescript@5.9.2)
     devDependencies:
       '@types/cors':
         specifier: ^2.8.19
@@ -109,9 +112,6 @@ importers:
       nodemon:
         specifier: ^3.1.10
         version: 3.1.10
-      prisma:
-        specifier: ^6.13.0
-        version: 6.13.0(typescript@5.9.2)
       tsx:
         specifier: ^4.20.3
         version: 4.20.3

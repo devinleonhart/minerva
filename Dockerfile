@@ -29,8 +29,8 @@ COPY tsconfig.json tsconfig.build.json /app/
 # Install dependencies and build
 RUN pnpm install --shamefully-hoist
 RUN cd /app/server && npx prisma generate --schema=./prisma/schema.prisma
-RUN cd /app/client && pnpm build
-RUN cd /app/server && pnpm build
+RUN pnpm --filter client build
+RUN pnpm --filter server build
 
 # Set default command to ensure correct working directory
 CMD ["sh", "-c", "cd /app/server && pnpm prisma:migrate:ci && node /app/dist/server/index.js"]

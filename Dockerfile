@@ -45,9 +45,9 @@ FROM base AS production-build
 # Generate Prisma client
 RUN cd /app/packages/server && npx prisma generate --schema=./prisma/schema.prisma
 
-# Build both client and server
-RUN npx tsc --project packages/client/tsconfig.json
-RUN npx tsc --project packages/server/tsconfig.json
+# Build both client and server using their package.json scripts
+RUN pnpm --filter client build
+RUN pnpm --filter server build
 
 # Production runtime stage
 FROM node:24.4.1 AS production

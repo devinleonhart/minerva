@@ -50,4 +50,6 @@ RUN pnpm install --prod
 
 RUN pnpm add prisma
 
+RUN npx prisma generate --schema=/app/server/prisma/schema.prisma
+
 CMD ["sh", "-c", "cd /app/server && npx prisma migrate deploy && node /app/dist/server/index.js"]

@@ -1,6 +1,6 @@
 FROM node:24.4.1
 
-RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Create base directories
 WORKDIR /app

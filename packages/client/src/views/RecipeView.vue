@@ -96,10 +96,11 @@
       >
         <div class="recipe-header">
           <h3>{{ recipe.name }}</h3>
-          <div class="recipe-actions">
-            <button @click="editRecipe(recipe)" class="edit-btn">Edit</button>
-            <button @click="deleteRecipe(recipe.id)" class="delete-btn">Delete</button>
-          </div>
+                  <div class="recipe-actions">
+          <button @click="checkCraftability(recipe.id)" class="craft-btn">Craft</button>
+          <button @click="editRecipe(recipe)" class="edit-btn">Edit</button>
+          <button @click="deleteRecipe(recipe.id)" class="delete-btn">Delete</button>
+        </div>
         </div>
 
         <p class="recipe-description">{{ recipe.description }}</p>
@@ -114,6 +115,81 @@
         </div>
       </div>
     </div>
+
+    <!-- Ingredient Selection Modal for Crafting -->
+    <div v-if="showCraftModal" class="craft-modal-overlay" @click="closeCraftModal">
+      <div class="craft-modal" @click.stop>
+        <div class="craft-modal-header">
+          <h2>Craft {{ selectedRecipe?.name }}</h2>
+          <button @click="closeCraftModal" class="close-btn">&times;</button>
+        </div>
+
+        <div v-if="craftability" class="craft-modal-content">
+          <div class="craft-status">
+            <div v-if="craftability.isCraftable" class="craftable-status">
+              ✅ Recipe is craftable!
+            </div>
+            <div v-else class="uncraftable-status">
+              ❌ Recipe cannot be crafted - insufficient ingredients
+            </div>
+          </div>
+
+          <div class="ingredient-selections">
+            <h3>Select Ingredients:</h3>
+            <div
+              v-for="ingredient in craftability.ingredients"
+              :key="ingredient.ingredientId"
+              class="ingredient-selection-item"
+              :class="{ 'insufficient': !ingredient.isCraftable }"
+            >
+              <div class="ingredient-info">
+                <span class="ingredient-name">{{ ingredient.ingredientName }}</span>
+                <span class="ingredient-requirement">
+                  Required: {{ ingredient.requiredQuantity }} | Available: {{ ingredient.availableQuantity }}
+                </span>
+              </div>
+
+              <div v-if="ingredient.isCraftable" class="quality-selection">
+                <label>Select Quality:</label>
+                <select
+                  v-model="craftingIngredients[ingredient.ingredientId]"
+                  class="quality-select"
+                >
+                  <option value="">Choose quality...</option>
+                  <option
+                    v-for="option in ingredient.availableOptions"
+                    :key="option.inventoryItemId"
+                    :value="option.inventoryItemId"
+                  >
+                    {{ option.quality }} ({{ option.totalAvailable }} available)
+                  </option>
+                </select>
+              </div>
+              <div v-else class="insufficient-message">
+                Need {{ ingredient.requiredQuantity - ingredient.availableQuantity }} more
+              </div>
+            </div>
+          </div>
+
+          <div class="craft-actions">
+            <button
+              @click="craftPotion"
+              :disabled="!canCraftPotion"
+              class="craft-potion-btn"
+            >
+              Craft Potion
+            </button>
+            <button @click="closeCraftModal" class="cancel-craft-btn">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="craft-modal-content">
+          <p>Loading recipe information...</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -122,15 +198,21 @@ import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRecipeStore } from '@/store/recipe'
 import { useIngredientStore } from '@/store/ingredient'
+import { usePotionStore } from '@/store/potion'
 import type { Recipe } from '@/types/store/recipe'
 
 const recipeStore = useRecipeStore()
 const ingredientStore = useIngredientStore()
+const potionStore = usePotionStore()
 
 const { recipes } = storeToRefs(recipeStore)
 const { ingredients } = storeToRefs(ingredientStore)
+const { craftability } = storeToRefs(potionStore)
 
 const showCreateForm = ref(false)
+const showCraftModal = ref(false)
+const selectedRecipe = ref<Recipe | null>(null)
+
 const newRecipe = ref({
   name: '',
   description: '',
@@ -138,6 +220,7 @@ const newRecipe = ref({
 })
 
 const selectedIngredients = ref<Array<{ ingredientId: number; quantity: number }>>([])
+const craftingIngredients = ref<Record<number, number>>({}) // ingredientId -> inventoryItemId
 
 const availableIngredients = computed(() => ingredients.value)
 
@@ -181,6 +264,59 @@ const updateIngredientQuantity = (ingredientId: number, event: Event) => {
     if (ingredient) {
       ingredient.quantity = quantity
     }
+  }
+}
+
+const checkCraftability = async (recipeId: number) => {
+  try {
+    const recipe = recipes.value.find(r => r.id === recipeId)
+    if (recipe) {
+      selectedRecipe.value = recipe
+      showCraftModal.value = true
+      await potionStore.checkRecipeCraftability(recipeId)
+    }
+  } catch (error) {
+    console.error('Error checking craftability:', error)
+  }
+}
+
+const closeCraftModal = () => {
+  showCraftModal.value = false
+  selectedRecipe.value = null
+  craftingIngredients.value = {}
+}
+
+const canCraftPotion = computed(() => {
+  if (!craftability.value) return false
+  return craftability.value.ingredients.every(ing =>
+    ing.isCraftable && craftingIngredients.value[ing.ingredientId]
+  )
+})
+
+const craftPotion = async () => {
+  if (!craftability.value || !selectedRecipe.value) return
+
+  try {
+    const ingredientSelections = craftability.value.ingredients.map(ing => ({
+      ingredientId: ing.ingredientId,
+      inventoryItemId: craftingIngredients.value[ing.ingredientId],
+      quantity: ing.requiredQuantity
+    }))
+
+    await potionStore.craftPotion({
+      recipeId: selectedRecipe.value.id,
+      ingredientSelections
+    })
+
+    // Refresh inventory and close modal
+    await ingredientStore.getIngredients() // This should refresh inventory too
+    closeCraftModal()
+
+    // Show success message
+    alert('Potion crafted successfully!')
+  } catch (error) {
+    console.error('Error crafting potion:', error)
+    alert('Failed to craft potion. Please try again.')
   }
 }
 
@@ -487,6 +623,204 @@ const deleteRecipe = async (id: number) => {
 
 .delete-btn:hover {
   background: #c82333;
+}
+
+.craft-btn {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-right: 8px;
+}
+
+.craft-btn:hover {
+  background: #138496;
+}
+
+/* Crafting Modal Styles */
+.craft-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.craft-modal {
+  background: white;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.craft-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.craft-modal-header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.craft-modal-content {
+  padding: 20px;
+}
+
+.craft-status {
+  margin-bottom: 20px;
+  padding: 12px;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.craftable-status {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.uncraftable-status {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.ingredient-selections h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+}
+
+.ingredient-selection-item {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: #f8f9fa;
+}
+
+.ingredient-selection-item.insufficient {
+  border-color: #dc3545;
+  background: #f8d7da;
+}
+
+.ingredient-info {
+  margin-bottom: 12px;
+}
+
+.ingredient-name {
+  display: block;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.ingredient-requirement {
+  display: block;
+  font-size: 14px;
+  color: #666;
+}
+
+.quality-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quality-selection label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.quality-select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+}
+
+.insufficient-message {
+  color: #dc3545;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.craft-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.craft-potion-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.craft-potion-btn:hover:not(:disabled) {
+  background: #218838;
+}
+
+.craft-potion-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.cancel-craft-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.cancel-craft-btn:hover {
+  background: #545b62;
 }
 
 .recipe-description {

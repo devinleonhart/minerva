@@ -34,9 +34,24 @@ export interface PotionInventoryItem {
   updatedAt: string
 }
 
+export interface ItemInventoryItem {
+  id: number
+  itemId: number
+  item: {
+    id: number
+    name: string
+    description: string
+    createdAt: string
+    updatedAt: string
+  }
+  createdAt: string
+  updatedAt: string
+}
+
 export interface InventoryStore {
   inventoryItems: InventoryItem[]
   potionItems: PotionInventoryItem[]
+  itemItems: ItemInventoryItem[]
 }
 
 export interface AddToInventoryRequest {

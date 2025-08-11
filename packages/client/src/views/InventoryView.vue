@@ -1,7 +1,7 @@
 <template>
   <div class="inventory-view">
     <h1>Inventory</h1>
-    <div v-if="inventoryItems.length === 0 && potionItems.length === 0" class="empty-state">
+    <div v-if="inventoryItems.length === 0 && potionItems.length === 0 && itemItems.length === 0" class="empty-state">
       <p>Your inventory is empty. Visit the ingredients page to add items!</p>
     </div>
 
@@ -102,6 +102,31 @@
         </div>
       </div>
     </div>
+
+    <!-- Items Section -->
+    <div v-if="itemItems.length > 0">
+      <h2>Items</h2>
+      <div class="inventory-grid">
+        <div
+          v-for="item in itemItems"
+          :key="item.id"
+          class="inventory-item item-item"
+        >
+          <div class="item-header">
+            <h3>{{ item.item.name }}</h3>
+          </div>
+          <p class="description">{{ item.item.description }}</p>
+          <div class="item-controls">
+            <button
+              @click="deleteItemItem(item.id)"
+              class="delete-btn"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -111,7 +136,7 @@ import { storeToRefs } from 'pinia'
 import { useInventoryStore } from '@/store/inventory'
 
 const inventoryStore = useInventoryStore()
-const { inventoryItems, potionItems } = storeToRefs(inventoryStore)
+const { inventoryItems, potionItems, itemItems } = storeToRefs(inventoryStore)
 
 onMounted(async () => {
   await inventoryStore.getInventory()
@@ -158,6 +183,14 @@ const deletePotionItem = async (id: number) => {
     await inventoryStore.deletePotionInventoryItem(id)
   } catch (error) {
     console.error('Error deleting potion:', error)
+  }
+}
+
+const deleteItemItem = async (id: number) => {
+  try {
+    await inventoryStore.deleteItemInventoryItem(id)
+  } catch (error) {
+    console.error('Error deleting item:', error)
   }
 }
 </script>
@@ -308,5 +341,9 @@ const deletePotionItem = async (id: number) => {
 .quality-lq {
   background: #dc3545;
   color: white;
+}
+
+.item-item {
+  border-left: 4px solid #fd7e14;
 }
 </style>

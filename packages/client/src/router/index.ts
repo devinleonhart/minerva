@@ -17,6 +17,11 @@ const routes = [
     component: () => import('@/views/InventoryView.vue')
   },
   {
+    path: '/items',
+    name: 'Items',
+    component: () => import('@/views/ItemView.vue')
+  },
+  {
     path: '/import',
     name: 'QuickImport',
     component: () => import('@/views/QuickImport.vue')

@@ -6,7 +6,8 @@ import type { InventoryStore, AddToInventoryRequest, UpdateInventoryRequest, Upd
 export const useInventoryStore = defineStore('inventory', {
   state: (): InventoryStore => ({
     inventoryItems: [],
-    potionItems: []
+    potionItems: [],
+    itemItems: []
   }),
   actions: {
     async addToInventory(request: AddToInventoryRequest) {
@@ -24,6 +25,7 @@ export const useInventoryStore = defineStore('inventory', {
         const response = await axios.get('/api/inventory/')
         this.inventoryItems = response.data.ingredients || []
         this.potionItems = response.data.potions || []
+        this.itemItems = response.data.items || []
       } catch (error) {
         console.error('Error fetching inventory:', error)
         return []
@@ -64,6 +66,15 @@ export const useInventoryStore = defineStore('inventory', {
         await this.getInventory()
       } catch (error) {
         console.error('Error deleting potion from inventory:', error)
+        throw error
+      }
+    },
+    async deleteItemInventoryItem(id: number) {
+      try {
+        await axios.delete(`/api/inventory/item/${id}`)
+        await this.getInventory()
+      } catch (error) {
+        console.error('Error deleting item from inventory:', error)
         throw error
       }
     }

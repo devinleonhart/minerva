@@ -6,6 +6,7 @@
         <router-link to="/" class="nav-link">Recipes</router-link>
         <router-link to="/ingredients" class="nav-link">Ingredients</router-link>
         <router-link to="/inventory" class="nav-link">Inventory</router-link>
+        <router-link to="/items" class="nav-link">Items</router-link>
         <router-link to="/import" class="nav-link">Quick Import</router-link>
       </nav>
     </header>

@@ -78,3 +78,20 @@ model PotionInventoryItem {
   potion        Potion        @relation(fields: [potionId], references: [id])
   quantity      Int           @default(1)
 }
+
+model Item {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  name          String        @db.VarChar(255)
+  description   String
+  inventoryItems ItemInventoryItem[]
+}
+
+model ItemInventoryItem {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  itemId        Int
+  item          Item          @relation(fields: [itemId], references: [id])
+}

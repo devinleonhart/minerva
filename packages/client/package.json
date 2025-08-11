@@ -5,8 +5,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "lint": "../../node_modules/.bin/eslint .",
-    "test": "../../node_modules/.bin/vitest --run",
+    "lint": "npx eslint .",
+    "test": "npx vitest --run",
     "tsc": "vue-tsc --noEmit"
   },
   "dependencies": {

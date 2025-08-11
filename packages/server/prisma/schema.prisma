@@ -51,6 +51,7 @@ model Potion {
 model RecipeIngredient {
   recipeId      Int
   ingredientId  Int
+  quantity      Int           @default(1)
   recipe        Recipe       @relation(fields: [recipeId], references: [id])
   ingredient    Ingredient   @relation(fields: [ingredientId], references: [id])
 

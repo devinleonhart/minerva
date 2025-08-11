@@ -2,26 +2,36 @@ import { Router } from 'express'
 import { PrismaClient } from '@prisma/client'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
+interface RecipeIngredientInput {
+  ingredientId: number
+  quantity: number
+}
+
 const prisma = new PrismaClient()
 const router: Router = Router()
 
 router.post('/', async (req, res) => {
   try {
-    const { name, description, ingredientIds } = req.body
+    const { name, description, ingredients } = req.body as {
+      name: string
+      description: string
+      ingredients: RecipeIngredientInput[]
+    }
 
-    if (!name || !description || !ingredientIds || !Array.isArray(ingredientIds)) {
-      res.status(400).json({ error: 'name, description, and ingredientIds array are required' })
+    if (!name || !description || !ingredients || !Array.isArray(ingredients)) {
+      res.status(400).json({ error: 'name, description, and ingredients array are required' })
       return
     }
 
     // Verify all ingredients exist
-    const ingredients = await prisma.ingredient.findMany({
+    const ingredientIds = ingredients.map((ing: RecipeIngredientInput) => ing.ingredientId)
+    const existingIngredients = await prisma.ingredient.findMany({
       where: {
         id: { in: ingredientIds }
       }
     })
 
-    if (ingredients.length !== ingredientIds.length) {
+    if (existingIngredients.length !== ingredientIds.length) {
       res.status(400).json({ error: 'One or more ingredients not found' })
       return
     }
@@ -36,13 +46,14 @@ router.post('/', async (req, res) => {
         }
       })
 
-      // Create recipe-ingredient relationships
+      // Create recipe-ingredient relationships with quantities
       await Promise.all(
-        ingredientIds.map((ingredientId: number) =>
+        ingredients.map((ing: RecipeIngredientInput) =>
           tx.recipeIngredient.create({
             data: {
               recipeId: newRecipe.id,
-              ingredientId
+              ingredientId: ing.ingredientId,
+              quantity: ing.quantity || 1
             }
           })
         )

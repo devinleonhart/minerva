@@ -40,15 +40,35 @@
               v-for="ingredient in availableIngredients"
               :key="ingredient.id"
               class="ingredient-option"
-              :class="{ selected: selectedIngredientIds.includes(ingredient.id) }"
-              @click="toggleIngredient(ingredient.id)"
+              :class="{ selected: isIngredientSelected(ingredient.id) }"
             >
-              <span class="ingredient-name">{{ ingredient.name }}</span>
-              <span class="ingredient-description">{{ ingredient.description }}</span>
+              <div class="ingredient-info">
+                <span class="ingredient-name">{{ ingredient.name }}</span>
+                <span class="ingredient-description">{{ ingredient.description }}</span>
+              </div>
+              <div class="ingredient-quantity">
+                <label :for="`quantity-${ingredient.id}`">Qty:</label>
+                <input
+                  :id="`quantity-${ingredient.id}`"
+                  :value="getIngredientQuantity(ingredient.id)"
+                  type="number"
+                  min="1"
+                  class="quantity-input"
+                  @click.stop
+                  @input="updateIngredientQuantity(ingredient.id, $event)"
+                />
+                <button
+                  type="button"
+                  class="add-ingredient-btn"
+                  @click="toggleIngredient(ingredient.id)"
+                >
+                  {{ isIngredientSelected(ingredient.id) ? 'Remove' : 'Add' }}
+                </button>
+              </div>
             </div>
           </div>
           <p class="ingredient-count">
-            Selected: {{ selectedIngredientIds.length }} ingredients
+            Selected: {{ selectedIngredients.length }} ingredients
           </p>
         </div>
 
@@ -88,7 +108,7 @@
           <h4>Ingredients:</h4>
           <ul>
             <li v-for="recipeIngredient in recipe.ingredients" :key="recipeIngredient.ingredientId">
-              {{ recipeIngredient.ingredient.name }}
+              {{ recipeIngredient.ingredient.name }} ({{ recipeIngredient.quantity }})
             </li>
           </ul>
         </div>
@@ -114,17 +134,17 @@ const showCreateForm = ref(false)
 const newRecipe = ref({
   name: '',
   description: '',
-  ingredientIds: [] as number[]
+  ingredients: [] as Array<{ ingredientId: number; quantity: number }>
 })
 
-const selectedIngredientIds = ref<number[]>([])
+const selectedIngredients = ref<Array<{ ingredientId: number; quantity: number }>>([])
 
 const availableIngredients = computed(() => ingredients.value)
 
 const canCreateRecipe = computed(() =>
   newRecipe.value.name.trim() &&
   newRecipe.value.description.trim() &&
-  selectedIngredientIds.value.length > 0
+  selectedIngredients.value.length > 0
 )
 
 onMounted(async () => {
@@ -135,11 +155,32 @@ onMounted(async () => {
 })
 
 const toggleIngredient = (ingredientId: number) => {
-  const index = selectedIngredientIds.value.indexOf(ingredientId)
+  const index = selectedIngredients.value.findIndex(ing => ing.ingredientId === ingredientId)
   if (index > -1) {
-    selectedIngredientIds.value.splice(index, 1)
+    selectedIngredients.value.splice(index, 1)
   } else {
-    selectedIngredientIds.value.push(ingredientId)
+    selectedIngredients.value.push({ ingredientId, quantity: 1 })
+  }
+}
+
+const isIngredientSelected = (ingredientId: number) => {
+  return selectedIngredients.value.some(ing => ing.ingredientId === ingredientId)
+}
+
+const getIngredientQuantity = (ingredientId: number) => {
+  const ingredient = selectedIngredients.value.find(ing => ing.ingredientId === ingredientId)
+  return ingredient ? ingredient.quantity : 1
+}
+
+const updateIngredientQuantity = (ingredientId: number, event: Event) => {
+  const target = event.target as HTMLInputElement
+  const quantity = parseInt(target.value) || 1
+
+  if (isIngredientSelected(ingredientId)) {
+    const ingredient = selectedIngredients.value.find(ing => ing.ingredientId === ingredientId)
+    if (ingredient) {
+      ingredient.quantity = quantity
+    }
   }
 }
 
@@ -148,12 +189,12 @@ const handleCreateRecipe = async () => {
     await recipeStore.createRecipe({
       name: newRecipe.value.name,
       description: newRecipe.value.description,
-      ingredientIds: selectedIngredientIds.value
+      ingredients: selectedIngredients.value
     })
 
     // Reset form
-    newRecipe.value = { name: '', description: '', ingredientIds: [] }
-    selectedIngredientIds.value = []
+    newRecipe.value = { name: '', description: '', ingredients: [] }
+    selectedIngredients.value = []
     showCreateForm.value = false
   } catch (error) {
     console.error('Error creating recipe:', error)
@@ -161,8 +202,8 @@ const handleCreateRecipe = async () => {
 }
 
 const cancelCreate = () => {
-  newRecipe.value = { name: '', description: '', ingredientIds: [] }
-  selectedIngredientIds.value = []
+  newRecipe.value = { name: '', description: '', ingredients: [] }
+  selectedIngredients.value = []
   showCreateForm.value = false
 }
 
@@ -266,9 +307,10 @@ const deleteRecipe = async (id: number) => {
   border: 2px solid #e9ecef;
   border-radius: 6px;
   padding: 12px;
-  cursor: pointer;
   transition: all 0.2s;
   background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
 }
 
 .ingredient-option:hover {
@@ -279,6 +321,10 @@ const deleteRecipe = async (id: number) => {
 .ingredient-option.selected {
   border-color: #28a745;
   background: #d4edda;
+}
+
+.ingredient-info {
+  flex: 1;
 }
 
 .ingredient-name {
@@ -292,6 +338,43 @@ const deleteRecipe = async (id: number) => {
   display: block;
   font-size: 12px;
   color: #666;
+}
+
+.ingredient-quantity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ingredient-quantity label {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+.quantity-input {
+  width: 60px;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.add-ingredient-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.add-ingredient-btn:hover {
+  background: #0056b3;
 }
 
 .ingredient-count {

@@ -1,40 +1,32 @@
 <template>
   <div class="recipe-view">
     <div class="recipe-header">
-      <h1>Recipes</h1>
-      <button @click="showCreateForm = true" class="create-recipe-btn">
+      <n-h1>Recipes</n-h1>
+      <n-button @click="showCreateForm = true" type="primary" size="large">
+        <template #icon>
+          <n-icon><PlusIcon /></n-icon>
+        </template>
         Create New Recipe
-      </button>
+      </n-button>
     </div>
 
-    <!-- Create Recipe Form -->
-    <div v-if="showCreateForm" class="create-recipe-form">
-      <h2>Create New Recipe</h2>
-      <form @submit.prevent="handleCreateRecipe">
-        <div class="form-group">
-          <label for="recipe-name">Recipe Name:</label>
-          <input
-            id="recipe-name"
-            v-model="newRecipe.name"
-            type="text"
-            required
-            placeholder="Enter recipe name"
-          />
-        </div>
+    <!-- Create Recipe Form Modal -->
+    <n-modal v-model:show="showCreateForm" preset="card" title="Create New Recipe" style="width: 600px">
+      <n-form @submit.prevent="handleCreateRecipe" :model="newRecipe" label-placement="top">
+        <n-form-item label="Recipe Name" path="name">
+          <n-input v-model:value="newRecipe.name" placeholder="Enter recipe name" />
+        </n-form-item>
 
-        <div class="form-group">
-          <label for="recipe-description">Description:</label>
-          <textarea
-            id="recipe-description"
-            v-model="newRecipe.description"
-            required
+        <n-form-item label="Description" path="description">
+          <n-input
+            v-model:value="newRecipe.description"
+            type="textarea"
             placeholder="Enter recipe description"
-            rows="3"
-          ></textarea>
-        </div>
+            :rows="3"
+          />
+        </n-form-item>
 
-        <div class="form-group">
-          <label>Ingredients:</label>
+        <n-form-item label="Ingredients">
           <div class="ingredient-selection">
             <div
               v-for="ingredient in availableIngredients"
@@ -47,163 +39,202 @@
                 <span class="ingredient-description">{{ ingredient.description }}</span>
               </div>
               <div class="ingredient-quantity">
-                <label :for="`quantity-${ingredient.id}`">Qty:</label>
-                <input
-                  :id="`quantity-${ingredient.id}`"
+                <n-input-number
                   :value="getIngredientQuantity(ingredient.id)"
-                  type="number"
-                  min="1"
-                  class="quantity-input"
-                  @click.stop
-                  @input="updateIngredientQuantity(ingredient.id, $event)"
+                  :min="1"
+                  size="small"
+                  placeholder="Qty"
+                  @update:value="(value: number | null) => updateIngredientQuantity(ingredient.id, { target: { value: value || 1 } })"
                 />
-                <button
-                  type="button"
-                  class="add-ingredient-btn"
+                <n-button
+                  :type="isIngredientSelected(ingredient.id) ? 'error' : 'primary'"
+                  size="small"
                   @click="toggleIngredient(ingredient.id)"
                 >
                   {{ isIngredientSelected(ingredient.id) ? 'Remove' : 'Add' }}
-                </button>
+                </n-button>
               </div>
             </div>
           </div>
           <p class="ingredient-count">
             Selected: {{ selectedIngredients.length }} ingredients
           </p>
-        </div>
+        </n-form-item>
 
-        <div class="form-actions">
-          <button type="submit" class="submit-btn" :disabled="!canCreateRecipe">
+        <n-space justify="end">
+          <n-button @click="cancelCreate">Cancel</n-button>
+          <n-button type="primary" :disabled="!canCreateRecipe" attr-type="submit">
             Create Recipe
-          </button>
-          <button type="button" @click="cancelCreate" class="cancel-btn">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+          </n-button>
+        </n-space>
+      </n-form>
+    </n-modal>
 
     <!-- Recipe List -->
-    <div v-if="recipes.length === 0 && !showCreateForm" class="empty-state">
-      <p>No recipes created yet. Create your first recipe to get started!</p>
-    </div>
+    <n-empty v-if="recipes.length === 0 && !showCreateForm" description="No recipes created yet. Create your first recipe to get started!" />
 
     <div v-else-if="!showCreateForm" class="recipe-grid">
-      <div
+      <n-card
         v-for="recipe in recipes"
         :key="recipe.id"
         class="recipe-card"
+        :title="recipe.name"
+        size="medium"
       >
-        <div class="recipe-header">
-          <h3>{{ recipe.name }}</h3>
-                  <div class="recipe-actions">
-          <button @click="checkCraftability(recipe.id)" class="craft-btn">Craft</button>
-          <button @click="editRecipe(recipe)" class="edit-btn">Edit</button>
-          <button @click="deleteRecipe(recipe.id)" class="delete-btn">Delete</button>
-        </div>
-        </div>
+        <template #header-extra>
+          <n-space>
+            <n-button @click="checkCraftability(recipe.id)" type="info" size="small">
+              <template #icon>
+                <n-icon><CraftIcon /></n-icon>
+              </template>
+              Craft
+            </n-button>
+            <n-button @click="editRecipe(recipe)" type="warning" size="small">
+              <template #icon>
+                <n-icon><EditIcon /></n-icon>
+              </template>
+              Edit
+            </n-button>
+            <n-button @click="deleteRecipe(recipe.id)" type="error" size="small">
+              <template #icon>
+                <n-icon><DeleteIcon /></n-icon>
+              </template>
+              Delete
+            </n-button>
+          </n-space>
+        </template>
 
         <p class="recipe-description">{{ recipe.description }}</p>
-
+        <n-divider />
         <div class="recipe-ingredients">
           <h4>Ingredients:</h4>
-          <ul>
-            <li v-for="recipeIngredient in recipe.ingredients" :key="recipeIngredient.ingredientId">
+          <n-space vertical>
+            <n-tag
+              v-for="recipeIngredient in recipe.ingredients"
+              :key="recipeIngredient.ingredientId"
+              type="info"
+              size="medium"
+            >
               {{ recipeIngredient.ingredient.name }} ({{ recipeIngredient.quantity }})
-            </li>
-          </ul>
+            </n-tag>
+          </n-space>
         </div>
-      </div>
+      </n-card>
     </div>
 
     <!-- Ingredient Selection Modal for Crafting -->
-    <div v-if="showCraftModal" class="craft-modal-overlay" @click="closeCraftModal">
-      <div class="craft-modal" @click.stop>
-        <div class="craft-modal-header">
-          <h2>Craft {{ selectedRecipe?.name }}</h2>
-          <button @click="closeCraftModal" class="close-btn">&times;</button>
+    <n-modal v-model:show="showCraftModal" preset="card" :title="`Craft ${selectedRecipe?.name}`" style="width: 600px">
+      <div v-if="craftability" class="craft-modal-content">
+        <div class="craft-status">
+          <n-tag v-if="craftability.isCraftable" type="success" size="large">
+            ✅ Recipe is craftable!
+          </n-tag>
+          <n-tag v-else type="error" size="large">
+            ❌ Recipe cannot be crafted - insufficient ingredients
+          </n-tag>
         </div>
 
-        <div v-if="craftability" class="craft-modal-content">
-          <div class="craft-status">
-            <div v-if="craftability.isCraftable" class="craftable-status">
-              ✅ Recipe is craftable!
-            </div>
-            <div v-else class="uncraftable-status">
-              ❌ Recipe cannot be crafted - insufficient ingredients
-            </div>
-          </div>
+        <n-divider />
 
-          <div class="ingredient-selections">
-            <h3>Select Ingredients:</h3>
-            <div
-              v-for="ingredient in craftability.ingredients"
-              :key="ingredient.ingredientId"
-              class="ingredient-selection-item"
-              :class="{ 'insufficient': !ingredient.isCraftable }"
-            >
-              <div class="ingredient-info">
-                <span class="ingredient-name">{{ ingredient.ingredientName }}</span>
-                <span class="ingredient-requirement">
-                  Required: {{ ingredient.requiredQuantity }} | Available: {{ ingredient.availableQuantity }}
-                </span>
-              </div>
-
-              <div v-if="ingredient.isCraftable" class="quality-selection">
-                <label>Select Quality:</label>
-                <select
-                  v-model="craftingIngredients[ingredient.ingredientId]"
-                  class="quality-select"
-                >
-                  <option value="">Choose quality...</option>
-                  <option
-                    v-for="option in ingredient.availableOptions"
-                    :key="option.inventoryItemId"
-                    :value="option.inventoryItemId"
-                  >
-                    {{ option.quality }} ({{ option.totalAvailable }} available)
-                  </option>
-                </select>
-              </div>
-              <div v-else class="insufficient-message">
-                Need {{ ingredient.requiredQuantity - ingredient.availableQuantity }} more
-              </div>
+        <div class="ingredient-selections">
+          <h3>Select Ingredients:</h3>
+          <div
+            v-for="ingredient in craftability.ingredients"
+            :key="ingredient.ingredientId"
+            class="ingredient-selection-item"
+            :class="{ 'insufficient': !ingredient.isCraftable }"
+          >
+            <div class="ingredient-info">
+              <span class="ingredient-name">{{ ingredient.ingredientName }}</span>
+              <span class="ingredient-requirement">
+                Required: {{ ingredient.requiredQuantity }} | Available: {{ ingredient.availableQuantity }}
+              </span>
             </div>
-          </div>
 
-          <div class="craft-actions">
-            <button
-              @click="craftPotion"
-              :disabled="!canCraftPotion"
-              class="craft-potion-btn"
-            >
-              Craft Potion
-            </button>
-            <button @click="closeCraftModal" class="cancel-craft-btn">
-              Cancel
-            </button>
+            <div v-if="ingredient.isCraftable" class="quality-selection">
+                              <n-select
+                  v-model:value="craftingIngredients[ingredient.ingredientId]"
+                  placeholder="Choose quality..."
+                  :options="ingredient.availableOptions.map((option: any) => ({
+                    label: `${option.quality} (${option.totalAvailable} available)`,
+                    value: option.inventoryItemId
+                  }))"
+                />
+            </div>
+            <div v-else class="insufficient-message">
+              Need {{ ingredient.requiredQuantity - ingredient.availableQuantity }} more
+            </div>
           </div>
         </div>
 
-        <div v-else class="craft-modal-content">
-          <p>Loading recipe information...</p>
-        </div>
+        <n-divider />
+
+        <n-space justify="end">
+          <n-button @click="closeCraftModal">Cancel</n-button>
+          <n-button
+            @click="craftPotion"
+            :disabled="!canCraftPotion"
+            type="primary"
+            size="large"
+          >
+            Craft Potion
+          </n-button>
+        </n-space>
       </div>
-    </div>
+
+      <div v-else class="craft-modal-content">
+        <n-empty description="Loading recipe information..." />
+      </div>
+    </n-modal>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, h } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRecipeStore } from '@/store/recipe'
 import { useIngredientStore } from '@/store/ingredient'
 import { usePotionStore } from '@/store/potion'
+import { useToast } from '@/composables/useToast'
+import {
+  NH1,
+  NButton,
+  NIcon,
+  NModal,
+  NForm,
+  NFormItem,
+  NInput,
+  NInputNumber,
+  NSelect,
+  NSpace,
+  NDivider,
+  NCard,
+  NTag,
+  NEmpty
+} from 'naive-ui'
 import type { Recipe } from '@/types/store/recipe'
+
+// Icon components
+const PlusIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
+  h('path', { d: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' })
+])
+
+const CraftIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
+  h('path', { d: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z' })
+])
+
+const EditIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
+  h('path', { d: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z' })
+])
+
+const DeleteIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
+  h('path', { d: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z' })
+])
 
 const recipeStore = useRecipeStore()
 const ingredientStore = useIngredientStore()
 const potionStore = usePotionStore()
+const toast = useToast()
 
 const { recipes } = storeToRefs(recipeStore)
 const { ingredients } = storeToRefs(ingredientStore)
@@ -313,10 +344,10 @@ const craftPotion = async () => {
     closeCraftModal()
 
     // Show success message
-    alert('Potion crafted successfully!')
+    toast.success('Potion crafted successfully!')
   } catch (error) {
     console.error('Error crafting potion:', error)
-    alert('Failed to craft potion. Please try again.')
+    toast.error('Failed to craft potion. Please try again.')
   }
 }
 
@@ -332,8 +363,11 @@ const handleCreateRecipe = async () => {
     newRecipe.value = { name: '', description: '', ingredients: [] }
     selectedIngredients.value = []
     showCreateForm.value = false
+
+    toast.success('Recipe created successfully!')
   } catch (error) {
     console.error('Error creating recipe:', error)
+    toast.error('Failed to create recipe. Please try again.')
   }
 }
 
@@ -349,12 +383,12 @@ const editRecipe = (recipe: Recipe) => {
 }
 
 const deleteRecipe = async (id: number) => {
-  if (confirm('Are you sure you want to delete this recipe?')) {
-    try {
-      await recipeStore.deleteRecipe(id)
-    } catch (error) {
-      console.error('Error deleting recipe:', error)
-    }
+  try {
+    await recipeStore.deleteRecipe(id)
+    toast.success('Recipe deleted successfully!')
+  } catch (error) {
+    console.error('Error deleting recipe:', error)
+    toast.error('Failed to delete recipe. Please try again.')
   }
 }
 </script>

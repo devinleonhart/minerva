@@ -1,26 +1,91 @@
 <template>
-  <input type="text" v-model="searchQuery" placeholder="Search">
-  <ul>
-    <li v-for="ingredient in sortedIngredients" :key="ingredient.id">
-      {{ ingredient.name }} - {{ ingredient.description }}
-      <div class="ingredient-actions">
-        <button @click="handleAddToInventory(ingredient.id)" class="add-to-inventory-btn">
-          Add to Inventory
-        </button>
-        <button @click="handleDelete(ingredient.id)" class="delete-btn">Delete</button>
-      </div>
-    </li>
-  </ul>
+  <div class="ingredient-list">
+    <n-input
+      v-model:value="searchQuery"
+      placeholder="Search ingredients..."
+      size="large"
+      class="search-input"
+    >
+      <template #prefix>
+        <n-icon><SearchIcon /></n-icon>
+      </template>
+    </n-input>
+
+    <n-space vertical size="medium" class="ingredients-container">
+      <n-card
+        v-for="ingredient in sortedIngredients"
+        :key="ingredient.id"
+        size="medium"
+        class="ingredient-card"
+      >
+        <template #header>
+          <span class="ingredient-name">{{ ingredient.name }}</span>
+        </template>
+
+        <p class="ingredient-description">{{ ingredient.description }}</p>
+
+        <template #footer>
+          <n-space justify="end">
+            <n-button
+              @click="handleAddToInventory(ingredient.id)"
+              type="success"
+              size="small"
+            >
+              <template #icon>
+                <n-icon><AddIcon /></n-icon>
+              </template>
+              Add to Inventory
+            </n-button>
+            <n-button
+              @click="handleDelete(ingredient.id)"
+              type="error"
+              size="small"
+            >
+              <template #icon>
+                <n-icon><DeleteIcon /></n-icon>
+              </template>
+              Delete
+            </n-button>
+          </n-space>
+        </template>
+      </n-card>
+    </n-space>
+
+    <n-empty v-if="sortedIngredients.length === 0" description="No ingredients found." />
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, computed, ref, h } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useIngredientStore } from '@/store/ingredient'
 import { useInventoryStore } from '@/store/inventory'
+import { useToast } from '@/composables/useToast'
+import {
+  NInput,
+  NIcon,
+  NButton,
+  NSpace,
+  NCard,
+  NEmpty
+} from 'naive-ui'
+
+// Icon components
+const SearchIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
+  h('path', { d: 'M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z' })
+])
+
+const AddIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
+  h('path', { d: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' })
+])
+
+const DeleteIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
+  h('path', { d: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z' })
+])
 
 const ingredientStore = useIngredientStore()
 const inventoryStore = useInventoryStore()
+const toast = useToast()
 const { ingredients } = storeToRefs(useIngredientStore())
 const sortedIngredients = computed(() => {
   let sorted = [...ingredients.value]
@@ -39,53 +104,53 @@ onMounted(async () => {
 })
 
 const handleDelete = async (id: number) => {
-  await ingredientStore.deleteIngredient(id)
-  await ingredientStore.getIngredients()
+  try {
+    await ingredientStore.deleteIngredient(id)
+    await ingredientStore.getIngredients()
+    toast.success('Ingredient deleted successfully!')
+  } catch (error) {
+    console.error('Error deleting ingredient:', error)
+    toast.error('Failed to delete ingredient. Please try again.')
+  }
 }
 
 const handleAddToInventory = async (ingredientId: number) => {
   try {
     await inventoryStore.addToInventory({ ingredientId })
-    // Show success feedback (you could add a toast notification here)
+    toast.success('Ingredient added to inventory!')
   } catch (error) {
     console.error('Error adding to inventory:', error)
-    // Show error feedback
+    toast.error('Failed to add ingredient to inventory. Please try again.')
   }
 }
 </script>
 
 <style scoped>
-.ingredient-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
+.ingredient-list {
+  padding: 20px;
 }
 
-.add-to-inventory-btn {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
+.search-input {
+  margin-bottom: 20px;
+  max-width: 400px;
 }
 
-.add-to-inventory-btn:hover {
-  background: #218838;
+.ingredients-container {
+  margin-bottom: 20px;
 }
 
-.delete-btn {
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
+.ingredient-card {
+  margin-bottom: 16px;
 }
 
-.delete-btn:hover {
-  background: #c82333;
+.ingredient-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.ingredient-description {
+  margin: 8px 0;
+  color: #666;
+  line-height: 1.5;
 }
 </style>

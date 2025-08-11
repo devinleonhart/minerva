@@ -1,60 +1,60 @@
 <template>
   <div class="item-view">
-    <h1>Items</h1>
+    <n-h1>Items</n-h1>
 
     <!-- Create Item Form -->
-    <div class="create-form">
-      <h2>Create New Item</h2>
-      <form @submit.prevent="handleCreateItem" class="item-form">
-        <div class="form-group">
-          <label for="itemName">Item Name:</label>
-          <input
-            id="itemName"
-            v-model="newItem.name"
-            type="text"
-            required
-            class="form-input"
+    <n-card title="Create New Item" class="create-form" size="medium">
+      <n-form @submit.prevent="handleCreateItem" :model="newItem" label-placement="top">
+        <n-form-item label="Item Name" path="name">
+          <n-input
+            v-model:value="newItem.name"
             placeholder="Enter item name"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="itemDescription">Description:</label>
-          <textarea
-            id="itemDescription"
-            v-model="newItem.description"
             required
-            class="form-textarea"
-            placeholder="Enter item description"
-            rows="3"
-          ></textarea>
-        </div>
+          />
+        </n-form-item>
 
-        <div class="form-actions">
-          <button type="submit" class="create-btn">Create Item</button>
-          <button type="button" @click="resetForm" class="reset-btn">Reset</button>
-        </div>
-      </form>
-    </div>
+        <n-form-item label="Description" path="description">
+          <n-input
+            v-model:value="newItem.description"
+            type="textarea"
+            placeholder="Enter item description"
+            :rows="3"
+            required
+          />
+        </n-form-item>
+
+        <n-space justify="end">
+          <n-button @click="resetForm">Reset</n-button>
+          <n-button type="primary" attr-type="submit">
+            Create Item
+          </n-button>
+        </n-space>
+      </n-form>
+    </n-card>
 
     <!-- Existing Items List -->
     <div class="items-list">
-      <h2>Existing Items</h2>
-      <div v-if="items.length === 0" class="empty-state">
-        <p>No items have been created yet.</p>
-      </div>
+      <n-h2>Existing Items</n-h2>
+      <n-empty v-if="items.length === 0" description="No items have been created yet." />
       <div v-else class="items-grid">
-        <div
+        <n-card
           v-for="item in items"
           :key="item.id"
           class="item-card"
+          size="medium"
         >
-          <h3>{{ item.name }}</h3>
+          <template #header>
+            <span>{{ item.name }}</span>
+          </template>
+
           <p class="description">{{ item.description }}</p>
-          <div class="item-meta">
-            <span class="created-date">Created: {{ formatDate(item.createdAt) }}</span>
-          </div>
-        </div>
+
+          <template #footer>
+            <div class="item-meta">
+              <span class="created-date">Created: {{ formatDate(item.createdAt) }}</span>
+            </div>
+          </template>
+        </n-card>
       </div>
     </div>
   </div>
@@ -64,16 +64,30 @@
 import { onMounted, ref } from 'vue'
 import { useItemStore } from '@/store/item'
 import { useInventoryStore } from '@/store/inventory'
+import { useToast } from '@/composables/useToast'
+import type { Item } from '@/store/item'
+import {
+  NH1,
+  NH2,
+  NButton,
+  NInput,
+  NForm,
+  NFormItem,
+  NSpace,
+  NCard,
+  NEmpty
+} from 'naive-ui'
 
 const itemStore = useItemStore()
 const inventoryStore = useInventoryStore()
+const toast = useToast()
 
 const newItem = ref({
   name: '',
   description: ''
 })
 
-const items = ref([])
+const items = ref<Item[]>([])
 
 onMounted(async () => {
   await loadItems()
@@ -91,8 +105,10 @@ const handleCreateItem = async () => {
     await loadItems()
     await inventoryStore.getInventory()
     resetForm()
+    toast.success('Item created successfully!')
   } catch (error) {
     console.error('Error creating item:', error)
+    toast.error('Failed to create item. Please try again.')
   }
 }
 

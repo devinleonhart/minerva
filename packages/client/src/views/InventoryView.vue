@@ -1,141 +1,196 @@
 <template>
   <div class="inventory-view">
-    <h1>Inventory</h1>
-    <div v-if="inventoryItems.length === 0 && potionItems.length === 0 && itemItems.length === 0" class="empty-state">
-      <p>Your inventory is empty. Visit the ingredients page to add items!</p>
-    </div>
+    <n-h1>Inventory</n-h1>
+    <n-empty v-if="inventoryItems.length === 0 && potionItems.length === 0 && itemItems.length === 0" description="Your inventory is empty. Visit the ingredients page to add items!" />
 
     <!-- Ingredients Section -->
     <div v-if="inventoryItems.length > 0">
-      <h2>Ingredients</h2>
+      <n-h2>Ingredients</n-h2>
       <div class="inventory-grid">
-        <div
+        <n-card
           v-for="item in inventoryItems"
           :key="item.id"
           class="inventory-item"
+          size="medium"
         >
-          <div class="item-header">
-            <h3>{{ item.ingredient.name }}</h3>
-            <span class="quantity">x{{ item.quantity }}</span>
-          </div>
-          <p class="description">{{ item.ingredient.description }}</p>
-          <div class="item-controls">
-            <select
-              v-model="item.quality"
-              @change="updateQuality(item.id, item.quality)"
-              class="quality-select"
-            >
-              <option value="NORMAL">Normal</option>
-              <option value="HQ">High Quality</option>
-              <option value="LQ">Low Quality</option>
-            </select>
-            <div class="quantity-controls">
-              <button
-                @click="updateQuantity(item.id, item.quantity - 1)"
-                :disabled="item.quantity <= 1"
-                class="quantity-btn"
-              >
-                -
-              </button>
-              <span class="quantity-display">{{ item.quantity }}</span>
-              <button
-                @click="updateQuantity(item.id, item.quantity + 1)"
-                class="quantity-btn"
-              >
-                +
-              </button>
+          <template #header>
+            <div class="item-header">
+              <span>{{ item.ingredient.name }}</span>
+              <n-tag :type="getQualityTagType(item.quality)" size="small">
+                {{ item.quality }}
+              </n-tag>
             </div>
-            <button
-              @click="deleteItem(item.id)"
-              class="delete-btn"
-            >
-              Remove
-            </button>
-          </div>
-        </div>
+          </template>
+
+          <p class="description">{{ item.ingredient.description }}</p>
+
+          <template #footer>
+            <div class="item-controls">
+              <n-select
+                v-model:value="item.quality"
+                @update:value="(value) => updateQuality(item.id, value)"
+                :options="[
+                  { label: 'Normal', value: 'NORMAL' },
+                  { label: 'High Quality', value: 'HQ' },
+                  { label: 'Low Quality', value: 'LQ' }
+                ]"
+                size="small"
+              />
+              <div class="quantity-controls">
+                <n-button
+                  @click="updateQuantity(item.id, item.quantity - 1)"
+                  :disabled="item.quantity <= 1"
+                  size="small"
+                  circle
+                >
+                  <template #icon>
+                    <n-icon><MinusIcon /></n-icon>
+                  </template>
+                </n-button>
+                <span class="quantity-display">{{ item.quantity }}</span>
+                <n-button
+                  @click="updateQuantity(item.id, item.quantity + 1)"
+                  size="small"
+                  circle
+                >
+                  <template #icon>
+                    <n-icon><PlusIcon /></n-icon>
+                  </template>
+                </n-button>
+              </div>
+              <n-button
+                @click="deleteItem(item.id)"
+                type="error"
+                size="small"
+              >
+                Remove
+              </n-button>
+            </div>
+          </template>
+        </n-card>
       </div>
     </div>
 
     <!-- Potions Section -->
     <div v-if="potionItems.length > 0">
-      <h2>Potions</h2>
+      <n-h2>Potions</n-h2>
       <div class="inventory-grid">
-        <div
+        <n-card
           v-for="item in potionItems"
           :key="item.id"
           class="inventory-item potion-item"
+          size="medium"
         >
-          <div class="item-header">
-            <h3>{{ item.potion.recipe.name }}</h3>
-            <span class="quantity">x{{ item.quantity }}</span>
-          </div>
-          <p class="description">{{ item.potion.recipe.description }}</p>
-          <div class="potion-info">
-            <span class="quality-badge quality-{{ item.potion.quality.toLowerCase() }}">
-              {{ item.potion.quality }}
-            </span>
-          </div>
-          <div class="item-controls">
-            <div class="quantity-controls">
-              <button
-                @click="updatePotionQuantity(item.id, item.quantity - 1)"
-                :disabled="item.quantity <= 1"
-                class="quantity-btn"
-              >
-                -
-              </button>
-              <span class="quantity-display">{{ item.quantity }}</span>
-              <button
-                @click="updatePotionQuantity(item.id, item.quantity + 1)"
-                class="quantity-btn"
-              >
-                +
-              </button>
+          <template #header>
+            <div class="item-header">
+              <span>{{ item.potion.recipe.name }}</span>
+              <n-tag :type="getPotionQualityTagType(item.potion.quality)" size="small">
+                {{ item.potion.quality }}
+              </n-tag>
             </div>
-            <button
-              @click="deletePotionItem(item.id)"
-              class="delete-btn"
-            >
-              Remove
-            </button>
-          </div>
-        </div>
+          </template>
+
+          <p class="description">{{ item.potion.recipe.description }}</p>
+
+          <template #footer>
+            <div class="item-controls">
+              <div class="quantity-controls">
+                <n-button
+                  @click="updatePotionQuantity(item.id, item.quantity - 1)"
+                  :disabled="item.quantity <= 1"
+                  size="small"
+                  circle
+                >
+                  <template #icon>
+                    <n-icon><MinusIcon /></n-icon>
+                  </template>
+                </n-button>
+                <span class="quantity-display">{{ item.quantity }}</span>
+                <n-button
+                  @click="updatePotionQuantity(item.id, item.quantity + 1)"
+                  size="small"
+                  circle
+                >
+                  <template #icon>
+                    <n-icon><PlusIcon /></n-icon>
+                  </template>
+                </n-button>
+              </div>
+              <n-button
+                @click="deletePotionItem(item.id)"
+                type="error"
+                size="small"
+              >
+                Remove
+              </n-button>
+            </div>
+          </template>
+        </n-card>
       </div>
     </div>
 
     <!-- Items Section -->
     <div v-if="itemItems.length > 0">
-      <h2>Items</h2>
+      <n-h2>Items</n-h2>
       <div class="inventory-grid">
-        <div
+        <n-card
           v-for="item in itemItems"
           :key="item.id"
           class="inventory-item item-item"
+          size="medium"
         >
-          <div class="item-header">
-            <h3>{{ item.item.name }}</h3>
-          </div>
+          <template #header>
+            <div class="item-header">
+              <span>{{ item.item.name }}</span>
+            </div>
+          </template>
+
           <p class="description">{{ item.item.description }}</p>
-          <div class="item-controls">
-            <button
-              @click="deleteItemItem(item.id)"
-              class="delete-btn"
-            >
-              Remove
-            </button>
-          </div>
-        </div>
+
+          <template #footer>
+            <div class="item-controls">
+              <n-button
+                @click="deleteItemItem(item.id)"
+                type="error"
+                size="small"
+              >
+                Remove
+              </n-button>
+            </div>
+          </template>
+        </n-card>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted } from 'vue'
+import { onMounted, h } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useInventoryStore } from '@/store/inventory'
+import { useToast } from '@/composables/useToast'
+import {
+  NH1,
+  NH2,
+  NButton,
+  NIcon,
+  NSelect,
+  NTag,
+  NCard,
+  NEmpty
+} from 'naive-ui'
+
+// Icon components
+const PlusIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
+  h('path', { d: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' })
+])
+
+const MinusIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
+  h('path', { d: 'M19 13H5v-2h14v2z' })
+])
 
 const inventoryStore = useInventoryStore()
+const toast = useToast()
 const { inventoryItems, potionItems, itemItems } = storeToRefs(inventoryStore)
 
 onMounted(async () => {
@@ -145,8 +200,10 @@ onMounted(async () => {
 const updateQuality = async (id: number, quality: string) => {
   try {
     await inventoryStore.updateInventoryItem(id, { quality: quality as 'NORMAL' | 'HQ' | 'LQ' })
+    toast.success('Quality updated successfully!')
   } catch (error) {
     console.error('Error updating quality:', error)
+    toast.error('Failed to update quality. Please try again.')
   }
 }
 
@@ -155,16 +212,20 @@ const updateQuantity = async (id: number, newQuantity: number) => {
 
   try {
     await inventoryStore.updateInventoryItem(id, { quantity: newQuantity })
+    toast.success('Quantity updated successfully!')
   } catch (error) {
     console.error('Error updating quantity:', error)
+    toast.error('Failed to update quantity. Please try again.')
   }
 }
 
 const deleteItem = async (id: number) => {
   try {
     await inventoryStore.deleteInventoryItem(id)
+    toast.success('Item removed from inventory!')
   } catch (error) {
     console.error('Error deleting item:', error)
+    toast.error('Failed to remove item. Please try again.')
   }
 }
 
@@ -173,14 +234,17 @@ const updatePotionQuantity = async (id: number, newQuantity: number) => {
 
   try {
     await inventoryStore.updatePotionInventoryItem(id, { quantity: newQuantity })
+    toast.success('Potion quantity updated successfully!')
   } catch (error) {
     console.error('Error updating potion quantity:', error)
+    toast.error('Failed to update potion quantity. Please try again.')
   }
 }
 
 const deletePotionItem = async (id: number) => {
   try {
     await inventoryStore.deletePotionInventoryItem(id)
+    toast.success('Potion removed from inventory!')
   } catch (error) {
     console.error('Error deleting potion:', error)
   }
@@ -189,8 +253,27 @@ const deletePotionItem = async (id: number) => {
 const deleteItemItem = async (id: number) => {
   try {
     await inventoryStore.deleteItemInventoryItem(id)
+    toast.success('Item removed from inventory!')
   } catch (error) {
     console.error('Error deleting item:', error)
+    toast.error('Failed to remove item. Please try again.')
+  }
+}
+
+const getQualityTagType = (quality: string) => {
+  switch (quality) {
+  case 'HQ': return 'success'
+  case 'LQ': return 'error'
+  default: return 'info'
+  }
+}
+
+const getPotionQualityTagType = (quality: string) => {
+  switch (quality) {
+  case 'HQ': return 'success'
+  case 'LQ': return 'error'
+  case 'NORMAL': return 'info'
+  default: return 'default'
   }
 }
 </script>

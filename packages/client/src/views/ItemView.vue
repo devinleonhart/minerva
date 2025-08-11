@@ -131,132 +131,13 @@ const formatDate = (dateString: string) => {
   margin: 0 auto;
 }
 
-.create-form {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.create-form h2 {
-  margin: 0 0 20px 0;
-  color: #333;
-}
-
-.item-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-group label {
-  font-weight: 500;
-  color: #333;
-}
-
-.form-input,
-.form-textarea {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: inherit;
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.create-btn {
-  padding: 10px 20px;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.create-btn:hover {
-  background: #218838;
-}
-
-.reset-btn {
-  padding: 10px 20px;
-  background: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.reset-btn:hover {
-  background: #545b62;
-}
-
-.items-list h2 {
-  margin: 0 0 20px 0;
-  color: #333;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+.items-list {
+  margin-top: 30px;
 }
 
 .items-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-}
-
-.item-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #fd7e14;
-}
-
-.item-card h3 {
-  margin: 0 0 8px 0;
-  color: #333;
-}
-
-.description {
-  color: #666;
-  margin-bottom: 16px;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.item-meta {
-  font-size: 12px;
-  color: #999;
-}
-
-.created-date {
-  display: block;
 }
 </style>

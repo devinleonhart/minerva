@@ -265,52 +265,11 @@ const getPotionQualityTagType = (quality: string) => {
   margin: 0 auto;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-}
-
 .inventory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   margin-top: 20px;
-}
-
-.inventory-item {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.item-header h3 {
-  margin: 0;
-  color: #333;
-}
-
-.quantity {
-  background: #007bff;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.description {
-  color: #666;
-  margin-bottom: 16px;
-  font-size: 14px;
 }
 
 .item-controls {
@@ -319,94 +278,15 @@ const getPotionQualityTagType = (quality: string) => {
   gap: 12px;
 }
 
-.quality-select {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-}
-
 .quantity-controls {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.quantity-btn {
-  width: 32px;
-  height: 32px;
-  border: 1px solid #ddd;
-  background: white;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-.quantity-btn:hover:not(:disabled) {
-  background: #f8f9fa;
-}
-
-.quantity-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .quantity-display {
   min-width: 40px;
   text-align: center;
   font-weight: bold;
-}
-
-.delete-btn {
-  padding: 8px 16px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.delete-btn:hover {
-  background: #c82333;
-}
-
-.potion-item {
-  border-left: 4px solid #6f42c1;
-}
-
-.potion-info {
-  margin-bottom: 16px;
-}
-
-.quality-badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.quality-normal {
-  background: #6c757d;
-  color: white;
-}
-
-.quality-hq {
-  background: #28a745;
-  color: white;
-}
-
-.quality-lq {
-  background: #dc3545;
-  color: white;
-}
-
-.item-item {
-  border-left: 4px solid #fd7e14;
 }
 </style>

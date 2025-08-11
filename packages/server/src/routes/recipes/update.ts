@@ -26,7 +26,7 @@ router.put('/:id', async (req, res) => {
     }
 
     // Update recipe with ingredients in a transaction
-    const updatedRecipe = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Update basic recipe info
       const recipe = await tx.recipe.update({
         where: { id },

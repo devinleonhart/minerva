@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
       })
 
       // Create recipe-ingredient relationships
-      const recipeIngredients = await Promise.all(
+      await Promise.all(
         ingredientIds.map(ingredientId =>
           tx.recipeIngredient.create({
             data: {

@@ -56,7 +56,7 @@ router.put('/:id', async (req, res) => {
 
         // Create new recipe-ingredient relationships
         await Promise.all(
-          ingredientIds.map(ingredientId =>
+          ingredientIds.map((ingredientId: number) =>
             tx.recipeIngredient.create({
               data: {
                 recipeId: id,

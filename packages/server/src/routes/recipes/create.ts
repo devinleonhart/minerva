@@ -33,13 +33,12 @@ router.post('/', async (req, res) => {
         data: {
           name,
           description
-          // potionId is optional, so we don't need to provide it
         }
       })
 
       // Create recipe-ingredient relationships
       await Promise.all(
-        ingredientIds.map(ingredientId =>
+        ingredientIds.map((ingredientId: number) =>
           tx.recipeIngredient.create({
             data: {
               recipeId: newRecipe.id,

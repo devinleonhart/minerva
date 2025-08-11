@@ -1,15 +1,11 @@
 <template>
   <div class="ingredient-list">
-    <n-input
-      v-model:value="searchQuery"
-      placeholder="Search ingredients..."
-      size="large"
-      class="search-input"
-    >
-      <template #prefix>
-        <n-icon><SearchIcon /></n-icon>
-      </template>
-    </n-input>
+            <n-input
+          v-model:value="searchQuery"
+          placeholder="Search ingredients..."
+          size="large"
+          class="search-input"
+        />
 
     <n-space vertical size="medium" class="ingredients-container">
       <n-card
@@ -56,32 +52,18 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed, ref, h } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useIngredientStore } from '@/store/ingredient'
 import { useInventoryStore } from '@/store/inventory'
 import { useToast } from '@/composables/useToast'
 import {
   NInput,
-  NIcon,
   NButton,
   NSpace,
   NCard,
   NEmpty
 } from 'naive-ui'
-
-// Icon components
-const SearchIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z' })
-])
-
-const AddIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' })
-])
-
-const DeleteIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z' })
-])
 
 const ingredientStore = useIngredientStore()
 const inventoryStore = useInventoryStore()

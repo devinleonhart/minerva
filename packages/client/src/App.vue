@@ -1,34 +1,28 @@
 <template>
-  <n-config-provider :theme="darkTheme">
+  <n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
     <n-notification-provider>
       <div class="app">
         <n-layout-header class="app-header" bordered>
           <div class="header-content">
-            <h1 class="app-title">
-              <n-icon size="32" class="title-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
-              </n-icon>
-              Minerva
-            </h1>
+
             <nav class="app-nav">
-              <n-button
+              <router-link
                 v-for="route in navigationRoutes"
                 :key="route.path"
                 :to="route.path"
-                :type="currentRoute === route.path ? 'primary' : 'default'"
-                :ghost="currentRoute !== route.path"
-                class="nav-button"
-                size="large"
+                custom
+                v-slot="{ navigate, isActive }"
               >
-                <template #icon>
-                  <n-icon>
-                    <component :is="route.icon" />
-                  </n-icon>
-                </template>
-                {{ route.name }}
-              </n-button>
+                <n-button
+                  @click="navigate"
+                  :type="isActive ? 'primary' : 'default'"
+                  :ghost="!isActive"
+                  class="nav-button"
+                  size="large"
+                >
+                  {{ route.name }}
+                </n-button>
+              </router-link>
             </nav>
           </div>
         </n-layout-header>
@@ -44,49 +38,68 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, h } from 'vue'
-import { useRoute } from 'vue-router'
+
 import {
   NConfigProvider,
   NLayoutHeader,
   NLayoutContent,
   NButton,
-  NIcon,
   NNotificationProvider,
-  darkTheme
+  darkTheme,
+  GlobalThemeOverrides
 } from 'naive-ui'
 
-// Icons for navigation
-const RecipeIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z' })
-])
 
-const IngredientIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z' })
-])
-
-const InventoryIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z' })
-])
-
-const ItemIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z' })
-])
-
-const ImportIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' })
-])
-
-const route = useRoute()
-const currentRoute = computed(() => route.path)
 
 const navigationRoutes = [
-  { path: '/', name: 'Recipes', icon: RecipeIcon },
-  { path: '/ingredients', name: 'Ingredients', icon: IngredientIcon },
-  { path: '/inventory', name: 'Inventory', icon: InventoryIcon },
-  { path: '/items', name: 'Items', icon: ItemIcon },
-  { path: '/import', name: 'Quick Import', icon: ImportIcon }
+  { path: '/', name: 'Recipes' },
+  { path: '/ingredients', name: 'Ingredients' },
+  { path: '/inventory', name: 'Inventory' },
+  { path: '/items', name: 'Items' },
+  { path: '/import', name: 'Quick Import' }
 ]
+
+// Custom theme overrides for better contrast
+const themeOverrides: GlobalThemeOverrides = {
+  common: {
+    primaryColor: '#18a058',
+    primaryColorHover: '#36ad6a',
+    primaryColorPressed: '#0c7a43',
+    baseColor: '#1a1a1a',
+    cardColor: '#2a2a2a',
+    textColorBase: '#ffffff',
+    textColor1: '#ffffff',
+    textColor2: '#e0e0e0',
+    textColor3: '#c0c0c0',
+    borderColor: '#404040',
+    dividerColor: '#404040'
+  },
+  Card: {
+    color: '#2a2a2a',
+    colorModal: '#2a2a2a',
+    colorEmbedded: '#2a2a2a',
+    colorEmbeddedModal: '#2a2a2a',
+    colorTrigger: '#2a2a2a',
+    colorHover: '#2a2a2a',
+    colorTarget: '#2a2a2a',
+    colorPopover: '#2a2a2a',
+    colorTooltip: '#2a2a2a',
+    colorSegment: '#2a2a2a',
+    colorResizable: '#2a2a2a',
+    colorFocus: '#2a2a2a',
+    colorDisabled: '#2a2a2a',
+    colorAccent: '#2a2a2a',
+    colorAccentHover: '#2a2a2a',
+    colorAccentPressed: '#2a2a2a',
+    colorAccentActive: '#2a2a2a',
+    colorAccentDisabled: '#2a2a2a',
+    colorAccentFocus: '#2a2a2a',
+    colorAccentHoverFocus: '#2a2a2a',
+    colorAccentPressedFocus: '#2a2a2a',
+    colorAccentActiveFocus: '#2a2a2a',
+    colorAccentDisabledFocus: '#2a2a2a'
+  }
+}
 </script>
 
 <style scoped>
@@ -102,24 +115,13 @@ const navigationRoutes = [
 .header-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 1rem 2rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-.app-title {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
 
-.title-icon {
-  color: #18a058;
-}
 
 .app-nav {
   display: flex;

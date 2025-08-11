@@ -41,21 +41,15 @@
                   @click="updateQuantity(item.id, item.quantity - 1)"
                   :disabled="item.quantity <= 1"
                   size="small"
-                  circle
                 >
-                  <template #icon>
-                    <n-icon><MinusIcon /></n-icon>
-                  </template>
+                  -
                 </n-button>
                 <span class="quantity-display">{{ item.quantity }}</span>
                 <n-button
                   @click="updateQuantity(item.id, item.quantity + 1)"
                   size="small"
-                  circle
                 >
-                  <template #icon>
-                    <n-icon><PlusIcon /></n-icon>
-                  </template>
+                  +
                 </n-button>
               </div>
               <n-button
@@ -99,21 +93,15 @@
                   @click="updatePotionQuantity(item.id, item.quantity - 1)"
                   :disabled="item.quantity <= 1"
                   size="small"
-                  circle
                 >
-                  <template #icon>
-                    <n-icon><MinusIcon /></n-icon>
-                  </template>
+                  -
                 </n-button>
                 <span class="quantity-display">{{ item.quantity }}</span>
                 <n-button
                   @click="updatePotionQuantity(item.id, item.quantity + 1)"
                   size="small"
-                  circle
                 >
-                  <template #icon>
-                    <n-icon><PlusIcon /></n-icon>
-                  </template>
+                  +
                 </n-button>
               </div>
               <n-button
@@ -165,7 +153,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, h } from 'vue'
+import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useInventoryStore } from '@/store/inventory'
 import { useToast } from '@/composables/useToast'
@@ -173,21 +161,13 @@ import {
   NH1,
   NH2,
   NButton,
-  NIcon,
   NSelect,
   NTag,
   NCard,
   NEmpty
 } from 'naive-ui'
 
-// Icon components
-const PlusIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' })
-])
 
-const MinusIcon = () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-  h('path', { d: 'M19 13H5v-2h14v2z' })
-])
 
 const inventoryStore = useInventoryStore()
 const toast = useToast()

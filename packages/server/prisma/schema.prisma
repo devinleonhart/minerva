@@ -47,6 +47,7 @@ model Potion {
   quality       PotionQuality @default(NORMAL)
   recipeId      Int           @unique
   recipe        Recipe        @relation(fields: [recipeId], references: [id])
+  inventoryItems PotionInventoryItem[]
 }
 
 model RecipeIngredient {
@@ -67,4 +68,13 @@ model InventoryItem {
   ingredient    Ingredient        @relation(fields: [ingredientId], references: [id])
   quality       IngredientQuality @default(NORMAL)
   quantity      Int               @default(1)
+}
+
+model PotionInventoryItem {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  potionId      Int
+  potion        Potion        @relation(fields: [potionId], references: [id])
+  quantity      Int           @default(1)
 }

@@ -1,52 +1,104 @@
 <template>
   <div class="inventory-view">
     <h1>Inventory</h1>
-    <div v-if="inventoryItems.length === 0" class="empty-state">
+    <div v-if="inventoryItems.length === 0 && potionItems.length === 0" class="empty-state">
       <p>Your inventory is empty. Visit the ingredients page to add items!</p>
     </div>
-    <div v-else class="inventory-grid">
-      <div
-        v-for="item in inventoryItems"
-        :key="item.id"
-        class="inventory-item"
-      >
-        <div class="item-header">
-          <h3>{{ item.ingredient.name }}</h3>
-          <span class="quantity">x{{ item.quantity }}</span>
-        </div>
-        <p class="description">{{ item.ingredient.description }}</p>
-        <div class="item-controls">
-          <select
-            v-model="item.quality"
-            @change="updateQuality(item.id, item.quality)"
-            class="quality-select"
-          >
-            <option value="NORMAL">Normal</option>
-            <option value="HQ">High Quality</option>
-            <option value="LQ">Low Quality</option>
-          </select>
-          <div class="quantity-controls">
-            <button
-              @click="updateQuantity(item.id, item.quantity - 1)"
-              :disabled="item.quantity <= 1"
-              class="quantity-btn"
+
+    <!-- Ingredients Section -->
+    <div v-if="inventoryItems.length > 0">
+      <h2>Ingredients</h2>
+      <div class="inventory-grid">
+        <div
+          v-for="item in inventoryItems"
+          :key="item.id"
+          class="inventory-item"
+        >
+          <div class="item-header">
+            <h3>{{ item.ingredient.name }}</h3>
+            <span class="quantity">x{{ item.quantity }}</span>
+          </div>
+          <p class="description">{{ item.ingredient.description }}</p>
+          <div class="item-controls">
+            <select
+              v-model="item.quality"
+              @change="updateQuality(item.id, item.quality)"
+              class="quality-select"
             >
-              -
-            </button>
-            <span class="quantity-display">{{ item.quantity }}</span>
+              <option value="NORMAL">Normal</option>
+              <option value="HQ">High Quality</option>
+              <option value="LQ">Low Quality</option>
+            </select>
+            <div class="quantity-controls">
+              <button
+                @click="updateQuantity(item.id, item.quantity - 1)"
+                :disabled="item.quantity <= 1"
+                class="quantity-btn"
+              >
+                -
+              </button>
+              <span class="quantity-display">{{ item.quantity }}</span>
+              <button
+                @click="updateQuantity(item.id, item.quantity + 1)"
+                class="quantity-btn"
+              >
+                +
+              </button>
+            </div>
             <button
-              @click="updateQuantity(item.id, item.quantity + 1)"
-              class="quantity-btn"
+              @click="deleteItem(item.id)"
+              class="delete-btn"
             >
-              +
+              Remove
             </button>
           </div>
-          <button
-            @click="deleteItem(item.id)"
-            class="delete-btn"
-          >
-            Remove
-          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Potions Section -->
+    <div v-if="potionItems.length > 0">
+      <h2>Potions</h2>
+      <div class="inventory-grid">
+        <div
+          v-for="item in potionItems"
+          :key="item.id"
+          class="inventory-item potion-item"
+        >
+          <div class="item-header">
+            <h3>{{ item.potion.recipe.name }}</h3>
+            <span class="quantity">x{{ item.quantity }}</span>
+          </div>
+          <p class="description">{{ item.potion.recipe.description }}</p>
+          <div class="potion-info">
+            <span class="quality-badge quality-{{ item.potion.quality.toLowerCase() }}">
+              {{ item.potion.quality }}
+            </span>
+          </div>
+          <div class="item-controls">
+            <div class="quantity-controls">
+              <button
+                @click="updatePotionQuantity(item.id, item.quantity - 1)"
+                :disabled="item.quantity <= 1"
+                class="quantity-btn"
+              >
+                -
+              </button>
+              <span class="quantity-display">{{ item.quantity }}</span>
+              <button
+                @click="updatePotionQuantity(item.id, item.quantity + 1)"
+                class="quantity-btn"
+              >
+                +
+              </button>
+            </div>
+            <button
+              @click="deletePotionItem(item.id)"
+              class="delete-btn"
+            >
+              Remove
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -59,7 +111,7 @@ import { storeToRefs } from 'pinia'
 import { useInventoryStore } from '@/store/inventory'
 
 const inventoryStore = useInventoryStore()
-const { inventoryItems } = storeToRefs(inventoryStore)
+const { inventoryItems, potionItems } = storeToRefs(inventoryStore)
 
 onMounted(async () => {
   await inventoryStore.getInventory()
@@ -88,6 +140,24 @@ const deleteItem = async (id: number) => {
     await inventoryStore.deleteInventoryItem(id)
   } catch (error) {
     console.error('Error deleting item:', error)
+  }
+}
+
+const updatePotionQuantity = async (id: number, newQuantity: number) => {
+  if (newQuantity < 0) return
+
+  try {
+    await inventoryStore.updatePotionInventoryItem(id, { quantity: newQuantity })
+  } catch (error) {
+    console.error('Error updating potion quantity:', error)
+  }
+}
+
+const deletePotionItem = async (id: number) => {
+  try {
+    await inventoryStore.deletePotionInventoryItem(id)
+  } catch (error) {
+    console.error('Error deleting potion:', error)
   }
 }
 </script>
@@ -206,5 +276,37 @@ const deleteItem = async (id: number) => {
 
 .delete-btn:hover {
   background: #c82333;
+}
+
+.potion-item {
+  border-left: 4px solid #6f42c1;
+}
+
+.potion-info {
+  margin-bottom: 16px;
+}
+
+.quality-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.quality-normal {
+  background: #6c757d;
+  color: white;
+}
+
+.quality-hq {
+  background: #28a745;
+  color: white;
+}
+
+.quality-lq {
+  background: #dc3545;
+  color: white;
 }
 </style>

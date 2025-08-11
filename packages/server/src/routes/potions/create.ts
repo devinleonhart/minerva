@@ -108,12 +108,22 @@ router.post('/', async (req, res) => {
       }
 
       // Create the potion
-      return await tx.potion.create({
+      const potion = await tx.potion.create({
         data: {
           quality: 'NORMAL', // Default quality for now
           recipeId: recipeId
         }
       })
+
+      // Add potion to inventory
+      await tx.potionInventoryItem.create({
+        data: {
+          potionId: potion.id,
+          quantity: 1
+        }
+      })
+
+      return potion
     })
 
     // Fetch the created potion with recipe details

@@ -35,15 +35,24 @@ router.put('/potion/:id', async (req, res) => {
       where: { id },
       data: { quantity },
       include: {
-        potion: {
-          include: {
-            recipe: true
-          }
-        }
+        potion: true
       }
     })
 
-    res.json(updatedItem)
+    // Fetch recipe information separately
+    const recipe = await prisma.recipe.findUnique({
+      where: { id: updatedItem.potion.recipeId }
+    })
+
+    const updatedItemWithRecipe = {
+      ...updatedItem,
+      potion: {
+        ...updatedItem.potion,
+        recipe: recipe
+      }
+    }
+
+    res.json(updatedItemWithRecipe)
   } catch (error) {
     handleUnknownError(res, 'updating potion inventory', error)
   }

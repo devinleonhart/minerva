@@ -20,17 +20,11 @@ router.get('/', async (req, res) => {
       }),
       prisma.potionInventoryItem.findMany({
         include: {
-          potion: {
-            include: {
-              recipe: true
-            }
-          }
+          potion: true
         },
         orderBy: {
           potion: {
-            recipe: {
-              name: 'asc'
-            }
+            recipeId: 'asc'
           }
         }
       }),
@@ -46,9 +40,25 @@ router.get('/', async (req, res) => {
       })
     ])
 
+    // Fetch recipe information for potions separately
+    const potionItemsWithRecipes = await Promise.all(
+      potionItems.map(async (potionItem) => {
+        const recipe = await prisma.recipe.findUnique({
+          where: { id: potionItem.potion.recipeId }
+        })
+        return {
+          ...potionItem,
+          potion: {
+            ...potionItem.potion,
+            recipe: recipe
+          }
+        }
+      })
+    )
+
     res.json({
       ingredients: ingredientItems,
-      potions: potionItems,
+      potions: potionItemsWithRecipes,
       items: itemItems
     })
   } catch (error) {

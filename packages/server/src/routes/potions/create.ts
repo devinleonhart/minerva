@@ -128,21 +128,32 @@ router.post('/', async (req, res) => {
 
     // Fetch the created potion with recipe details
     const potionWithRecipe = await prisma.potion.findUnique({
-      where: { id: potion.id },
+      where: { id: potion.id }
+    })
+
+    if (!potionWithRecipe) {
+      res.status(500).json({ error: 'Failed to create potion' })
+      return
+    }
+
+    // Fetch recipe information separately
+    const recipeData = await prisma.recipe.findUnique({
+      where: { id: potionWithRecipe.recipeId },
       include: {
-        recipe: {
+        ingredients: {
           include: {
-            ingredients: {
-              include: {
-                ingredient: true
-              }
-            }
+            ingredient: true
           }
         }
       }
     })
 
-    res.json(potionWithRecipe)
+    const potionWithRecipeData = {
+      ...potionWithRecipe,
+      recipe: recipeData
+    }
+
+    res.json(potionWithRecipeData)
   } catch (error) {
     handleUnknownError(res, 'crafting potion', error)
   }

@@ -54,9 +54,6 @@
                 type="error"
                 size="small"
               >
-                <template #icon>
-                  <n-icon><DeleteIcon /></n-icon>
-                </template>
                 Delete
               </n-button>
               <n-tooltip v-else-if="itemDeletability[item.id]?.reason" trigger="hover">
@@ -66,9 +63,6 @@
                     type="error"
                     size="small"
                   >
-                    <template #icon>
-                      <n-icon><DeleteIcon /></n-icon>
-                    </template>
                     Delete
                   </n-button>
                 </template>
@@ -98,7 +92,6 @@ import {
   NEmpty,
   NTooltip
 } from 'naive-ui'
-import { DeleteIcon } from '@vicons/ionicons5'
 
 const itemStore = useItemStore()
 const inventoryStore = useInventoryStore()

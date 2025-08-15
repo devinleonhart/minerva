@@ -27,9 +27,6 @@
               type="success"
               size="small"
             >
-              <template #icon>
-                <n-icon><AddIcon /></n-icon>
-              </template>
               Add to Inventory
             </n-button>
             <n-button
@@ -38,9 +35,6 @@
               type="error"
               size="small"
             >
-              <template #icon>
-                <n-icon><DeleteIcon /></n-icon>
-              </template>
               Delete
             </n-button>
             <n-tooltip v-else-if="ingredientDeletability[ingredient.id]?.reason" trigger="hover">
@@ -50,9 +44,6 @@
                   type="error"
                   size="small"
                 >
-                  <template #icon>
-                    <n-icon><DeleteIcon /></n-icon>
-                  </template>
                   Delete
                 </n-button>
               </template>
@@ -81,7 +72,6 @@ import {
   NEmpty,
   NTooltip
 } from 'naive-ui'
-import { AddIcon, DeleteIcon } from '@vicons/ionicons5'
 
 const ingredientStore = useIngredientStore()
 const inventoryStore = useInventoryStore()

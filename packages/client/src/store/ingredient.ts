@@ -4,6 +4,11 @@ import axios from 'axios'
 import type { IngredientForm, IngredientStore } from '#/store/ingredient'
 import type { Prisma } from '#/prisma-types'
 
+export interface IngredientDeletability {
+  canDelete: boolean
+  reason: string | null
+}
+
 export const useIngredientStore = defineStore('ingredient', {
   state: (): IngredientStore => ({
     ingredients: []
@@ -19,8 +24,22 @@ export const useIngredientStore = defineStore('ingredient', {
     async deleteIngredient(id: number) {
       try {
         await axios.delete(`/api/ingredients/${id}`)
+      } catch (error: any) {
+        if (error.response?.data?.code === 'INGREDIENT_IN_USE') {
+          throw new Error('Cannot delete ingredient that is used in recipes')
+        } else if (error.response?.data?.code === 'INGREDIENT_IN_INVENTORY') {
+          throw new Error('Cannot delete ingredient that has inventory items')
+        }
+        throw error
+      }
+    },
+    async checkIngredientDeletability(id: number): Promise<IngredientDeletability> {
+      try {
+        const response = await axios.get(`/api/ingredients/${id}/deletable`)
+        return response.data
       } catch (error) {
-        console.error('Error deleting ingredient:', error)
+        console.error('Error checking ingredient deletability:', error)
+        return { canDelete: false, reason: 'Error checking deletability' }
       }
     },
     async getIngredients() {

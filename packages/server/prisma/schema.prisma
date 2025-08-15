@@ -26,7 +26,6 @@ model Recipe {
   name          String        @db.VarChar(255)
   description   String
   ingredients   RecipeIngredient[]
-  potion        Potion?
 }
 
 model Ingredient {
@@ -45,8 +44,7 @@ model Potion {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   quality       PotionQuality @default(NORMAL)
-  recipeId      Int           @unique
-  recipe        Recipe        @relation(fields: [recipeId], references: [id])
+  recipeId      Int
   inventoryItems PotionInventoryItem[]
 }
 

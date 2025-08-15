@@ -3,18 +3,10 @@ import { PrismaClient } from '@prisma/client'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
+const prisma = new PrismaClient()
 const router: Router = Router()
 
-import getRoutes from './get.js'
-import createRoutes from './create.js'
-import deleteRoutes from './delete.js'
-
-router.use('/', getRoutes)
-router.use('/', createRoutes)
-router.use('/', deleteRoutes)
-
-// Check if item can be deleted
-router.get('/:id/deletable', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const id = parseId(req)
     if (id === null) {
@@ -27,14 +19,23 @@ router.get('/:id/deletable', async (req, res) => {
       where: { itemId: id }
     })
 
-    const canDelete = !inventoryUsage
+    if (inventoryUsage) {
+      res.status(400).json({
+        error: 'Cannot delete item that has inventory items',
+        code: 'ITEM_IN_INVENTORY'
+      })
+      return
+    }
 
-    res.json({
-      canDelete,
-      reason: canDelete ? null : 'Has inventory items'
-    })
+    const item = await prisma.item.delete({ where: { id } })
+    if (!item) {
+      res.status(404).json({ error: 'Item not found' })
+      return
+    }
+
+    res.status(204).send()
   } catch (error) {
-    handleUnknownError(res, 'checking item deletability', error)
+    handleUnknownError(res, 'deleting item', error)
   }
 })
 

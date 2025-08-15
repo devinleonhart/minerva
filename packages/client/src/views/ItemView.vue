@@ -50,9 +50,34 @@
           <p class="description">{{ item.description }}</p>
 
           <template #footer>
-            <div class="item-meta">
-              <span class="created-date">Created: {{ formatDate(item.createdAt) }}</span>
-            </div>
+            <n-space justify="end">
+              <n-button
+                v-if="itemDeletability[item.id]?.canDelete"
+                @click="handleDelete(item.id)"
+                type="error"
+                size="small"
+              >
+                <template #icon>
+                  <n-icon><DeleteIcon /></n-icon>
+                </template>
+                Delete
+              </n-button>
+              <n-tooltip v-else-if="itemDeletability[item.id]?.reason" trigger="hover">
+                <template #trigger>
+                  <n-button
+                    disabled
+                    type="error"
+                    size="small"
+                  >
+                    <template #icon>
+                      <n-icon><DeleteIcon /></n-icon>
+                    </template>
+                    Delete
+                  </n-button>
+                </template>
+                {{ itemDeletability[item.id]?.reason }}
+              </n-tooltip>
+            </n-space>
           </template>
         </n-card>
       </div>
@@ -75,8 +100,10 @@ import {
   NFormItem,
   NSpace,
   NCard,
-  NEmpty
+  NEmpty,
+  NTooltip
 } from 'naive-ui'
+import { DeleteIcon } from '@vicons/ionicons5'
 
 const itemStore = useItemStore()
 const inventoryStore = useInventoryStore()
@@ -88,14 +115,23 @@ const newItem = ref({
 })
 
 const items = ref<Item[]>([])
+const itemDeletability = ref<Record<number, { canDelete: boolean; reason: string | null }>>({})
 
 onMounted(async () => {
   await loadItems()
+  await checkAllItemsDeletability()
 })
 
 const loadItems = async () => {
   await itemStore.getItems()
   items.value = itemStore.items
+}
+
+const checkAllItemsDeletability = async () => {
+  for (const item of items.value) {
+    const deletability = await itemStore.checkItemDeletability(item.id)
+    itemDeletability.value[item.id] = deletability
+  }
 }
 
 const handleCreateItem = async () => {
@@ -104,6 +140,7 @@ const handleCreateItem = async () => {
     // Refresh both item list and inventory
     await loadItems()
     await inventoryStore.getInventory()
+    await checkAllItemsDeletability()
     resetForm()
     toast.success('Item created successfully!')
   } catch (error) {
@@ -112,15 +149,23 @@ const handleCreateItem = async () => {
   }
 }
 
+const handleDelete = async (id: number) => {
+  try {
+    await itemStore.deleteItem(id)
+    await loadItems()
+    await checkAllItemsDeletability()
+    toast.success('Item deleted successfully!')
+  } catch (error: any) {
+    console.error('Error deleting item:', error)
+    toast.error(error.message || 'Failed to delete item. Please try again.')
+  }
+}
+
 const resetForm = () => {
   newItem.value = {
     name: '',
     description: ''
   }
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
 }
 </script>
 

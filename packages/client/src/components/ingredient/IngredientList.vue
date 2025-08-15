@@ -33,6 +33,7 @@
               Add to Inventory
             </n-button>
             <n-button
+              v-if="ingredientDeletability[ingredient.id]?.canDelete"
               @click="handleDelete(ingredient.id)"
               type="error"
               size="small"
@@ -42,6 +43,21 @@
               </template>
               Delete
             </n-button>
+            <n-tooltip v-else-if="ingredientDeletability[ingredient.id]?.reason" trigger="hover">
+              <template #trigger>
+                <n-button
+                  disabled
+                  type="error"
+                  size="small"
+                >
+                  <template #icon>
+                    <n-icon><DeleteIcon /></n-icon>
+                  </template>
+                  Delete
+                </n-button>
+              </template>
+              {{ ingredientDeletability[ingredient.id]?.reason }}
+            </n-tooltip>
           </n-space>
         </template>
       </n-card>
@@ -62,13 +78,17 @@ import {
   NButton,
   NSpace,
   NCard,
-  NEmpty
+  NEmpty,
+  NTooltip
 } from 'naive-ui'
+import { AddIcon, DeleteIcon } from '@vicons/ionicons5'
 
 const ingredientStore = useIngredientStore()
 const inventoryStore = useInventoryStore()
 const toast = useToast()
 const { ingredients } = storeToRefs(useIngredientStore())
+const ingredientDeletability = ref<Record<number, { canDelete: boolean; reason: string | null }>>({})
+
 const sortedIngredients = computed(() => {
   let sorted = [...ingredients.value]
   if (searchQuery.value) {
@@ -83,16 +103,25 @@ const searchQuery = ref('')
 
 onMounted(async () => {
   await ingredientStore.getIngredients()
+  await checkAllIngredientsDeletability()
 })
+
+const checkAllIngredientsDeletability = async () => {
+  for (const ingredient of ingredients.value) {
+    const deletability = await ingredientStore.checkIngredientDeletability(ingredient.id)
+    ingredientDeletability.value[ingredient.id] = deletability
+  }
+}
 
 const handleDelete = async (id: number) => {
   try {
     await ingredientStore.deleteIngredient(id)
     await ingredientStore.getIngredients()
+    await checkAllIngredientsDeletability()
     toast.success('Ingredient deleted successfully!')
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting ingredient:', error)
-    toast.error('Failed to delete ingredient. Please try again.')
+    toast.error(error.message || 'Failed to delete ingredient. Please try again.')
   }
 }
 

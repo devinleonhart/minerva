@@ -1,13 +1,8 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-import type { IngredientForm, IngredientStore } from '#/store/ingredient'
+import type { IngredientForm, IngredientStore, IngredientDeletability, UpdateIngredientRequest } from '../types/store/ingredient'
 import type { Prisma } from '#/prisma-types'
-
-export interface IngredientDeletability {
-  canDelete: boolean
-  reason: string | null
-}
 
 interface ApiError {
   response?: {
@@ -27,6 +22,23 @@ export const useIngredientStore = defineStore('ingredient', {
         await axios.post('/api/ingredients/', toIngredientCreateInput(ingredient))
       } catch (error) {
         console.error('Error adding ingredient:', error)
+      }
+    },
+    async updateIngredient(id: number, ingredient: UpdateIngredientRequest) {
+      try {
+        await axios.put(`/api/ingredients/${id}`, ingredient)
+      } catch (error) {
+        console.error('Error updating ingredient:', error)
+        throw error
+      }
+    },
+    async toggleSecured(id: number, secured: boolean) {
+      try {
+        await axios.put(`/api/ingredients/${id}`, { secured })
+        await this.getIngredients() // Refresh the ingredients list
+      } catch (error) {
+        console.error('Error toggling ingredient secured status:', error)
+        throw error
       }
     },
     async deleteIngredient(id: number) {

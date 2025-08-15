@@ -6,6 +6,55 @@ import { handleUnknownError } from '../../utils/handleUnknownError.js'
 const prisma = new PrismaClient()
 const router: Router = Router()
 
+router.get('/craftable', async (req, res) => {
+  try {
+    // Get all recipes
+    const recipes = await prisma.recipe.findMany({
+      include: {
+        ingredients: {
+          include: {
+            ingredient: true
+          }
+        }
+      }
+    })
+
+    // Get all inventory items
+    const inventoryItems = await prisma.inventoryItem.findMany({
+      include: {
+        ingredient: true
+      }
+    })
+
+    // Group inventory by ingredient ID
+    const inventoryByIngredient = new Map<number, number>()
+    for (const item of inventoryItems) {
+      const current = inventoryByIngredient.get(item.ingredientId) || 0
+      inventoryByIngredient.set(item.ingredientId, current + item.quantity)
+    }
+
+    // Check which recipes are craftable and add canCraft property
+    const recipesWithCraftability = recipes.map(recipe => {
+      const canCraft = recipe.ingredients.every(recipeIngredient => {
+        const available = inventoryByIngredient.get(recipeIngredient.ingredientId) || 0
+        return available >= recipeIngredient.quantity
+      })
+
+      return {
+        ...recipe,
+        canCraft
+      }
+    })
+
+    // Filter to only return craftable recipes
+    const craftableRecipes = recipesWithCraftability.filter(recipe => recipe.canCraft)
+
+    res.json(craftableRecipes)
+  } catch (error) {
+    handleUnknownError(res, 'fetching craftable recipes', error)
+  }
+})
+
 router.get('/:id/craftable', async (req, res) => {
   try {
     const id = parseId(req)

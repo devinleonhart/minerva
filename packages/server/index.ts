@@ -1,28 +1,31 @@
 import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import routes from './src/routes/index.js'
 
-const serverPort = 3000
+const app = express()
+const serverPort = process.env.PORT || 3000
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const clientDist = path.resolve(__dirname, '../../dist/client')
 
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config()
-}
-
-const app = express()
 app.use(cors())
 app.use(express.json())
-app.use(express.static(clientDist))
+
 app.use('/api', routes)
 
-app.use((req, res) => {
-  res.sendFile(path.join(clientDist, 'index.html'))
-})
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '..', 'client')))
 
-console.log(`Running in NODE_ENV: ${process.env.NODE_ENV || 'development'}`)
-app.listen(serverPort, () => console.log(`Serving magic from port ${serverPort}!`))
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'))
+  })
+}
+
+app.listen(serverPort, () => {
+  console.log(`Server started on port ${serverPort}`)
+  console.log(`API available at http://localhost:${serverPort}/api`)
+}).on('error', (error) => {
+  console.error('Server failed to start:', error)
+  process.exit(1)
+})

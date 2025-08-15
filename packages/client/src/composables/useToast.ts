@@ -1,10 +1,6 @@
 import { useNotification } from 'naive-ui'
 
-export interface ToastOptions {
-  title?: string
-  duration?: number
-  keepAliveOnHover?: boolean
-}
+import type { ToastOptions } from '@/types/composables'
 
 export function useToast() {
   const notification = useNotification()

@@ -6,12 +6,15 @@ import { handleUnknownError } from '../../utils/handleUnknownError.js'
 const prisma = new PrismaClient()
 const router: Router = Router()
 
+// Import route handlers
 import getRoutes from './get.js'
 import createRoutes from './create.js'
+import updateRoutes from './update.js'
 import deleteRoutes from './delete.js'
 
 router.use('/', getRoutes)
 router.use('/', createRoutes)
+router.use('/', updateRoutes)
 router.use('/', deleteRoutes)
 
 // Check if ingredient can be deleted

@@ -12,7 +12,7 @@ router.put('/:id', async (req, res) => {
     const { quality, quantity } = req.body
 
     if (id === null) {
-      res.status(400).json({ error: 'Invalid ID' })
+      res.status(400).json({ error: 'Invalid inventory item ID' })
       return
     }
 

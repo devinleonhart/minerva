@@ -7,6 +7,8 @@ interface RecipeIngredientInput {
   quantity: number
 }
 
+
+
 const prisma = new PrismaClient()
 const router: Router = Router()
 
@@ -23,15 +25,23 @@ router.post('/', async (req, res) => {
       return
     }
 
-    // Verify all ingredients exist
+    // Check for duplicate ingredients
     const ingredientIds = ingredients.map((ing: RecipeIngredientInput) => ing.ingredientId)
+    const uniqueIngredientIds = [...new Set(ingredientIds)]
+
+    if (ingredientIds.length !== uniqueIngredientIds.length) {
+      res.status(400).json({ error: 'Recipe cannot contain duplicate ingredients' })
+      return
+    }
+
+    // Verify all ingredients exist
     const existingIngredients = await prisma.ingredient.findMany({
       where: {
-        id: { in: ingredientIds }
+        id: { in: uniqueIngredientIds }
       }
     })
 
-    if (existingIngredients.length !== ingredientIds.length) {
+    if (existingIngredients.length !== uniqueIngredientIds.length) {
       res.status(400).json({ error: 'One or more ingredients not found' })
       return
     }
@@ -74,7 +84,7 @@ router.post('/', async (req, res) => {
       }
     })
 
-    res.json(recipeWithIngredients)
+    res.status(201).json(recipeWithIngredients)
   } catch (error) {
     handleUnknownError(res, 'creating recipe', error)
   }

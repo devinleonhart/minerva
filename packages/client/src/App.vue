@@ -1,180 +1,118 @@
 <template>
-  <n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
-    <n-notification-provider>
-      <div class="app">
-        <n-layout-header class="app-header" bordered>
-          <div class="header-content">
+  <n-config-provider :theme="darkTheme">
+    <n-message-provider>
+      <n-notification-provider placement="bottom-right">
+        <div id="app">
+          <n-layout>
+            <n-layout-header class="header">
+              <div class="header-content">
+                <nav class="navigation">
+                  <n-button
+                    v-for="route in navigationRoutes"
+                    :key="route.path"
+                    :type="currentRoute === route.path ? 'primary' : 'default'"
+                    :ghost="currentRoute !== route.path"
+                    @click="navigateTo(route.path)"
+                    class="nav-button"
+                  >
+                    {{ route.name }}
+                  </n-button>
+                </nav>
+              </div>
+            </n-layout-header>
 
-            <nav class="app-nav">
-              <router-link
-                v-for="route in navigationRoutes"
-                :key="route.path"
-                :to="route.path"
-                custom
-                v-slot="{ navigate, isActive }"
-              >
-                <n-button
-                  @click="navigate"
-                  :type="isActive ? 'primary' : 'default'"
-                  :ghost="!isActive"
-                  class="nav-button"
-                  size="large"
-                >
-                  {{ route.name }}
-                </n-button>
-              </router-link>
-            </nav>
-          </div>
-        </n-layout-header>
-
-        <n-layout-content class="app-main">
-          <div class="content-wrapper">
-            <router-view />
-          </div>
-        </n-layout-content>
-      </div>
-    </n-notification-provider>
+            <n-layout-content class="main-content">
+              <router-view />
+            </n-layout-content>
+          </n-layout>
+        </div>
+      </n-notification-provider>
+    </n-message-provider>
   </n-config-provider>
 </template>
 
 <script lang="ts" setup>
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { darkTheme } from 'naive-ui'
+import type { NavigationRoute } from './types/utils'
 
-import {
-  NConfigProvider,
-  NLayoutHeader,
-  NLayoutContent,
-  NButton,
-  NNotificationProvider,
-  darkTheme,
-  GlobalThemeOverrides
-} from 'naive-ui'
+const router = useRouter()
+const route = useRoute()
 
-
-
-const navigationRoutes = [
-  { path: '/', name: 'Recipes' },
+const navigationRoutes: NavigationRoute[] = [
+  { path: '/recipes', name: 'Recipes' },
   { path: '/ingredients', name: 'Ingredients' },
   { path: '/inventory', name: 'Inventory' },
-  { path: '/items', name: 'Items' },
-  { path: '/import', name: 'Quick Import' }
+  { path: '/scheduler', name: 'Scheduler' },
+  { path: '/people', name: 'People' },
+  { path: '/spells-and-skills', name: 'Spells & Skills' }
 ]
 
-// Custom theme overrides for better contrast
-const themeOverrides: GlobalThemeOverrides = {
-  common: {
-    primaryColor: '#18a058',
-    primaryColorHover: '#36ad6a',
-    primaryColorPressed: '#0c7a43',
-    baseColor: '#1a1a1a',
-    cardColor: '#2a2a2a',
-    textColorBase: '#ffffff',
-    textColor1: '#ffffff',
-    textColor2: '#e0e0e0',
-    textColor3: '#c0c0c0',
-    borderColor: '#404040',
-    dividerColor: '#404040'
-  },
-  Card: {
-    color: '#2a2a2a',
-    colorModal: '#2a2a2a',
-    colorEmbedded: '#2a2a2a',
-    colorEmbeddedModal: '#2a2a2a',
-    colorTrigger: '#2a2a2a',
-    colorHover: '#2a2a2a',
-    colorTarget: '#2a2a2a',
-    colorPopover: '#2a2a2a',
-    colorTooltip: '#2a2a2a',
-    colorSegment: '#2a2a2a',
-    colorResizable: '#2a2a2a',
-    colorFocus: '#2a2a2a',
-    colorDisabled: '#2a2a2a',
-    colorAccent: '#2a2a2a',
-    colorAccentHover: '#2a2a2a',
-    colorAccentPressed: '#2a2a2a',
-    colorAccentActive: '#2a2a2a',
-    colorAccentDisabled: '#2a2a2a',
-    colorAccentFocus: '#2a2a2a',
-    colorAccentHoverFocus: '#2a2a2a',
-    colorAccentPressedFocus: '#2a2a2a',
-    colorAccentActiveFocus: '#2a2a2a',
-    colorAccentDisabledFocus: '#2a2a2a'
-  }
+const currentRoute = computed(() => route.path)
+
+const navigateTo = (path: string) => {
+  router.push(path)
 }
 </script>
 
 <style>
-/* Global styles to ensure dark background everywhere */
-html, body, #app {
-  background-color: #1a1a1a !important;
-  margin: 0;
+#app {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100vh;
+  background: #1a1a1a;
+}
+
+.header {
+  background: #2a2a2a;
+  border-bottom: 1px solid #404040;
   padding: 0;
-}
-
-/* Ensure smooth scrolling with dark background */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Override any default browser styles */
-* {
-  box-sizing: border-box;
-}
-</style>
-
-<style scoped>
-.app {
-  min-height: 100vh;
-  background-color: #1a1a1a;
-}
-
-.app-header {
-  padding: 0;
-  height: auto;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .header-content {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-
-
-.app-nav {
+.navigation {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .nav-button {
   font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-.app-main {
-  padding: 2rem;
-  background-color: #1a1a1a;
+.nav-button:hover {
+  transform: translateY(-1px);
 }
 
-.content-wrapper {
-  max-width: 1400px;
-  margin: 0 auto;
+.main-content {
+  background: #1a1a1a;
+  min-height: calc(100vh - 64px);
+  padding: 0;
 }
 
-@media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    align-items: stretch;
-  }
+body {
+  margin: 0;
+  padding: 0;
+  background: #1a1a1a;
+  color: #ffffff;
+}
 
-  .app-nav {
-    justify-content: center;
-  }
-
-  .app-main {
-    padding: 1rem;
-  }
+* {
+  box-sizing: border-box;
 }
 </style>

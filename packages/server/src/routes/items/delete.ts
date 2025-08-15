@@ -4,6 +4,7 @@ import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const prisma = new PrismaClient()
+
 const router: Router = Router()
 
 router.delete('/:id', async (req, res) => {
@@ -14,26 +15,30 @@ router.delete('/:id', async (req, res) => {
       return
     }
 
-    // Check if item has any inventory items
-    const inventoryUsage = await prisma.itemInventoryItem.findFirst({
+    const existingInventoryItems = await prisma.itemInventoryItem.findMany({
       where: { itemId: id }
     })
 
-    if (inventoryUsage) {
-      res.status(400).json({
+    if (existingInventoryItems.length > 0) {
+      return res.status(400).json({
         error: 'Cannot delete item that has inventory items',
-        code: 'ITEM_IN_INVENTORY'
+        inventoryItemCount: existingInventoryItems.length
       })
-      return
     }
 
-    const item = await prisma.item.delete({ where: { id } })
-    if (!item) {
-      res.status(404).json({ error: 'Item not found' })
-      return
+    try {
+      await prisma.item.delete({
+        where: { id }
+      })
+      res.status(204).send()
+    } catch (deleteError: unknown) {
+      if (deleteError && typeof deleteError === 'object' && 'code' in deleteError && deleteError.code === 'P2025') {
+        // Record not found
+        res.status(404).json({ error: 'Item not found' })
+        return
+      }
+      throw deleteError
     }
-
-    res.status(204).send()
   } catch (error) {
     handleUnknownError(res, 'deleting item', error)
   }

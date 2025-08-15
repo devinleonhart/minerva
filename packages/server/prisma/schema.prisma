@@ -25,6 +25,14 @@ model Recipe {
   updatedAt     DateTime      @updatedAt
   name          String        @db.VarChar(255)
   description   String
+  cauldronName  String?       @db.VarChar(255) // Optional name when using Crystal Cauldron
+  fireEssence   String?       // Effect when Fire essence is added
+  airEssence    String?       // Effect when Air essence is added
+  waterEssence  String?       // Effect when Water essence is added
+  lightningEssence String?    // Effect when Lightning essence is added
+  earthEssence  String?       // Effect when Earth essence is added
+  lifeEssence   String?       // Effect when Life essence is added
+  deathEssence  String?       // Effect when Death essence is added
   ingredients   RecipeIngredient[]
 }
 
@@ -92,4 +100,110 @@ model ItemInventoryItem {
   updatedAt     DateTime      @updatedAt
   itemId        Int
   item          Item          @relation(fields: [itemId], references: [id])
+  quantity      Int           @default(0)
+}
+
+// Scheduler Models
+enum TaskType {
+  GATHER_INGREDIENT
+  BREWING
+  SECURE_INGREDIENTS
+  RESEARCH_RECIPES
+  RESEARCH_SPELL
+  FREE_TIME
+}
+
+enum TimeSlot {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+model WeekSchedule {
+  id                  Int           @id @default(autoincrement())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  weekStartDate       DateTime      @unique
+  totalScheduledUnits Int           @default(0)
+  freeTimeUsed        Boolean       @default(false)
+  days                DaySchedule[]
+}
+
+model DaySchedule {
+  id                  Int           @id @default(autoincrement())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  weekScheduleId      Int
+  weekSchedule        WeekSchedule  @relation(fields: [weekScheduleId], references: [id], onDelete: Cascade)
+  day                 Int           // 0 = Monday, 1 = Tuesday, etc.
+  dayName             String        @db.VarChar(20)
+  totalUnits          Int           @default(0)
+  tasks               ScheduledTask[]
+
+  @@unique([weekScheduleId, day])
+}
+
+model ScheduledTask {
+  id                  Int           @id @default(autoincrement())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  type                TaskType
+  timeUnits           Int
+  day                 Int
+  timeSlot            TimeSlot
+  notes               String?       // User notes for the task
+  details             Json?         // Store additional task details as JSON
+  dayScheduleId       Int
+  daySchedule         DaySchedule   @relation(fields: [dayScheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([dayScheduleId, timeSlot])
+}
+
+model TaskDefinition {
+  id                  Int           @id @default(autoincrement())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  type                TaskType      @unique
+  name                String        @db.VarChar(100)
+  timeUnits           Int
+  color               String        @db.VarChar(7)  // Hex color code
+  description         String
+  restrictions        Json?         // Store restrictions as JSON
+}
+
+model Currency {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  name          String        @db.VarChar(255) @unique
+  value         Int           @default(0)
+}
+
+model Person {
+  id            Int           @id @default(autoincrement())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  name          String        @db.VarChar(255)
+  description   String?       @db.VarChar(255)
+  relationship  String?       @db.VarChar(255)
+  notableEvents String?       @db.VarChar(255)
+  url           String?       @db.VarChar(255)
+  isFavorited   Boolean       @default(false)
+}
+
+model Skill {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String   @db.VarChar(255) @unique
+}
+
+model Spell {
+  id            Int      @id @default(autoincrement())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  name          String   @db.VarChar(255) @unique
+  currentStars  Int      @default(0)
+  neededStars   Int      @default(1)
+  isLearned     Boolean  @default(false)
 }

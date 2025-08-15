@@ -1,23 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-export interface CreateItemRequest {
-  name: string
-  description: string
-}
-
-export interface Item {
-  id: number
-  name: string
-  description: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface ItemDeletability {
-  canDelete: boolean
-  reason: string | null
-}
+import type { CreateItemRequest, ItemDeletability, ItemStore } from '../types/store/item'
 
 interface ApiError {
   response?: {
@@ -28,8 +12,8 @@ interface ApiError {
 }
 
 export const useItemStore = defineStore('item', {
-  state: () => ({
-    items: [] as Item[]
+  state: (): ItemStore => ({
+    items: []
   }),
   actions: {
     async createItem(request: CreateItemRequest) {

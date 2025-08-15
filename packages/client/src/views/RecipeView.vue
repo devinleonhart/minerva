@@ -1,10 +1,17 @@
 <template>
-  <div class="recipe-view">
-    <div class="recipe-header">
-      <n-button @click="showCreateForm = true" type="primary" size="large">
-        Create New Recipe
-      </n-button>
-    </div>
+  <ViewLayout>
+    <ViewHeader
+      :show-search="true"
+      search-placeholder="Search recipes..."
+      :search-value="searchQuery"
+      @update:search-value="searchQuery = $event"
+    >
+      <template #left>
+        <n-button @click="showCreateForm = true" type="primary" size="large">
+          Create New Recipe
+        </n-button>
+      </template>
+    </ViewHeader>
 
     <!-- Create Recipe Form Modal -->
     <n-modal v-model:show="showCreateForm" preset="card" title="Create New Recipe" style="width: 600px">
@@ -22,25 +29,34 @@
           />
         </n-form-item>
 
-        <n-form-item label="Ingredients">
-          <div class="ingredient-selection">
+        <n-form-item label="Filter Ingredients">
+          <n-input
+            v-model:value="ingredientFilter"
+            placeholder="Filter ingredients..."
+            clearable
+          />
+        </n-form-item>
+
+        <n-form-item label="Available Ingredients">
+          <div class="ingredient-grid">
             <div
-              v-for="ingredient in availableIngredients"
+              v-for="ingredient in filteredIngredients"
               :key="ingredient.id"
-              class="ingredient-option"
+              class="ingredient-card"
               :class="{ selected: isIngredientSelected(ingredient.id) }"
             >
               <div class="ingredient-info">
                 <span class="ingredient-name">{{ ingredient.name }}</span>
                 <span class="ingredient-description">{{ ingredient.description }}</span>
               </div>
-              <div class="ingredient-quantity">
+              <div class="ingredient-actions">
                 <n-input-number
+                  v-if="isIngredientSelected(ingredient.id)"
                   :value="getIngredientQuantity(ingredient.id)"
                   :min="1"
                   size="small"
-                  placeholder="Qty"
-                  @update:value="(value: number | null) => updateIngredientQuantity(ingredient.id, { target: { value: value || 1 } })"
+                  style="width: 80px; margin-right: 8px;"
+                  @update:value="(value: number | null) => updateIngredientQuantity(ingredient.id, value || 1)"
                 />
                 <n-button
                   :type="isIngredientSelected(ingredient.id) ? 'error' : 'primary'"
@@ -52,10 +68,9 @@
               </div>
             </div>
           </div>
-          <p class="ingredient-count">
-            Selected: {{ selectedIngredients.length }} ingredients
-          </p>
         </n-form-item>
+
+
 
         <n-space justify="end">
           <n-button @click="cancelCreate">Cancel</n-button>
@@ -67,47 +82,80 @@
     </n-modal>
 
     <!-- Recipe List -->
-    <n-empty v-if="recipes.length === 0 && !showCreateForm" description="No recipes created yet. Create your first recipe to get started!" />
+    <n-empty v-if="filteredRecipes.length === 0 && !showCreateForm" description="No recipes created yet. Create your first recipe to get started!" />
 
-    <div v-else-if="!showCreateForm" class="recipe-grid">
+    <GridLayout v-else-if="!showCreateForm" variant="default">
       <n-card
-        v-for="recipe in recipes"
+        v-for="recipe in filteredRecipes"
         :key="recipe.id"
         class="recipe-card"
-        :title="recipe.name"
         size="medium"
       >
-        <template #header-extra>
-          <n-space>
-            <n-button @click="checkCraftability(recipe.id)" type="info" size="small">
-              Craft
-            </n-button>
-            <n-button @click="editRecipe(recipe)" type="warning" size="small">
-              Edit
-            </n-button>
-            <n-button @click="deleteRecipe(recipe.id)" type="error" size="small">
-              Delete
-            </n-button>
-          </n-space>
+        <template #header>
+          <CardHeader :title="recipe.name">
+            <template #actions>
+              <n-tag
+                :type="getRecipeCraftabilityType(recipe.id)"
+                size="small"
+                class="craftability-indicator"
+              >
+                {{ getRecipeCraftabilityText(recipe.id) }}
+              </n-tag>
+              <n-button @click="checkCraftability(recipe.id)" type="info" size="small">
+                Craft
+              </n-button>
+              <n-button @click="handleAddPotion(recipe)" type="success" size="small">
+                Add
+              </n-button>
+              <n-button @click="handleEdit(recipe)" type="primary" size="small">
+                Edit
+              </n-button>
+              <n-button
+                v-if="recipeDeletability[recipe.id]?.canDelete"
+                @click="deleteRecipe(recipe.id)"
+                type="error"
+                size="small"
+              >
+                Delete
+              </n-button>
+              <n-tooltip v-else-if="recipeDeletability[recipe.id]?.reason" trigger="hover">
+                <template #trigger>
+                  <n-button
+                    disabled
+                    type="error"
+                    size="small"
+                  >
+                    Delete
+                  </n-button>
+                </template>
+                {{ recipeDeletability[recipe.id]?.reason }}
+              </n-tooltip>
+            </template>
+          </CardHeader>
         </template>
 
-        <p class="recipe-description">{{ recipe.description }}</p>
-        <n-divider />
-        <div class="recipe-ingredients">
-          <h4>Ingredients:</h4>
-          <n-space vertical>
-            <n-tag
-              v-for="recipeIngredient in recipe.ingredients"
-              :key="recipeIngredient.ingredientId"
-              type="info"
-              size="medium"
-            >
-              {{ recipeIngredient.ingredient.name }} ({{ recipeIngredient.quantity }})
-            </n-tag>
-          </n-space>
+        <div class="recipe-content">
+          <p class="recipe-description">{{ recipe.description }}</p>
+          <n-divider />
+          <div class="recipe-ingredients">
+            <h4>Ingredients:</h4>
+            <div class="ingredients-tags">
+              <n-tag
+                v-for="recipeIngredient in recipe.ingredients"
+                :key="recipeIngredient.ingredientId"
+                type="info"
+                size="medium"
+                class="ingredient-tag"
+              >
+                {{ recipeIngredient.ingredient.name }} x{{ recipeIngredient.quantity }} ({{ getAvailableIngredientQuantity(recipeIngredient.ingredientId) }})
+              </n-tag>
+            </div>
+          </div>
+
+
         </div>
       </n-card>
-    </div>
+    </GridLayout>
 
     <!-- Ingredient Selection Modal for Crafting -->
     <n-modal v-model:show="showCraftModal" preset="card" :title="`Craft ${selectedRecipe?.name}`" style="width: 600px">
@@ -119,6 +167,18 @@
           <n-tag v-else type="error" size="large">
             ❌ Recipe cannot be crafted - insufficient ingredients
           </n-tag>
+        </div>
+
+        <n-divider />
+
+        <div class="quality-selection">
+          <h3>Select Potion Quality:</h3>
+          <n-select
+            v-model:value="selectedQuality"
+            placeholder="Choose quality..."
+            :options="qualityOptions"
+            style="width: 200px"
+          />
         </div>
 
         <n-divider />
@@ -173,7 +233,14 @@
         <n-empty description="Loading recipe information..." />
       </div>
     </n-modal>
-  </div>
+
+    <!-- Edit Recipe Modal -->
+    <EditRecipeModal
+      v-model:modelValue="showEditModal"
+      :recipe="editingRecipe"
+      @recipe-updated="handleRecipeUpdate"
+    />
+  </ViewLayout>
 </template>
 
 <script lang="ts" setup>
@@ -182,6 +249,7 @@ import { storeToRefs } from 'pinia'
 import { useRecipeStore } from '@/store/recipe'
 import { useIngredientStore } from '@/store/ingredient'
 import { usePotionStore } from '@/store/potion'
+import { useInventoryStore } from '@/store/inventory'
 import { useToast } from '@/composables/useToast'
 import {
   NButton,
@@ -195,24 +263,35 @@ import {
   NDivider,
   NCard,
   NTag,
-  NEmpty
+  NEmpty,
+  NTooltip
 } from 'naive-ui'
-import type { Recipe } from '@/types/store/recipe'
-
-
+import type { Recipe } from '../types/store/recipe'
+import ViewLayout from '@/components/shared/ViewLayout.vue'
+import ViewHeader from '@/components/shared/ViewHeader.vue'
+import GridLayout from '@/components/shared/GridLayout.vue'
+import CardHeader from '@/components/shared/CardHeader.vue'
+import EditRecipeModal from '@/components/shared/EditRecipeModal.vue'
 
 const recipeStore = useRecipeStore()
 const ingredientStore = useIngredientStore()
 const potionStore = usePotionStore()
+const inventoryStore = useInventoryStore()
 const toast = useToast()
 
 const { recipes } = storeToRefs(recipeStore)
 const { ingredients } = storeToRefs(ingredientStore)
 const { craftability } = storeToRefs(potionStore)
+const { inventoryItems } = storeToRefs(inventoryStore)
 
 const showCreateForm = ref(false)
 const showCraftModal = ref(false)
+const showEditModal = ref(false)
 const selectedRecipe = ref<Recipe | null>(null)
+const editingRecipe = ref<Recipe | null>(null)
+const recipesCraftability = ref<Record<number, boolean>>({})
+const searchQuery = ref('')
+const ingredientFilter = ref('')
 
 const newRecipe = ref({
   name: '',
@@ -221,9 +300,42 @@ const newRecipe = ref({
 })
 
 const selectedIngredients = ref<Array<{ ingredientId: number; quantity: number }>>([])
-const craftingIngredients = ref<Record<number, number>>({}) // ingredientId -> inventoryItemId
+const craftingIngredients = ref<Record<number, number>>({})
+const selectedQuality = ref('NORMAL')
 
-const availableIngredients = computed(() => ingredients.value)
+const qualityOptions = [
+  { label: 'Normal Quality', value: 'NORMAL' },
+  { label: 'High Quality', value: 'HQ' },
+  { label: 'Low Quality', value: 'LQ' }
+]
+
+const availableIngredients = computed(() => {
+  return [...ingredients.value].sort((a, b) => a.name.localeCompare(b.name))
+})
+
+const filteredIngredients = computed(() => {
+  if (!ingredientFilter.value) {
+    return availableIngredients.value
+  }
+
+  return availableIngredients.value.filter(ingredient =>
+    ingredient.name.toLowerCase().includes(ingredientFilter.value.toLowerCase()) ||
+    ingredient.description.toLowerCase().includes(ingredientFilter.value.toLowerCase())
+  )
+})
+
+const filteredRecipes = computed(() => {
+  let filtered = recipes.value
+
+  if (searchQuery.value) {
+    filtered = filtered.filter(recipe =>
+      recipe.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      recipe.description.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+  }
+
+  return filtered.sort((a, b) => a.name.localeCompare(b.name))
+})
 
 const canCreateRecipe = computed(() =>
   newRecipe.value.name.trim() &&
@@ -234,9 +346,38 @@ const canCreateRecipe = computed(() =>
 onMounted(async () => {
   await Promise.all([
     recipeStore.getRecipes(),
-    ingredientStore.getIngredients()
+    ingredientStore.getIngredients(),
+    inventoryStore.getInventory()
+  ])
+  await Promise.all([
+    checkAllRecipesCraftability(),
+    checkAllRecipesDeletability()
   ])
 })
+
+const checkAllRecipesCraftability = async () => {
+  for (const recipe of recipes.value) {
+    try {
+      await potionStore.checkRecipeCraftability(recipe.id)
+      if (craftability.value) {
+        recipesCraftability.value[recipe.id] = craftability.value.isCraftable
+      }
+    } catch (error) {
+      console.error(`Error checking craftability for recipe ${recipe.id}:`, error)
+      recipesCraftability.value[recipe.id] = false
+    }
+  }
+}
+
+const checkAllRecipesDeletability = async () => {
+  for (const recipe of recipes.value) {
+    try {
+      await checkRecipeDeletability(recipe.id)
+    } catch (error) {
+      console.error(`Error checking deletability for recipe ${recipe.id}:`, error)
+    }
+  }
+}
 
 const toggleIngredient = (ingredientId: number) => {
   const index = selectedIngredients.value.findIndex(ing => ing.ingredientId === ingredientId)
@@ -256,10 +397,7 @@ const getIngredientQuantity = (ingredientId: number) => {
   return ingredient ? ingredient.quantity : 1
 }
 
-const updateIngredientQuantity = (ingredientId: number, event: Event) => {
-  const target = event.target as HTMLInputElement
-  const quantity = parseInt(target.value) || 1
-
+const updateIngredientQuantity = (ingredientId: number, quantity: number) => {
   if (isIngredientSelected(ingredientId)) {
     const ingredient = selectedIngredients.value.find(ing => ing.ingredientId === ingredientId)
     if (ingredient) {
@@ -275,6 +413,9 @@ const checkCraftability = async (recipeId: number) => {
       selectedRecipe.value = recipe
       showCraftModal.value = true
       await potionStore.checkRecipeCraftability(recipeId)
+      if (craftability.value) {
+        recipesCraftability.value[recipeId] = craftability.value.isCraftable
+      }
     }
   } catch (error) {
     console.error('Error checking craftability:', error)
@@ -285,6 +426,7 @@ const closeCraftModal = () => {
   showCraftModal.value = false
   selectedRecipe.value = null
   craftingIngredients.value = {}
+  selectedQuality.value = 'NORMAL'
 }
 
 const canCraftPotion = computed(() => {
@@ -306,14 +448,12 @@ const craftPotion = async () => {
 
     await potionStore.craftPotion({
       recipeId: selectedRecipe.value.id,
+      quality: selectedQuality.value,
       ingredientSelections
     })
 
-    // Refresh inventory and close modal
-    await ingredientStore.getIngredients() // This should refresh inventory too
+    await ingredientStore.getIngredients()
     closeCraftModal()
-
-    // Show success message
     toast.success('Potion crafted successfully!')
   } catch (error) {
     console.error('Error crafting potion:', error)
@@ -329,12 +469,17 @@ const handleCreateRecipe = async () => {
       ingredients: selectedIngredients.value
     })
 
-    // Reset form
-    newRecipe.value = { name: '', description: '', ingredients: [] }
+    newRecipe.value = {
+      name: '',
+      description: '',
+      ingredients: []
+    }
     selectedIngredients.value = []
+    ingredientFilter.value = ''
     showCreateForm.value = false
 
     toast.success('Recipe created successfully!')
+    await checkAllRecipesDeletability()
   } catch (error) {
     console.error('Error creating recipe:', error)
     toast.error('Failed to create recipe. Please try again.')
@@ -342,14 +487,67 @@ const handleCreateRecipe = async () => {
 }
 
 const cancelCreate = () => {
-  newRecipe.value = { name: '', description: '', ingredients: [] }
+  newRecipe.value = {
+    name: '',
+    description: '',
+    ingredients: []
+  }
   selectedIngredients.value = []
-  showCreateForm.value = false
+  ingredientFilter.value = ''
+    showCreateForm.value = false
 }
 
-const editRecipe = (recipe: Recipe) => {
-  // TODO: Implement edit functionality
-  console.log('Edit recipe:', recipe)
+const handleEdit = (recipe: Recipe) => {
+  editingRecipe.value = recipe
+  showEditModal.value = true
+}
+
+const handleAddPotion = async (recipe: Recipe) => {
+  try {
+    // Create a potion directly without crafting requirements
+    await potionStore.addPotionDirectly({
+      recipeId: recipe.id,
+      quality: 'NORMAL'
+    })
+
+    toast.success(`Added ${recipe.name} to inventory!`)
+  } catch (error) {
+    console.error('Error adding potion:', error)
+    toast.error('Failed to add potion. Please try again.')
+  }
+}
+
+const handleRecipeUpdate = async (updatedRecipe: Recipe) => {
+  try {
+    await recipeStore.updateRecipe(updatedRecipe.id, {
+      name: updatedRecipe.name,
+      description: updatedRecipe.description,
+      ingredients: updatedRecipe.ingredients.map(ing => ({
+        ingredientId: ing.ingredientId,
+        quantity: ing.quantity
+      }))
+    })
+
+    showEditModal.value = false
+    editingRecipe.value = null
+    toast.success('Recipe updated successfully!')
+    await checkAllRecipesDeletability()
+  } catch (error) {
+    console.error('Error updating recipe:', error)
+    toast.error('Failed to update recipe. Please try again.')
+  }
+}
+
+const recipeDeletability = ref<Record<number, { canDelete: boolean; reason: string | null }>>({})
+
+const checkRecipeDeletability = async (recipeId: number) => {
+  try {
+    const deletability = await recipeStore.checkRecipeDeletability(recipeId)
+    recipeDeletability.value[recipeId] = deletability
+  } catch (error) {
+    console.error('Error checking recipe deletability:', error)
+    recipeDeletability.value[recipeId] = { canDelete: false, reason: 'Error checking deletability' }
+  }
 }
 
 const deleteRecipe = async (id: number) => {
@@ -361,47 +559,56 @@ const deleteRecipe = async (id: number) => {
     toast.error('Failed to delete recipe. Please try again.')
   }
 }
+
+const getRecipeCraftabilityType = (recipeId: number): 'success' | 'error' | 'info' => {
+  const isCraftable = recipesCraftability.value[recipeId]
+  if (isCraftable === undefined) return 'info'
+  return isCraftable ? 'success' : 'error'
+}
+
+const getRecipeCraftabilityText = (recipeId: number): string => {
+  const isCraftable = recipesCraftability.value[recipeId]
+  if (isCraftable === undefined) return 'Checking...'
+  return isCraftable ? 'Craftable' : 'Not Craftable'
+}
+
+// Helper function to get total available quantity for an ingredient
+const getAvailableIngredientQuantity = (ingredientId: number): number => {
+  return inventoryItems.value
+    .filter(item => item.ingredientId === ingredientId)
+    .reduce((total, item) => total + item.quantity, 0)
+}
+
+
 </script>
 
 <style scoped>
-.recipe-view {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: #1a1a1a;
-  min-height: 100vh;
-}
-
-.recipe-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.ingredient-selection {
+.ingredient-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 12px;
-  margin-bottom: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 4px;
 }
 
-.ingredient-option {
+.ingredient-card {
   border: 2px solid #404040;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 12px;
-  transition: all 0.2s;
   background: #2a2a2a;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
-.ingredient-option:hover {
+.ingredient-card:hover {
   border-color: #18a058;
-  background: #1a1a1a;
+  background: #2f2f2f;
 }
 
-.ingredient-option.selected {
+.ingredient-card.selected {
   border-color: #18a058;
   background: #0c7a43;
 }
@@ -411,37 +618,100 @@ const deleteRecipe = async (id: number) => {
 }
 
 .ingredient-name {
+  font-weight: 600;
+  font-size: 14px;
   display: block;
-  font-weight: 500;
   margin-bottom: 4px;
 }
 
 .ingredient-description {
-  display: block;
   font-size: 12px;
+  color: #ccc;
+  line-height: 1.3;
 }
 
-.ingredient-quantity {
+.ingredient-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
 }
 
-.ingredient-quantity label {
-  font-size: 12px;
-  margin: 0;
+
+
+.recipe-card {
+  height: fit-content;
 }
 
-.ingredient-count {
-  margin: 0;
+.recipe-content {
+  margin-top: 8px;
+}
+
+.recipe-description {
+  margin: 8px 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.recipe-ingredients {
+  margin-top: 16px;
+}
+
+.recipe-ingredients h4 {
+  margin: 0 0 12px 0;
   font-size: 14px;
-  font-style: italic;
+  font-weight: 600;
+  color: #e0e0e0;
 }
 
-.recipe-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
+.ingredients-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
+
+.ingredient-tag {
+  margin: 0;
+}
+
+.craftability-indicator {
+  margin-right: 10px;
+}
+
+.quality-selection {
+  margin: 20px 0;
+}
+
+.quality-selection h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+/* Crafting modal ingredient spacing */
+.ingredient-selections {
+  margin: 20px 0;
+}
+
+.ingredient-selection-item {
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  background: #2a2a2a;
+}
+
+.ingredient-selection-item:last-child {
+  margin-bottom: 0;
+}
+
+.ingredient-selection-item.insufficient {
+  border-color: #d03050;
+  background: #2a1a1a;
+}
+
+
 </style>

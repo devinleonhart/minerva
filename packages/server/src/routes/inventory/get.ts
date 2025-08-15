@@ -7,7 +7,7 @@ const router: Router = Router()
 
 router.get('/', async (req, res) => {
   try {
-    const [ingredientItems, potionItems, itemItems] = await Promise.all([
+    const [ingredientItems, potionItems, itemItems, currencies] = await Promise.all([
       prisma.inventoryItem.findMany({
         include: {
           ingredient: true
@@ -37,6 +37,11 @@ router.get('/', async (req, res) => {
             name: 'asc'
           }
         }
+      }),
+      prisma.currency.findMany({
+        orderBy: {
+          name: 'asc'
+        }
       })
     ])
 
@@ -59,7 +64,8 @@ router.get('/', async (req, res) => {
     res.json({
       ingredients: ingredientItems,
       potions: potionItemsWithRecipes,
-      items: itemItems
+      items: itemItems,
+      currencies: currencies
     })
   } catch (error) {
     handleUnknownError(res, 'fetching inventory', error)

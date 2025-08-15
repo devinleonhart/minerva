@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-import type { RecipeStore, CreateRecipeRequest, UpdateRecipeRequest } from '#/store/recipe'
+import type { Recipe, CreateRecipeRequest, UpdateRecipeRequest, RecipeDeletability } from '../types/store/recipe'
 
 export const useRecipeStore = defineStore('recipe', {
-  state: (): RecipeStore => ({
-    recipes: []
+  state: () => ({
+    recipes: [] as Recipe[]
   }),
   actions: {
     async getRecipes() {
@@ -45,6 +45,18 @@ export const useRecipeStore = defineStore('recipe', {
         console.error('Error deleting recipe:', error)
         throw error
       }
+    },
+    async checkRecipeDeletability(id: number): Promise<RecipeDeletability> {
+      try {
+        const response = await axios.get(`/api/recipes/${id}/deletable`)
+        return response.data
+      } catch (error) {
+        console.error('Error checking recipe deletability:', error)
+        return { canDelete: false, reason: 'Error checking deletability' }
+      }
     }
+  },
+  getters: {
+    // Add any computed properties if needed
   }
 })

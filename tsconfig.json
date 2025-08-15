@@ -13,8 +13,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "composite": true,
-    "incremental": true,
-    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+    "incremental": true
   },
   "files": [],
   "references": [

@@ -11,7 +11,7 @@ router.delete('/:id', async (req, res) => {
     const id = parseId(req)
 
     if (id === null) {
-      res.status(400).json({ error: 'Invalid ID' })
+      res.status(400).json({ error: 'Invalid recipe ID' })
       return
     }
 
@@ -21,6 +21,23 @@ router.delete('/:id', async (req, res) => {
 
     if (!existingRecipe) {
       res.status(404).json({ error: 'Recipe not found' })
+      return
+    }
+
+    // Check if recipe has potions that are currently in inventory
+    const potionsInInventory = await prisma.potionInventoryItem.findMany({
+      include: {
+        potion: true
+      },
+      where: {
+        potion: {
+          recipeId: id
+        }
+      }
+    })
+
+    if (potionsInInventory.length > 0) {
+      res.status(400).json({ error: 'Cannot delete recipe because potions are in inventory' })
       return
     }
 
@@ -37,7 +54,7 @@ router.delete('/:id', async (req, res) => {
       })
     })
 
-    res.json({ message: 'Recipe deleted successfully' })
+    res.status(204).send()
   } catch (error) {
     handleUnknownError(res, 'deleting recipe', error)
   }

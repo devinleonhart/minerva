@@ -40,13 +40,17 @@ router.delete('/:id', async (req, res) => {
       return
     }
 
-    const ingredient = await prisma.ingredient.delete({ where: { id } })
-    if (!ingredient) {
-      res.status(404).json({ error: 'Ingredient not found' })
-      return
+    try {
+      await prisma.ingredient.delete({ where: { id } })
+      res.status(204).send()
+    } catch (deleteError: unknown) {
+      if (deleteError && typeof deleteError === 'object' && 'code' in deleteError && deleteError.code === 'P2025') {
+        // Record not found
+        res.status(404).json({ error: 'Ingredient not found' })
+        return
+      }
+      throw deleteError
     }
-
-    res.status(204).send()
   } catch (error) {
     handleUnknownError(res, 'deleting ingredient', error)
   }

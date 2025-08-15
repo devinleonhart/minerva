@@ -20,21 +20,18 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
+      target: base
     working_dir: /app/packages/server
-    command: pnpm dev
+    command: ["sh", "-c", "npx prisma generate && npx tsx index.ts"]
     ports:
       - "3000:3000"
     volumes:
       - ./packages/server:/app/packages/server
       - /app/packages/client/node_modules
-    env_file:
-      - .env
     environment:
-      - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
+      - MINERVA_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/minerva
     depends_on:
       - postgres
-    entrypoint: ["sh", "-c", "cd /app/packages/server && pnpm prisma:migrate:ci && pnpm dev"]
 
   prisma:
     build:
@@ -43,10 +40,10 @@ services:
       target: development
     working_dir: /app/packages/server
     command: ["tail", "-f", "/dev/null"]
-    env_file:
-      - .env
+    volumes:
+      - ./packages/server:/app/packages/server
     environment:
-      - MINERVA_DATABASE_URL=${MINERVA_DATABASE_URL}
+      - MINERVA_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/minerva
     depends_on:
       - postgres
     ports:
@@ -64,5 +61,18 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  postgres-test:
+    image: postgres:17.4
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: minerva_test
+    volumes:
+      - pgdata-test:/var/lib/postgresql/data
+
 volumes:
   pgdata:
+  pgdata-test:

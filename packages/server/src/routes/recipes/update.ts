@@ -8,6 +8,8 @@ interface RecipeIngredientInput {
   quantity: number
 }
 
+
+
 const prisma = new PrismaClient()
 const router: Router = Router()
 
@@ -21,7 +23,7 @@ router.put('/:id', async (req, res) => {
     }
 
     if (id === null) {
-      res.status(400).json({ error: 'Invalid ID' })
+      res.status(400).json({ error: 'Invalid recipe ID' })
       return
     }
 

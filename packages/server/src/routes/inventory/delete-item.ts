@@ -6,7 +6,7 @@ import { handleUnknownError } from '../../utils/handleUnknownError.js'
 const prisma = new PrismaClient()
 const router: Router = Router()
 
-router.delete('/item/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const id = parseId(req)
 

@@ -3,51 +3,54 @@ import { PrismaClient } from '@prisma/client'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const prisma = new PrismaClient()
-const router: Router = Router()
 
-interface CreateItemRequest {
-  name: string
-  description: string
-}
+const router: Router = Router()
 
 router.post('/', async (req, res) => {
   try {
-    const { name, description } = req.body as CreateItemRequest
+    const { name, description } = req.body
 
-    if (!name || !description) {
-      res.status(400).json({ error: 'Name and description are required' })
-      return
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ error: 'Item name is required' })
     }
 
-    // Create the item and add it to inventory in a transaction
+    if (description && typeof description !== 'string') {
+      return res.status(400).json({ error: 'Item description must be a string' })
+    }
+
     const result = await prisma.$transaction(async (tx) => {
-      // Create the item
       const item = await tx.item.create({
         data: {
-          name,
-          description
+          name: name.trim(),
+          description: description?.trim() || ''
         }
       })
 
-      // Automatically add it to inventory
       await tx.itemInventoryItem.create({
         data: {
-          itemId: item.id
+          itemId: item.id,
+          quantity: 0
         }
       })
 
       return item
     })
 
-    // Fetch the created item with inventory details
-    const itemWithInventory = await prisma.item.findUnique({
+    const createdItem = await prisma.item.findUnique({
       where: { id: result.id },
       include: {
-        inventoryItems: true
+        inventoryItems: {
+          select: {
+            id: true,
+            quantity: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        }
       }
     })
 
-    res.json(itemWithInventory)
+    res.status(201).json(createdItem)
   } catch (error) {
     handleUnknownError(res, 'creating item', error)
   }

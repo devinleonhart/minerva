@@ -6,7 +6,7 @@ import { handleUnknownError } from '../../utils/handleUnknownError.js'
 const prisma = new PrismaClient()
 const router: Router = Router()
 
-router.put('/potion/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const id = parseId(req)
 

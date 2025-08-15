@@ -7,6 +7,7 @@ const router: Router = Router()
 
 interface CraftPotionRequest {
   recipeId: number
+  quality?: string
   ingredientSelections: Array<{
     ingredientId: number
     inventoryItemId: number
@@ -16,7 +17,7 @@ interface CraftPotionRequest {
 
 router.post('/', async (req, res) => {
   try {
-    const { recipeId, ingredientSelections } = req.body as CraftPotionRequest
+    const { recipeId, quality = 'NORMAL', ingredientSelections } = req.body as CraftPotionRequest
 
     if (!recipeId || !ingredientSelections || !Array.isArray(ingredientSelections)) {
       res.status(400).json({ error: 'recipeId and ingredientSelections array are required' })
@@ -110,7 +111,7 @@ router.post('/', async (req, res) => {
       // Create the potion
       const potion = await tx.potion.create({
         data: {
-          quality: 'NORMAL', // Default quality for now
+          quality: quality as 'NORMAL' | 'HQ' | 'LQ',
           recipeId: recipeId
         }
       })
@@ -153,7 +154,7 @@ router.post('/', async (req, res) => {
       recipe: recipeData
     }
 
-    res.json(potionWithRecipeData)
+    res.status(201).json(potionWithRecipeData)
   } catch (error) {
     handleUnknownError(res, 'crafting potion', error)
   }

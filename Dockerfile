@@ -19,7 +19,7 @@ COPY packages/server/src /app/packages/server/src/
 COPY packages/server/tsconfig.json /app/packages/server/
 COPY packages/server/index.ts /app/packages/server/
 
-COPY tsconfig.json tsconfig.build.json /app/
+COPY tsconfig.json tsconfig.build.json eslint.config.mjs /app/
 
 RUN pnpm install --shamefully-hoist
 
@@ -27,7 +27,7 @@ FROM base AS development
 
 RUN cd /app/packages/server && npx prisma generate --schema=./prisma/schema.prisma
 
-CMD ["sh", "-c", "cd /app/packages/server && pnpm prisma:migrate:ci && pnpm dev"]
+CMD ["sh", "-c", "cd /app/packages/server && pnpm dev"]
 
 FROM base AS production-build
 
@@ -51,5 +51,7 @@ RUN pnpm install --prod
 RUN pnpm add prisma
 
 RUN npx prisma generate --schema=/app/server/prisma/schema.prisma
+
+ENV NODE_ENV=production
 
 CMD ["sh", "-c", "cd /app/server && npx prisma migrate deploy && node /app/dist/server/index.js"]

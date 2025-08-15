@@ -5,21 +5,21 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "lint": "npx eslint .",
+    "lint": "npx eslint . --config ../../eslint.config.mjs",
+    "quality": "npx eslint . --config ../../eslint.config.mjs && npx tsc && npx vitest --run",
     "test": "npx vitest --run",
     "tsc": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@vicons/ionicons5": "^0.13.0",
     "axios": "^1.11.0",
     "naive-ui": "^2.42.0",
-    "papaparse": "^5.5.3",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@testing-library/vue": "^8.1.0",
-    "@types/papaparse": "^5.3.16",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vue/test-utils": "2.4.6",
     "vite": "^6.3.5",

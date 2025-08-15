@@ -1,10 +1,9 @@
 <template>
   <div class="recipe-view">
     <div class="recipe-header">
-      <n-h1>Recipes</n-h1>
-              <n-button @click="showCreateForm = true" type="primary" size="large">
-          Create New Recipe
-        </n-button>
+      <n-button @click="showCreateForm = true" type="primary" size="large">
+        Create New Recipe
+      </n-button>
     </div>
 
     <!-- Create Recipe Form Modal -->
@@ -185,7 +184,6 @@ import { useIngredientStore } from '@/store/ingredient'
 import { usePotionStore } from '@/store/potion'
 import { useToast } from '@/composables/useToast'
 import {
-  NH1,
   NButton,
   NModal,
   NForm,
@@ -370,6 +368,8 @@ const deleteRecipe = async (id: number) => {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: #1a1a1a;
+  min-height: 100vh;
 }
 
 .recipe-header {
@@ -387,23 +387,23 @@ const deleteRecipe = async (id: number) => {
 }
 
 .ingredient-option {
-  border: 2px solid #e9ecef;
+  border: 2px solid #404040;
   border-radius: 6px;
   padding: 12px;
   transition: all 0.2s;
-  background: #f8f9fa;
+  background: #2a2a2a;
   display: flex;
   flex-direction: column;
 }
 
 .ingredient-option:hover {
-  border-color: #007bff;
-  background: #e7f3ff;
+  border-color: #18a058;
+  background: #1a1a1a;
 }
 
 .ingredient-option.selected {
-  border-color: #28a745;
-  background: #d4edda;
+  border-color: #18a058;
+  background: #0c7a43;
 }
 
 .ingredient-info {

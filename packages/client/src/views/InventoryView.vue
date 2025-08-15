@@ -1,11 +1,9 @@
 <template>
   <div class="inventory-view">
-    <n-h1>Inventory</n-h1>
     <n-empty v-if="inventoryItems.length === 0 && potionItems.length === 0 && itemItems.length === 0" description="Your inventory is empty. Visit the ingredients page to add items!" />
 
     <!-- Ingredients Section -->
     <div v-if="inventoryItems.length > 0">
-      <n-h2>Ingredients</n-h2>
       <div class="inventory-grid">
         <n-card
           v-for="item in inventoryItems"
@@ -67,7 +65,6 @@
 
     <!-- Potions Section -->
     <div v-if="potionItems.length > 0">
-      <n-h2>Potions</n-h2>
       <div class="inventory-grid">
         <n-card
           v-for="item in potionItems"
@@ -119,12 +116,11 @@
 
     <!-- Items Section -->
     <div v-if="itemItems.length > 0">
-      <n-h2>Items</n-h2>
       <div class="inventory-grid">
         <n-card
           v-for="item in itemItems"
           :key="item.id"
-          class="inventory-item item-item"
+          class="inventory-item"
           size="medium"
         >
           <template #header>
@@ -158,8 +154,6 @@ import { storeToRefs } from 'pinia'
 import { useInventoryStore } from '@/store/inventory'
 import { useToast } from '@/composables/useToast'
 import {
-  NH1,
-  NH2,
   NButton,
   NSelect,
   NTag,
@@ -263,6 +257,8 @@ const getPotionQualityTagType = (quality: string) => {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: #1a1a1a;
+  min-height: 100vh;
 }
 
 .inventory-grid {

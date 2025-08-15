@@ -1,7 +1,5 @@
 <template>
   <div class="item-view">
-    <n-h1>Items</n-h1>
-
     <!-- Create Item Form -->
     <n-card title="Create New Item" class="create-form" size="medium">
       <n-form @submit.prevent="handleCreateItem" :model="newItem" label-placement="top">
@@ -34,7 +32,6 @@
 
     <!-- Existing Items List -->
     <div class="items-list">
-      <n-h2>Existing Items</n-h2>
       <n-empty v-if="items.length === 0" description="No items have been created yet." />
       <div v-else class="items-grid">
         <n-card
@@ -92,8 +89,6 @@ import { useInventoryStore } from '@/store/inventory'
 import { useToast } from '@/composables/useToast'
 import type { Item } from '@/store/item'
 import {
-  NH1,
-  NH2,
   NButton,
   NInput,
   NForm,

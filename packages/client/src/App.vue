@@ -102,9 +102,29 @@ const themeOverrides: GlobalThemeOverrides = {
 }
 </script>
 
+<style>
+/* Global styles to ensure dark background everywhere */
+html, body, #app {
+  background-color: #1a1a1a !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure smooth scrolling with dark background */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Override any default browser styles */
+* {
+  box-sizing: border-box;
+}
+</style>
+
 <style scoped>
 .app {
   min-height: 100vh;
+  background-color: #1a1a1a;
 }
 
 .app-header {
@@ -135,6 +155,7 @@ const themeOverrides: GlobalThemeOverrides = {
 
 .app-main {
   padding: 2rem;
+  background-color: #1a1a1a;
 }
 
 .content-wrapper {

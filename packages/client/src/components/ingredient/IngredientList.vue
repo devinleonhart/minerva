@@ -1,11 +1,11 @@
 <template>
   <div class="ingredient-list">
-            <n-input
-          v-model:value="searchQuery"
-          placeholder="Search ingredients..."
-          size="large"
-          class="search-input"
-        />
+    <n-input
+      v-model:value="searchQuery"
+      placeholder="Search ingredients..."
+      size="large"
+      class="search-input"
+    />
 
     <n-space vertical size="medium" class="ingredients-container">
       <n-card

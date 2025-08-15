@@ -9,6 +9,14 @@ export interface IngredientDeletability {
   reason: string | null
 }
 
+interface ApiError {
+  response?: {
+    data?: {
+      code?: string
+    }
+  }
+}
+
 export const useIngredientStore = defineStore('ingredient', {
   state: (): IngredientStore => ({
     ingredients: []
@@ -24,10 +32,11 @@ export const useIngredientStore = defineStore('ingredient', {
     async deleteIngredient(id: number) {
       try {
         await axios.delete(`/api/ingredients/${id}`)
-      } catch (error: any) {
-        if (error.response?.data?.code === 'INGREDIENT_IN_USE') {
+      } catch (error: unknown) {
+        const apiError = error as ApiError
+        if (apiError.response?.data?.code === 'INGREDIENT_IN_USE') {
           throw new Error('Cannot delete ingredient that is used in recipes')
-        } else if (error.response?.data?.code === 'INGREDIENT_IN_INVENTORY') {
+        } else if (apiError.response?.data?.code === 'INGREDIENT_IN_INVENTORY') {
           throw new Error('Cannot delete ingredient that has inventory items')
         }
         throw error

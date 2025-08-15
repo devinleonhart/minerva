@@ -119,9 +119,10 @@ const handleDelete = async (id: number) => {
     await ingredientStore.getIngredients()
     await checkAllIngredientsDeletability()
     toast.success('Ingredient deleted successfully!')
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting ingredient:', error)
-    toast.error(error.message || 'Failed to delete ingredient. Please try again.')
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete ingredient. Please try again.'
+    toast.error(errorMessage)
   }
 }
 

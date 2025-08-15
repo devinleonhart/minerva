@@ -19,6 +19,14 @@ export interface ItemDeletability {
   reason: string | null
 }
 
+interface ApiError {
+  response?: {
+    data?: {
+      code?: string
+    }
+  }
+}
+
 export const useItemStore = defineStore('item', {
   state: () => ({
     items: [] as Item[]
@@ -36,8 +44,9 @@ export const useItemStore = defineStore('item', {
     async deleteItem(id: number) {
       try {
         await axios.delete(`/api/items/${id}`)
-      } catch (error: any) {
-        if (error.response?.data?.code === 'ITEM_IN_INVENTORY') {
+      } catch (error: unknown) {
+        const apiError = error as ApiError
+        if (apiError.response?.data?.code === 'ITEM_IN_INVENTORY') {
           throw new Error('Cannot delete item that has inventory items')
         }
         throw error

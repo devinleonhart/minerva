@@ -155,9 +155,10 @@ const handleDelete = async (id: number) => {
     await loadItems()
     await checkAllItemsDeletability()
     toast.success('Item deleted successfully!')
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting item:', error)
-    toast.error(error.message || 'Failed to delete item. Please try again.')
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete item. Please try again.'
+    toast.error(errorMessage)
   }
 }
 

@@ -184,9 +184,9 @@ model Person {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   name          String        @db.VarChar(255)
-  description   String?       @db.VarChar(255)
+  description   String?       @db.Text
   relationship  String?       @db.VarChar(255)
-  notableEvents String?       @db.VarChar(255)
+  notableEvents String?       @db.Text
   url           String?       @db.VarChar(255)
   isFavorited   Boolean       @default(false)
 }

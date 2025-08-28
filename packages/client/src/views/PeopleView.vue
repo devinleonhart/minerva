@@ -32,25 +32,27 @@
           @click="selectPerson(person)"
         >
           <template #header>
-            <CardHeader :title="person.name">
-              <template #actions>
-                <n-button
-                  @click.stop="toggleFavorite(person.id, !person.isFavorited)"
-                  :type="person.isFavorited ? 'warning' : 'default'"
-                  size="small"
-                  :ghost="!person.isFavorited"
-                >
-                  <template #icon>
-                    <n-icon>
-                      <Star v-if="person.isFavorited" />
-                      <StarOutline v-else />
-                    </n-icon>
-                  </template>
-                  {{ person.isFavorited ? 'Favorited' : 'Favorite' }}
-                </n-button>
-              </template>
-            </CardHeader>
+            <div class="person-header">
+              <CardHeader :title="person.name" />
+              <span
+                class="favorite-star"
+                :class="{ 'favorited': person.isFavorited }"
+                @click.stop="toggleFavorite(person.id, !person.isFavorited)"
+                :title="person.isFavorited ? 'Favorited - click to unfavorite' : 'Not favorited - click to favorite'"
+              >
+                ★
+              </span>
+            </div>
           </template>
+
+          <div class="person-content">
+            <div v-if="person.relationship" class="person-relationship">
+              <strong>Relationship:</strong> {{ person.relationship }}
+            </div>
+            <div v-if="person.description" class="person-description">
+              {{ person.description }}
+            </div>
+          </div>
 
           <div class="person-controls">
             <n-button
@@ -92,11 +94,9 @@ import { useToast } from '@/composables/useToast'
 import type { Person } from '../types/store/people'
 import {
   NButton,
-  NIcon,
   NCard,
   NEmpty
 } from 'naive-ui'
-import { Star, StarOutline } from '@vicons/ionicons5'
 import ViewLayout from '@/components/shared/ViewLayout.vue'
 import ViewHeader from '@/components/shared/ViewHeader.vue'
 import GridLayout from '@/components/shared/GridLayout.vue'
@@ -188,6 +188,52 @@ const toggleFavorite = async (id: number, isFavorited: boolean) => {
 .person-item.favorited {
   border-left-color: #f59e0b;
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%);
+}
+
+.person-header {
+  position: relative;
+  width: 100%;
+}
+
+.favorite-star {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  color: #e0e0e0;
+  z-index: 10;
+}
+
+.favorite-star:hover {
+  transform: scale(1.1);
+}
+
+.favorite-star.favorited {
+  color: #f59e0b;
+}
+
+.favorite-star.favorited:hover {
+  color: #d97706;
+}
+
+.person-content {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.person-relationship {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #888;
+}
+
+.person-description {
+  color: #666;
+  line-height: 1.5;
+  font-size: 14px;
 }
 
 .person-controls {

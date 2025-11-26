@@ -37,7 +37,6 @@
 <script lang="ts" setup>
 import { ref, reactive, computed, watch } from 'vue'
 import { FormInst, FormRules } from 'naive-ui'
-import { useToast } from '@/composables/useToast'
 import { useIngredientStore } from '@/store/ingredient'
 import type { Ingredient, UpdateIngredientRequest } from '@/types/store/ingredient'
 
@@ -54,7 +53,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const ingredientStore = useIngredientStore()
-const toast = useToast()
 const formRef = ref<FormInst | null>(null)
 const isSubmitting = ref(false)
 
@@ -93,11 +91,10 @@ const handleSubmit = async () => {
     isSubmitting.value = true
     await ingredientStore.updateIngredient(props.ingredient.id, formData)
     await ingredientStore.getIngredients()
-    toast.success('Ingredient updated successfully!')
+    console.log('Ingredient updated successfully!')
     show.value = false
   } catch (error) {
-    console.error('Error updating ingredient:', error)
-    toast.error('Failed to update ingredient. Please try again.')
+    console.error('Failed to update ingredient. Please try again.', error)
   } finally {
     isSubmitting.value = false
   }

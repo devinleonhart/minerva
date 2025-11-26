@@ -59,7 +59,6 @@
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
 import { FormInst, FormRules } from 'naive-ui'
-import { useToast } from '@/composables/useToast'
 import { usePeopleStore } from '@/store/people'
 import type { CreatePersonRequest } from '@/types/store/people'
 
@@ -75,7 +74,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const peopleStore = usePeopleStore()
-const toast = useToast()
 const formRef = ref<FormInst | null>(null)
 const isSubmitting = ref(false)
 
@@ -103,7 +101,7 @@ const handleSubmit = async () => {
   try {
     isSubmitting.value = true
     await peopleStore.createPerson(formData)
-    toast.success('Person added successfully!')
+    console.log('Person added successfully!')
     show.value = false
     formData.name = ''
     formData.description = null
@@ -111,8 +109,7 @@ const handleSubmit = async () => {
     formData.notableEvents = null
     formData.url = null
   } catch (error) {
-    console.error('Error adding person:', error)
-    toast.error('Failed to add person. Please try again.')
+    console.error('Failed to add person. Please try again.', error)
   } finally {
     isSubmitting.value = false
   }

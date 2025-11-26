@@ -194,7 +194,6 @@
 import { computed, ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useSchedulerStore } from '@/store/scheduler'
-import { useToast } from '@/composables/useToast'
 import type { TaskType, TimeSlot } from '../types/store/scheduler'
 import {
   NButton,
@@ -209,7 +208,6 @@ import ViewLayout from '@/components/shared/ViewLayout.vue'
 import ViewHeader from '@/components/shared/ViewHeader.vue'
 
 const schedulerStore = useSchedulerStore()
-const toast = useToast()
 
 const { currentWeek, taskDefinitions } = storeToRefs(schedulerStore)
 const {
@@ -243,30 +241,27 @@ const canRemoveTask = computed(() => {
 const initializeNewWeek = async () => {
   try {
     await initializeWeek()
-    toast.success('New week schedule created!')
+    console.log('New week schedule created!')
   } catch (error) {
-    console.error('Failed to create new week:', error)
-    toast.error('Failed to create new week.')
+    console.error('Failed to create new week.', error)
   }
 }
 
 const deleteCurrentWeek = async () => {
   try {
     await schedulerStore.deleteCurrentWeek()
-    toast.success('Week deleted successfully!')
+    console.log('Week deleted successfully!')
   } catch (error) {
-    console.error('Failed to delete week:', error)
-    toast.error('Failed to delete week.')
+    console.error('Failed to delete week.', error)
   }
 }
 
 const saveNotes = async () => {
   try {
     await schedulerStore.saveNotes()
-    toast.success('Notes saved successfully!')
+    console.log('Notes saved successfully!')
   } catch (error) {
-    console.error('Failed to save notes:', error)
-    toast.error('Failed to save notes.')
+    console.error('Failed to save notes.', error)
   }
 }
 
@@ -278,16 +273,16 @@ const showTaskSelector = (day: number, timeSlot: TimeSlot) => {
 
 const selectTask = (taskType: TaskType) => {
   if (!canScheduleTask(taskType, selectedDay.value, selectedTimeSlot.value)) {
-    toast.error('Cannot schedule this task at this time.')
+    console.error('Cannot schedule this task at this time.')
     return
   }
 
   const success = scheduleTask(taskType, selectedDay.value, selectedTimeSlot.value)
   if (success) {
-    toast.success('Task scheduled successfully!')
+    console.log('Task scheduled successfully!')
     showTaskModal.value = false
   } else {
-    toast.error('Failed to schedule task.')
+    console.error('Failed to schedule task.')
   }
 }
 

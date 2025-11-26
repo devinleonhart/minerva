@@ -67,7 +67,6 @@
 import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useSpellsStore } from '@/store/spells'
-import { useToast } from '@/composables/useToast'
 import type { Spell } from '../types/store/spells'
 import {
   NButton,
@@ -81,7 +80,6 @@ import AddSpellModal from '@/components/spells/AddSpellModal.vue'
 import EditSpellModal from '@/components/spells/EditSpellModal.vue'
 
 const spellsStore = useSpellsStore()
-const toast = useToast()
 const { spells } = storeToRefs(spellsStore)
 
 const searchQuery = ref('')
@@ -106,8 +104,7 @@ onMounted(async () => {
   try {
     await spellsStore.getSpells()
   } catch (error) {
-    console.error('Failed to load spells:', error)
-    toast.error('Failed to load spells. Please refresh.')
+    console.error('Failed to load spells. Please refresh.', error)
   } finally {
     isLoading.value = false
   }
@@ -121,10 +118,9 @@ const editSpell = (spell: Spell) => {
 const deleteSpell = async (id: number) => {
   try {
     await spellsStore.deleteSpell(id)
-    toast.success('Spell removed successfully!')
+    console.log('Spell removed successfully!')
   } catch (error) {
-    console.error('Error deleting spell:', error)
-    toast.error('Failed to remove spell. Please try again.')
+    console.error('Failed to remove spell. Please try again.', error)
   }
 }
 </script>

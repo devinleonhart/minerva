@@ -239,7 +239,6 @@ import { useRecipeStore } from '@/store/recipe'
 import { useIngredientStore } from '@/store/ingredient'
 import { usePotionStore } from '@/store/potion'
 import { useInventoryStore } from '@/store/inventory'
-import { useToast } from '@/composables/useToast'
 import {
   NButton,
   NModal,
@@ -263,7 +262,6 @@ const recipeStore = useRecipeStore()
 const ingredientStore = useIngredientStore()
 const potionStore = usePotionStore()
 const inventoryStore = useInventoryStore()
-const toast = useToast()
 
 const { recipes } = storeToRefs(recipeStore)
 const { ingredients } = storeToRefs(ingredientStore)
@@ -453,10 +451,9 @@ const craftPotion = async () => {
 
     await ingredientStore.getIngredients()
     closeCraftModal()
-    toast.success('Potion crafted successfully!')
+    console.log('Potion crafted successfully!')
   } catch (error) {
-    console.error('Error crafting potion:', error)
-    toast.error('Failed to craft potion. Please try again.')
+    console.error('Failed to craft potion. Please try again.', error)
   }
 }
 
@@ -477,11 +474,10 @@ const handleCreateRecipe = async () => {
     ingredientFilter.value = ''
     showCreateForm.value = false
 
-    toast.success('Recipe created successfully!')
+    console.log('Recipe created successfully!')
     await checkAllRecipesDeletability()
   } catch (error) {
-    console.error('Error creating recipe:', error)
-    toast.error('Failed to create recipe. Please try again.')
+    console.error('Failed to create recipe. Please try again.', error)
   }
 }
 
@@ -509,10 +505,9 @@ const handleAddPotion = async (recipe: Recipe) => {
       quality: 'NORMAL'
     })
 
-    toast.success(`Added ${recipe.name} to inventory!`)
+    console.log(`Added ${recipe.name} to inventory!`)
   } catch (error) {
-    console.error('Error adding potion:', error)
-    toast.error('Failed to add potion. Please try again.')
+    console.error('Failed to add potion. Please try again.', error)
   }
 }
 
@@ -529,11 +524,10 @@ const handleRecipeUpdate = async (updatedRecipe: Recipe) => {
 
     showEditModal.value = false
     editingRecipe.value = null
-    toast.success('Recipe updated successfully!')
+    console.log('Recipe updated successfully!')
     await checkAllRecipesDeletability()
   } catch (error) {
-    console.error('Error updating recipe:', error)
-    toast.error('Failed to update recipe. Please try again.')
+    console.error('Failed to update recipe. Please try again.', error)
   }
 }
 
@@ -552,10 +546,9 @@ const checkRecipeDeletability = async (recipeId: number) => {
 const deleteRecipe = async (id: number) => {
   try {
     await recipeStore.deleteRecipe(id)
-    toast.success('Recipe deleted successfully!')
+    console.log('Recipe deleted successfully!')
   } catch (error) {
-    console.error('Error deleting recipe:', error)
-    toast.error('Failed to delete recipe. Please try again.')
+    console.error('Failed to delete recipe. Please try again.', error)
   }
 }
 

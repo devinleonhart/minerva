@@ -36,7 +36,6 @@
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
 import { FormInst, FormRules, NModal, NForm, NFormItem, NInput, NButton } from 'naive-ui'
-import { useToast } from '@/composables/useToast'
 import { useInventoryStore } from '@/store/inventory'
 
 interface Props {
@@ -52,7 +51,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const inventoryStore = useInventoryStore()
-const toast = useToast()
 const formRef = ref<FormInst | null>(null)
 const isSubmitting = ref(false)
 
@@ -90,14 +88,13 @@ const handleSubmit = async () => {
       description: formData.description
     })
 
-    toast.success('Item added to inventory successfully!')
+    console.log('Item added to inventory successfully!')
     showModal.value = false
     formData.name = ''
     formData.description = ''
     emit('item-created')
   } catch (error) {
-    console.error('Error adding item to inventory:', error)
-    toast.error('Failed to add item to inventory. Please try again.')
+    console.error('Failed to add item to inventory. Please try again.', error)
   } finally {
     isSubmitting.value = false
   }

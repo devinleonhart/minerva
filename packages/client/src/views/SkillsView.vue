@@ -50,7 +50,6 @@
 import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useSkillsStore } from '@/store/skills'
-import { useToast } from '@/composables/useToast'
 import {
   NInput,
   NButton,
@@ -62,7 +61,6 @@ import ResourceList from '@/components/shared/ResourceList.vue'
 import ResourceRow from '@/components/shared/ResourceRow.vue'
 
 const skillsStore = useSkillsStore()
-const toast = useToast()
 const { skills } = storeToRefs(skillsStore)
 
 const searchQuery = ref('')
@@ -85,8 +83,7 @@ onMounted(async () => {
   try {
     await skillsStore.getSkills()
   } catch (error) {
-    console.error('Failed to load skills:', error)
-    toast.error('Failed to load skills. Please refresh.')
+    console.error('Failed to load skills. Please refresh.', error)
   } finally {
     isLoading.value = false
   }
@@ -96,21 +93,19 @@ const addSkill = async () => {
   if (!newSkillName.value.trim()) return
   try {
     await skillsStore.createSkill({ name: newSkillName.value.trim() })
-    toast.success('Skill added successfully!')
+    console.log('Skill added successfully!')
     newSkillName.value = ''
   } catch (error) {
-    console.error('Error adding skill:', error)
-    toast.error('Failed to add skill. Please try again.')
+    console.error('Failed to add skill. Please try again.', error)
   }
 }
 
 const deleteSkill = async (id: number) => {
   try {
     await skillsStore.deleteSkill(id)
-    toast.success('Skill removed successfully!')
+    console.log('Skill removed successfully!')
   } catch (error) {
-    console.error('Error deleting skill:', error)
-    toast.error('Failed to remove skill. Please try again.')
+    console.error('Failed to remove skill. Please try again.', error)
   }
 }
 </script>

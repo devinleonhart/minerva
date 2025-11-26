@@ -64,7 +64,6 @@
 <script lang="ts" setup>
 import { ref, reactive, computed, watch } from 'vue'
 import { FormInst, FormRules } from 'naive-ui'
-import { useToast } from '@/composables/useToast'
 import { usePeopleStore } from '@/store/people'
 import type { Person, UpdatePersonRequest } from '@/types/store/people'
 
@@ -81,7 +80,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const peopleStore = usePeopleStore()
-const toast = useToast()
 const formRef = ref<FormInst | null>(null)
 const isSubmitting = ref(false)
 
@@ -123,11 +121,10 @@ const handleSubmit = async () => {
   try {
     isSubmitting.value = true
     await peopleStore.updatePerson(props.person.id, formData)
-    toast.success('Person updated successfully!')
+    console.log('Person updated successfully!')
     show.value = false
   } catch (error) {
-    console.error('Error updating person:', error)
-    toast.error('Failed to update person. Please try again.')
+    console.error('Failed to update person. Please try again.', error)
   } finally {
     isSubmitting.value = false
   }

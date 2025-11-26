@@ -100,7 +100,6 @@ import { onMounted, computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useIngredientStore } from '@/store/ingredient'
 import { useInventoryStore } from '@/store/inventory'
-import { useToast } from '@/composables/useToast'
 import {
   NButton,
   NEmpty,
@@ -117,7 +116,6 @@ const props = defineProps<IngredientListProps>()
 
 const ingredientStore = useIngredientStore()
 const inventoryStore = useInventoryStore()
-const toast = useToast()
 const { ingredients } = storeToRefs(useIngredientStore())
 const ingredientDeletability = ref<Record<number, { canDelete: boolean; reason: string | null }>>({})
 const showEditModal = ref(false)
@@ -151,11 +149,9 @@ const handleDelete = async (id: number) => {
     await ingredientStore.deleteIngredient(id)
     await ingredientStore.getIngredients()
     await checkAllIngredientsDeletability()
-    toast.success('Ingredient deleted successfully!')
+    console.log('Ingredient deleted successfully!')
   } catch (error: unknown) {
-    console.error('Error deleting ingredient:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Failed to delete ingredient. Please try again.'
-    toast.error(errorMessage)
+    console.error('Failed to delete ingredient. Please try again.', error)
   }
 }
 
@@ -167,10 +163,9 @@ const handleEdit = (ingredient: Ingredient) => {
 const handleToggleSecured = async (id: number, secured: boolean) => {
   try {
     await ingredientStore.toggleSecured(id, secured)
-    toast.success(secured ? 'Ingredient secured!' : 'Ingredient unsecured!')
+    console.log(secured ? 'Ingredient secured!' : 'Ingredient unsecured!')
   } catch (error) {
-    console.error('Error toggling ingredient secured status:', error)
-    toast.error('Failed to update ingredient secured status. Please try again.')
+    console.error('Failed to update ingredient secured status. Please try again.', error)
   }
 }
 
@@ -182,10 +177,9 @@ const handleAddToInventory = async (ingredientId: number, quality: 'HQ' | 'NORMA
       quantity: 1
     })
     const qualityText = quality === 'NORMAL' ? 'Normal Quality' : quality === 'HQ' ? 'High Quality' : 'Low Quality'
-    toast.success(`${qualityText} ingredient added to inventory!`)
+    console.log(`${qualityText} ingredient added to inventory!`)
   } catch (error) {
-    console.error('Error adding to inventory:', error)
-    toast.error('Failed to add ingredient to inventory. Please try again.')
+    console.error('Failed to add ingredient to inventory. Please try again.', error)
   }
 }
 </script>

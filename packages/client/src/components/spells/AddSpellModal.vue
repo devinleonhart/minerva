@@ -53,7 +53,6 @@
 <script lang="ts" setup>
 import { ref, reactive, computed, watch } from 'vue'
 import { FormInst, FormRules } from 'naive-ui'
-import { useToast } from '@/composables/useToast'
 import { useSpellsStore } from '@/store/spells'
 import type { CreateSpellRequest } from '@/types/store/spells'
 
@@ -69,7 +68,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const spellsStore = useSpellsStore()
-const toast = useToast()
 const formRef = ref<FormInst | null>(null)
 const isSubmitting = ref(false)
 
@@ -97,17 +95,17 @@ const show = computed({
 
 const handleSubmit = async () => {
   if (!formData.name || !formData.name.trim()) {
-    toast.error('Please enter a spell name')
+    console.error('Please enter a spell name')
     return
   }
 
   if (!formData.neededStars || formData.neededStars <= 0) {
-    toast.error('Please specify how many stars are needed')
+    console.error('Please specify how many stars are needed')
     return
   }
 
   if (formData.currentStars && formData.currentStars > formData.neededStars) {
-    toast.error('Current stars cannot exceed needed stars')
+    console.error('Current stars cannot exceed needed stars')
     return
   }
 
@@ -118,12 +116,11 @@ const handleSubmit = async () => {
       currentStars: formData.currentStars || 0
     })
 
-    toast.success('Spell added successfully!')
+    console.log('Spell added successfully!')
     emit('update:modelValue', false)
     resetForm()
   } catch (error) {
-    console.error('Error adding spell:', error)
-    toast.error('Failed to add spell. Please try again.')
+    console.error('Failed to add spell. Please try again.', error)
   }
 }
 

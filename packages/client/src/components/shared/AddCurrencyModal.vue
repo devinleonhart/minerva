@@ -36,7 +36,6 @@
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
 import { FormInst, FormRules, NModal, NForm, NFormItem, NInput, NInputNumber, NButton } from 'naive-ui'
-import { useToast } from '@/composables/useToast'
 import { useInventoryStore } from '@/store/inventory'
 import type { AddCurrencyRequest } from '@/types/store/inventory'
 
@@ -52,7 +51,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const inventoryStore = useInventoryStore()
-const toast = useToast()
 const formRef = ref<FormInst | null>(null)
 const isSubmitting = ref(false)
 
@@ -97,13 +95,12 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     isSubmitting.value = true
     await inventoryStore.addCurrency(formData.name, formData.value)
-    toast.success('Currency added successfully!')
+    console.log('Currency added successfully!')
     showModal.value = false
     formData.name = ''
     formData.value = 0
   } catch (error) {
-    console.error('Error adding currency:', error)
-    toast.error('Failed to add currency. Please try again.')
+    console.error('Failed to add currency. Please try again.', error)
   } finally {
     isSubmitting.value = false
   }

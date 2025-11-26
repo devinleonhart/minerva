@@ -204,7 +204,6 @@
 import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useInventoryStore } from '@/store/inventory'
-import { useToast } from '@/composables/useToast'
 
 import {
   NButton,
@@ -220,7 +219,6 @@ import CreateItemModal from '@/components/shared/CreateItemModal.vue'
 import type { PotionInventoryItem } from '@/types/store/inventory'
 
 const inventoryStore = useInventoryStore()
-const toast = useToast()
 const { inventoryItems, potionItems, itemItems, currencies } = storeToRefs(inventoryStore)
 const searchQuery = ref('')
 const isLoading = ref(false)
@@ -315,8 +313,7 @@ onMounted(async () => {
   try {
     await inventoryStore.getInventory()
   } catch (error) {
-    console.error('Failed to load data:', error)
-    toast.error('Failed to load data. Please refresh the page.')
+    console.error('Failed to load data. Please refresh the page.', error)
   } finally {
     isLoading.value = false
   }
@@ -329,10 +326,9 @@ const updatePotionQuantity = async (id: number, newQuantity: number) => {
 
   try {
     await inventoryStore.updatePotionInventoryItem(id, newQuantity)
-    toast.success('Potion quantity updated successfully!')
+    console.log('Potion quantity updated successfully!')
   } catch (error) {
-    console.error('Error updating potion quantity:', error)
-    toast.error('Failed to update potion quantity. Please try again.')
+    console.error('Failed to update potion quantity. Please try again.', error)
   }
 }
 
@@ -340,10 +336,9 @@ const deletePotionItem = async (id: number) => {
   try {
     await inventoryStore.deletePotionFromInventory(id)
     await inventoryStore.getInventory() // Refresh inventory data
-    toast.success('Potion removed from inventory!')
+    console.log('Potion removed from inventory!')
   } catch (error) {
-    console.error('Error deleting potion:', error)
-    toast.error('Failed to remove potion. Please try again.')
+    console.error('Failed to remove potion. Please try again.', error)
   }
 }
 
@@ -352,10 +347,9 @@ const updateItemQuantity = async (id: number, newQuantity: number) => {
 
   try {
     await inventoryStore.updateItemInventoryItem(id, newQuantity)
-    toast.success('Item quantity updated successfully!')
+    console.log('Item quantity updated successfully!')
   } catch (error) {
-    console.error('Error updating item quantity:', error)
-    toast.error('Failed to update item quantity. Please try again.')
+    console.error('Failed to update item quantity. Please try again.', error)
   }
 }
 
@@ -363,20 +357,19 @@ const deleteItemFromInventory = async (id: number) => {
   try {
     await inventoryStore.deleteItemFromInventory(id)
     await inventoryStore.getInventory() // Refresh inventory data
-    toast.success('Item removed from inventory!')
+    console.log('Item removed from inventory!')
   } catch (error) {
     console.error('Error deleting item:', error)
-    toast.error('Failed to remove item. Please try again.')
+    console.error('Failed to remove item. Please try again.')
   }
 }
 
 const updateCurrencyValue = async (id: number, value: number) => {
   try {
     await inventoryStore.updateCurrency(id, value)
-    toast.success('Currency value updated successfully!')
+    console.log('Currency value updated successfully!')
   } catch (error) {
-    console.error('Error updating currency value:', error)
-    toast.error('Failed to update currency value. Please try again.')
+    console.error('Failed to update currency value. Please try again.', error)
   }
 }
 
@@ -384,10 +377,9 @@ const deleteCurrency = async (id: number) => {
   try {
     await inventoryStore.deleteCurrency(id)
     await inventoryStore.getInventory() // Refresh inventory data
-    toast.success('Currency removed successfully!')
+    console.log('Currency removed successfully!')
   } catch (error) {
-    console.error('Error deleting currency:', error)
-    toast.error('Failed to remove currency. Please try again.')
+    console.error('Failed to remove currency. Please try again.', error)
   }
 }
 
@@ -396,10 +388,9 @@ const updateIngredientQuantity = async (id: number, quality: string, newQuantity
 
   try {
     await inventoryStore.updateInventoryItem(id, quality, newQuantity)
-    toast.success('Ingredient quantity updated successfully!')
+    console.log('Ingredient quantity updated successfully!')
   } catch (error) {
-    console.error('Error updating ingredient quantity:', error)
-    toast.error('Failed to update ingredient quantity. Please try again.')
+    console.error('Failed to update ingredient quantity. Please try again.', error)
   }
 }
 
@@ -407,10 +398,9 @@ const deleteInventoryItem = async (id: number) => {
   try {
     await inventoryStore.deleteInventoryItem(id)
     await inventoryStore.getInventory() // Refresh inventory data
-    toast.success('Ingredient removed from inventory!')
+    console.log('Ingredient removed from inventory!')
   } catch (error) {
-    console.error('Error deleting ingredient:', error)
-    toast.error('Failed to remove ingredient. Please try again.')
+    console.error('Failed to remove ingredient. Please try again.', error)
   }
 }
 

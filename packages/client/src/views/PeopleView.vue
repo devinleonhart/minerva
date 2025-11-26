@@ -93,7 +93,6 @@
 import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePeopleStore } from '@/store/people'
-import { useToast } from '@/composables/useToast'
 import type { Person } from '../types/store/people'
 import {
   NButton,
@@ -107,7 +106,6 @@ import AddPersonModal from '@/components/people/AddPersonModal.vue'
 import EditPersonModal from '@/components/people/EditPersonModal.vue'
 
 const peopleStore = usePeopleStore()
-const toast = useToast()
 const { people } = storeToRefs(peopleStore)
 const searchQuery = ref('')
 const isLoading = ref(false)
@@ -137,8 +135,7 @@ onMounted(async () => {
   try {
     await peopleStore.getPeople()
   } catch (error) {
-    console.error('Failed to load people:', error)
-    toast.error('Failed to load people. Please refresh the page.')
+    console.error('Failed to load people. Please refresh the page.', error)
   } finally {
     isLoading.value = false
   }
@@ -152,20 +149,18 @@ const editPerson = (person: Person) => {
 const deletePerson = async (id: number) => {
   try {
     await peopleStore.deletePerson(id)
-    toast.success('Person removed successfully!')
+    console.log('Person removed successfully!')
   } catch (error) {
-    console.error('Error deleting person:', error)
-    toast.error('Failed to remove person. Please try again.')
+    console.error('Failed to remove person. Please try again.', error)
   }
 }
 
 const toggleFavorite = async (id: number, isFavorited: boolean) => {
   try {
     await peopleStore.toggleFavorite(id, isFavorited)
-    toast.success(isFavorited ? 'Person favorited!' : 'Person unfavorited!')
+    console.log(isFavorited ? 'Person favorited!' : 'Person unfavorited!')
   } catch (error) {
-    console.error('Error toggling favorite:', error)
-    toast.error('Failed to update favorite status. Please try again.')
+    console.error('Failed to update favorite status. Please try again.', error)
   }
 }
 </script>

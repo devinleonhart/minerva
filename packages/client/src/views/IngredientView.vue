@@ -28,7 +28,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useIngredientStore } from '@/store/ingredient'
-import { useToast } from '@/composables/useToast'
 import type { CreateEntityFormData } from '@/types/components'
 import { NButton } from 'naive-ui'
 import ViewLayout from '@/components/shared/ViewLayout.vue'
@@ -37,7 +36,6 @@ import IngredientList from '@/components/ingredient/IngredientList.vue'
 import CreateEntityModal from '@/components/shared/CreateEntityModal.vue'
 
 const ingredientStore = useIngredientStore()
-const toast = useToast()
 const showCreateModal = ref(false)
 const searchQuery = ref('')
 
@@ -46,10 +44,9 @@ const handleCreateIngredient = async (data: CreateEntityFormData) => {
     await ingredientStore.addIngredient(data)
     await ingredientStore.getIngredients()
     showCreateModal.value = false
-    toast.success('Ingredient added successfully!')
+    console.log('Ingredient added successfully!')
   } catch (error) {
-    console.error('Error adding ingredient:', error)
-    toast.error('Failed to add ingredient. Please try again.')
+    console.error('Failed to add ingredient. Please try again.', error)
   }
 }
 </script>

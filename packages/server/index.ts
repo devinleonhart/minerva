@@ -17,15 +17,17 @@ app.use('/api', routes)
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '..', 'client')))
 
-  app.get('*', (req, res) => {
+  app.get('/{*splat}', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'))
   })
 }
 
-app.listen(serverPort, () => {
+app.listen(serverPort, (error) => {
+  if (error) {
+    console.error('Server failed to start:', error)
+    process.exit(1)
+    return
+  }
   console.log(`Server started on port ${serverPort}`)
   console.log(`API available at http://localhost:${serverPort}/api`)
-}).on('error', (error) => {
-  console.error('Server failed to start:', error)
-  process.exit(1)
 })

@@ -45,12 +45,11 @@ WORKDIR /app
 COPY --from=production-build /app/dist /app/dist
 COPY --from=production-build /app/packages/server/prisma /app/server/prisma
 COPY --from=production-build /app/packages/server/package.json /app/package.json
+COPY --from=production-build /app/packages/server/src/generated /app/dist/server/src/generated
 
 RUN pnpm install --prod --ignore-scripts=false
 
 RUN pnpm add prisma --ignore-scripts=false
-
-RUN pnpm prisma generate --schema=/app/server/prisma/schema.prisma
 
 ENV NODE_ENV=production
 

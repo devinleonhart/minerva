@@ -22,7 +22,7 @@ services:
       dockerfile: Dockerfile
       target: base
     working_dir: /app/packages/server
-    command: ["sh", "-c", "npx prisma generate && npx tsx index.ts"]
+    command: ["sh", "-c", "pnpm prisma generate && pnpm tsx index.ts"]
     ports:
       - "3000:3000"
     volumes:

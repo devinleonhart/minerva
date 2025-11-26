@@ -33,7 +33,7 @@ beforeAll(async () => {
 
     // Push the schema to the test database
     try {
-      execSync('DATABASE_URL="postgresql://postgres:postgres@localhost:5433/minerva_test" npx prisma db push --force-reset', {
+      execSync('DATABASE_URL="postgresql://postgres:postgres@localhost:5433/minerva_test" pnpm prisma db push --force-reset', {
         cwd: process.cwd(),
         stdio: 'pipe' // Use pipe instead of inherit to reduce noise
       })

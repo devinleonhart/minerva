@@ -4,17 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npx tsc --project .",
+    "build": "tsc --project .",
     "dev": "nodemon --watch ./ --ext ts --exec tsx index.ts",
-    "lint": "npx eslint .",
+    "lint": "eslint .",
     "tsc": "echo 'TypeScript checking is handled from the root workspace'",
-    "test": "npx vitest run",
-    "prisma:generate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma generate --schema=./prisma/schema.prisma",
-    "prisma:generate:ci": "npx prisma generate --schema=./prisma/schema.prisma",
-    "prisma:migrate": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate dev --schema=./prisma/schema.prisma",
-    "prisma:migrate:ci": "prisma migrate deploy",
-    "prisma:reset": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma migrate reset --schema=./prisma/schema.prisma",
-    "prisma:studio": "docker compose -f ../docker-compose.dev.yml exec prisma npx prisma studio --schema=./prisma/schema.prisma"
+    "test": "vitest run",
+    "prisma:generate": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma generate --schema=./prisma/schema.prisma",
+    "prisma:generate:ci": "pnpm prisma generate --schema=./prisma/schema.prisma",
+    "prisma:migrate": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma migrate dev --schema=./prisma/schema.prisma",
+    "prisma:migrate:ci": "pnpm prisma migrate deploy",
+    "prisma:reset": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma migrate reset --schema=./prisma/schema.prisma",
+    "prisma:studio": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma studio --schema=./prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
@@ -26,12 +26,12 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
-    "@types/express": "^4.17.21",
-    "@types/pg": "^8.15.5",
+    "@types/express": "^5.0.5",
+    "@types/pg": "^8.15.6",
     "@types/supertest": "^6.0.3",
-    "nodemon": "^3.1.10",
+    "nodemon": "^3.1.11",
     "supertest": "^7.1.4",
-    "tsx": "^4.20.3",
+    "tsx": "^4.20.6",
     "vitest": "^4.0.14"
   },
   "prisma": {

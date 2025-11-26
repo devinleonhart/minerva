@@ -25,13 +25,13 @@ RUN pnpm install --shamefully-hoist
 
 FROM base AS development
 
-RUN cd /app/packages/server && npx prisma generate --schema=./prisma/schema.prisma
+RUN cd /app/packages/server && pnpm prisma generate --schema=./prisma/schema.prisma
 
 CMD ["sh", "-c", "cd /app/packages/server && pnpm dev"]
 
 FROM base AS production-build
 
-RUN cd /app/packages/server && npx prisma generate --schema=./prisma/schema.prisma
+RUN cd /app/packages/server && pnpm prisma generate --schema=./prisma/schema.prisma
 
 RUN pnpm --filter client build
 RUN pnpm --filter server build
@@ -50,8 +50,8 @@ RUN pnpm install --prod
 
 RUN pnpm add prisma
 
-RUN npx prisma generate --schema=/app/server/prisma/schema.prisma
+RUN pnpm prisma generate --schema=/app/server/prisma/schema.prisma
 
 ENV NODE_ENV=production
 
-CMD ["sh", "-c", "cd /app/server && npx prisma migrate deploy && node /app/dist/server/index.js"]
+CMD ["sh", "-c", "cd /app/server && pnpm prisma migrate deploy && node /app/dist/server/index.js"]

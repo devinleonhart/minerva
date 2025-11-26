@@ -5,9 +5,9 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "lint": "npx eslint . --config ../../eslint.config.mjs",
-    "quality": "npx eslint . --config ../../eslint.config.mjs && npx tsc && npx vitest --run",
-    "test": "npx vitest --run",
+    "lint": "eslint . --config ../../eslint.config.mjs",
+    "quality": "pnpm run lint && pnpm run tsc && pnpm run test",
+    "test": "vitest --run",
     "tsc": "vue-tsc --noEmit"
   },
   "dependencies": {
@@ -20,9 +20,9 @@
   },
   "devDependencies": {
     "@testing-library/vue": "^8.1.0",
-    "@vitejs/plugin-vue": "^5.2.4",
+    "@vitejs/plugin-vue": "^6.0.2",
     "@vue/test-utils": "2.4.6",
-    "vite": "^6.3.5",
-    "vue-tsc": "^3.0.5"
+    "vite": "^7.2.4",
+    "vue-tsc": "^3.1.5"
   }
 }

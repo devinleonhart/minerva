@@ -46,12 +46,12 @@ COPY --from=production-build /app/dist /app/dist
 COPY --from=production-build /app/packages/server/prisma /app/server/prisma
 COPY --from=production-build /app/packages/server/package.json /app/package.json
 
-RUN pnpm install --prod
+RUN pnpm install --prod --ignore-scripts=false
 
-RUN pnpm add prisma
+RUN pnpm add prisma --ignore-scripts=false
 
 RUN pnpm prisma generate --schema=/app/server/prisma/schema.prisma
 
 ENV NODE_ENV=production
 
-CMD ["sh", "-c", "cd /app/server/prisma && pnpm prisma migrate deploy --schema=./schema.prisma --config=./prisma.config.ts && cd /app && node /app/dist/server/index.js"]
+CMD ["sh", "-c", "pnpm prisma migrate deploy --schema=/app/server/prisma/schema.prisma --config=/app/server/prisma/prisma.config.ts && node /app/dist/server/index.js"]

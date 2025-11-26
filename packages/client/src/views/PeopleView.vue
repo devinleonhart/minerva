@@ -22,56 +22,59 @@
 
     <!-- People List -->
     <div v-if="!isLoading && filteredPeople.length > 0">
-      <GridLayout variant="default">
-        <n-card
+      <ResourceList>
+        <ResourceRow
           v-for="person in filteredPeople"
           :key="person.id"
-          class="person-item"
-          :class="{ 'favorited': person.isFavorited }"
-          size="medium"
-          @click="selectPerson(person)"
+          :title="person.name"
+          :subtitle="person.relationship || ''"
         >
-          <template #header>
-            <div class="person-header">
-              <CardHeader :title="person.name" />
+          <template #leading>
+            <div class="person-leading">
               <span
                 class="favorite-star"
-                :class="{ 'favorited': person.isFavorited }"
+                :class="{ favorited: person.isFavorited }"
                 @click.stop="toggleFavorite(person.id, !person.isFavorited)"
                 :title="person.isFavorited ? 'Favorited - click to unfavorite' : 'Not favorited - click to favorite'"
               >
                 ★
               </span>
+              <div class="person-leading-text">
+                <p class="person-name">{{ person.name }}</p>
+                <p class="person-relationship" v-if="person.relationship">{{ person.relationship }}</p>
+              </div>
             </div>
           </template>
 
-          <div class="person-content">
-            <div v-if="person.relationship" class="person-relationship">
-              <strong>Relationship:</strong> {{ person.relationship }}
-            </div>
-            <div v-if="person.description" class="person-description">
+          <div class="person-notes" v-if="person.description || person.notableEvents">
+            <span v-if="person.description" class="person-description" :title="person.description">
               {{ person.description }}
-            </div>
+            </span>
+            <span v-if="person.notableEvents" class="person-events" :title="person.notableEvents">
+              {{ person.notableEvents }}
+            </span>
           </div>
 
-          <div class="person-controls">
-            <n-button
-              @click.stop="editPerson(person)"
-              type="info"
-              size="small"
-            >
-              Edit
-            </n-button>
-            <n-button
-              @click.stop="deletePerson(person.id)"
-              type="error"
-              size="small"
-            >
-              Delete
-            </n-button>
-          </div>
-        </n-card>
-      </GridLayout>
+          <template #actions>
+            <div class="person-controls">
+              <n-button
+                @click.stop="editPerson(person)"
+                type="info"
+                size="small"
+              >
+                Edit
+              </n-button>
+              <n-button
+                @click.stop="deletePerson(person.id)"
+                type="error"
+                size="small"
+              >
+                Delete
+              </n-button>
+            </div>
+          </template>
+        </ResourceRow>
+      </ResourceList>
     </div>
 
     <!-- Add Person Modal -->
@@ -94,13 +97,12 @@ import { useToast } from '@/composables/useToast'
 import type { Person } from '../types/store/people'
 import {
   NButton,
-  NCard,
   NEmpty
 } from 'naive-ui'
 import ViewLayout from '@/components/shared/ViewLayout.vue'
 import ViewHeader from '@/components/shared/ViewHeader.vue'
-import GridLayout from '@/components/shared/GridLayout.vue'
-import CardHeader from '@/components/shared/CardHeader.vue'
+import ResourceList from '@/components/shared/ResourceList.vue'
+import ResourceRow from '@/components/shared/ResourceRow.vue'
 import AddPersonModal from '@/components/people/AddPersonModal.vue'
 import EditPersonModal from '@/components/people/EditPersonModal.vue'
 
@@ -142,11 +144,6 @@ onMounted(async () => {
   }
 })
 
-const selectPerson = (person: Person) => {
-  selectedPerson.value = person
-  showEditPersonModal.value = true
-}
-
 const editPerson = (person: Person) => {
   selectedPerson.value = person
   showEditPersonModal.value = true
@@ -174,37 +171,12 @@ const toggleFavorite = async (id: number, isFavorited: boolean) => {
 </script>
 
 <style scoped>
-.person-item {
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-left: 4px solid #e0e0e0;
-}
-
-.person-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.person-item.favorited {
-  border-left-color: #f59e0b;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%);
-}
-
-.person-header {
-  position: relative;
-  width: 100%;
-}
-
 .favorite-star {
-  position: absolute;
-  top: 0;
-  right: 0;
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
   color: #e0e0e0;
-  z-index: 10;
 }
 
 .favorite-star:hover {
@@ -215,32 +187,53 @@ const toggleFavorite = async (id: number, isFavorited: boolean) => {
   color: #f59e0b;
 }
 
-.favorite-star.favorited:hover {
-  color: #d97706;
+.person-leading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.person-content {
-  margin-top: 8px;
-  margin-bottom: 12px;
+.person-leading-text {
+  min-width: 0;
+}
+
+.person-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .person-relationship {
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #888;
+  margin: 0;
+  font-size: 12px;
+  color: #cfcfcf;
 }
 
-.person-description {
-  color: #666;
-  line-height: 1.5;
-  font-size: 14px;
+.person-notes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  color: #b5b5b5;
+  font-size: 12px;
+}
+
+.person-description,
+.person-events {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.person-events {
+  color: #7ddba3;
 }
 
 .person-controls {
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
-  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 .loading-indicator {

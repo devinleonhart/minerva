@@ -4,7 +4,8 @@ import InventoryView from '../views/InventoryView.vue'
 import RecipeView from '../views/RecipeView.vue'
 import SchedulerView from '../views/SchedulerView.vue'
 import PeopleView from '../views/PeopleView.vue'
-import SpellsAndSkillsView from '../views/SpellsAndSkillsView.vue'
+import SpellsView from '../views/SpellsView.vue'
+import SkillsView from '../views/SkillsView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -39,9 +40,14 @@ const router = createRouter({
       component: PeopleView
     },
     {
-      path: '/spells-and-skills',
-      name: 'spells-and-skills',
-      component: SpellsAndSkillsView
+      path: '/spells',
+      name: 'spells',
+      component: SpellsView
+    },
+    {
+      path: '/skills',
+      name: 'skills',
+      component: SkillsView
     }
   ]
 })

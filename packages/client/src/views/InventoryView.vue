@@ -28,28 +28,18 @@
     <!-- Potions Section -->
     <div v-if="!isLoading && filteredPotionItems.length > 0">
       <h2 class="section-header">Potions</h2>
-      <GridLayout variant="default">
-        <n-card
+      <ResourceList>
+        <ResourceRow
           v-for="item in filteredPotionItems"
           :key="item.id"
-          class="inventory-item potion-item"
-          size="medium"
+          :title="getPotionDisplayName(item)"
+          :subtitle="item.potion.quality"
+          indicator="info"
         >
-          <template #header>
-            <CardHeader :title="getPotionDisplayName(item)">
-              <template #actions>
-                <n-tag :type="getPotionQualityTagType(item.potion.quality)" size="small">
-                  {{ item.potion.quality }}
-                </n-tag>
-              </template>
-            </CardHeader>
-          </template>
-
-          <div class="inventory-content">
-            <p class="description">{{ item.potion.recipe?.description || 'No description available' }}</p>
+          <div class="inventory-meta" :title="item.potion.recipe?.description">
+            {{ item.potion.recipe?.description || 'No description available' }}
           </div>
-
-          <template #footer>
+          <template #actions>
             <div class="item-controls">
               <div class="quantity-controls">
                 <n-button
@@ -76,35 +66,26 @@
               </n-button>
             </div>
           </template>
-        </n-card>
-      </GridLayout>
+        </ResourceRow>
+      </ResourceList>
     </div>
 
     <!-- Ingredients Section -->
     <div v-if="!isLoading && filteredInventoryItems.length > 0">
       <h2 class="section-header">Ingredients</h2>
-      <GridLayout variant="default">
-        <n-card
+      <ResourceList>
+        <ResourceRow
           v-for="item in filteredInventoryItems"
           :key="item.id"
-          class="inventory-item ingredient-item"
-          size="medium"
+          :title="item.ingredient.name"
+          :subtitle="item.ingredient.description"
+          :indicator="item.quality === 'HQ' ? 'success' : item.quality === 'LQ' ? 'error' : 'info'"
+          :indicator-tooltip="`Quality: ${item.quality}`"
         >
-          <template #header>
-            <CardHeader :title="item.ingredient.name">
-              <template #actions>
-                <n-tag :type="getQualityTagType(item.quality)" size="small">
-                  {{ item.quality }}
-                </n-tag>
-              </template>
-            </CardHeader>
-          </template>
-
-          <div class="inventory-content">
-            <p class="description">{{ item.ingredient.description }}</p>
+          <div class="inventory-meta">
+            Qty: {{ item.quantity }}
           </div>
-
-          <template #footer>
+          <template #actions>
             <div class="item-controls">
               <div class="quantity-controls">
                 <n-button
@@ -131,29 +112,24 @@
               </n-button>
             </div>
           </template>
-        </n-card>
-      </GridLayout>
+        </ResourceRow>
+      </ResourceList>
     </div>
 
     <!-- Items Section -->
     <div v-if="!isLoading && filteredItemItems.length > 0">
       <h2 class="section-header">Items</h2>
-      <GridLayout variant="default">
-        <n-card
+      <ResourceList>
+        <ResourceRow
           v-for="item in filteredItemItems"
           :key="item.id"
-          class="inventory-item"
-          size="medium"
+          :title="item.item.name"
+          :subtitle="item.item.description"
         >
-          <template #header>
-            <CardHeader :title="item.item.name" />
-          </template>
-
-          <div class="inventory-content">
-            <p class="description">{{ item.item.description }}</p>
+          <div class="inventory-meta">
+            Qty: {{ item.quantity }}
           </div>
-
-          <template #footer>
+          <template #actions>
             <div class="item-controls">
               <div class="quantity-controls">
                 <n-button
@@ -171,39 +147,32 @@
                   +
                 </n-button>
               </div>
-                              <n-button
-                  @click="deleteItemFromInventory(item.id)"
-                  type="error"
-                  size="small"
-                >
+              <n-button
+                @click="deleteItemFromInventory(item.id)"
+                type="error"
+                size="small"
+              >
                 Remove
               </n-button>
             </div>
           </template>
-        </n-card>
-      </GridLayout>
+        </ResourceRow>
+      </ResourceList>
     </div>
 
     <!-- Currencies Section -->
     <div v-if="!isLoading && filteredCurrencies.length > 0">
       <h2 class="section-header">Currencies</h2>
-      <GridLayout variant="default">
-        <n-card
+      <ResourceList>
+        <ResourceRow
           v-for="currency in filteredCurrencies"
           :key="currency.id"
-          class="inventory-item currency-item"
-          size="medium"
+          :title="currency.name"
+          :subtitle="`Total: ${currency.value}`"
+          indicator="warning"
         >
-          <template #header>
-            <CardHeader :title="currency.name" />
-          </template>
-
-          <div class="inventory-content">
-            <p class="description">Value: {{ currency.value }}</p>
-          </div>
-
-          <template #footer>
-            <div class="item-controls">
+          <template #actions>
+            <div class="currency-controls">
               <n-input-number
                 v-model:value="currency.value"
                 :min="0"
@@ -221,8 +190,8 @@
               </n-button>
             </div>
           </template>
-        </n-card>
-      </GridLayout>
+        </ResourceRow>
+      </ResourceList>
     </div>
 
     <!-- Modals -->
@@ -239,17 +208,16 @@ import { useToast } from '@/composables/useToast'
 
 import {
   NButton,
-  NTag,
-  NCard,
   NEmpty,
   NInputNumber
 } from 'naive-ui'
 import ViewLayout from '@/components/shared/ViewLayout.vue'
 import ViewHeader from '@/components/shared/ViewHeader.vue'
-import GridLayout from '@/components/shared/GridLayout.vue'
-import CardHeader from '@/components/shared/CardHeader.vue'
+import ResourceList from '@/components/shared/ResourceList.vue'
+import ResourceRow from '@/components/shared/ResourceRow.vue'
 import AddCurrencyModal from '@/components/shared/AddCurrencyModal.vue'
 import CreateItemModal from '@/components/shared/CreateItemModal.vue'
+import type { PotionInventoryItem } from '@/types/store/inventory'
 
 const inventoryStore = useInventoryStore()
 const toast = useToast()
@@ -448,30 +416,12 @@ const deleteInventoryItem = async (id: number) => {
 
 
 
-const getPotionQualityTagType = (quality: string) => {
-  switch (quality) {
-  case 'HQ': return 'success'
-  case 'LQ': return 'error'
-  case 'NORMAL': return 'info'
-  default: return 'default'
-  }
-}
-
-const getPotionDisplayName = (item: any): string => {
+const getPotionDisplayName = (item: PotionInventoryItem): string => {
   // Use cauldron name if it exists, otherwise use recipe name
   const recipe = item.potion?.recipe
   if (!recipe) return 'Unknown Potion'
 
   return recipe.cauldronName || recipe.name || 'Unknown Potion'
-}
-
-const getQualityTagType = (quality: string) => {
-  switch (quality) {
-  case 'HQ': return 'success'
-  case 'LQ': return 'error'
-  case 'NORMAL': return 'info'
-  default: return 'default'
-  }
 }
 
 const handleItemCreated = async () => {
@@ -480,27 +430,19 @@ const handleItemCreated = async () => {
 </script>
 
 <style scoped>
-.inventory-item {
-  height: fit-content;
-}
-
-.inventory-content {
-  margin-top: 8px;
-}
-
-.description {
-  margin: 8px 0;
-  color: #666;
-  line-height: 1.5;
+.inventory-meta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #b5b5b5;
+  font-size: 12px;
 }
 
 .item-controls {
   display: flex;
-  flex-direction: row;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  justify-content: space-between;
 }
 
 .quantity-controls {
@@ -510,59 +452,32 @@ const handleItemCreated = async () => {
 }
 
 .quantity-display {
-  min-width: 40px;
+  min-width: 36px;
   text-align: center;
   font-weight: bold;
 }
 
-/* Responsive breakpoint for small screens */
 @media (max-width: 480px) {
   .item-controls {
     flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .quantity-controls {
-    justify-content: center;
+    align-items: flex-start;
   }
 }
 
 .section-header {
-  margin: 24px 0 16px 0;
-  font-size: 1.5rem;
+  margin: 24px 20px 8px;
+  font-size: 1.3rem;
   font-weight: 600;
   color: #ffffff;
-  border-bottom: 2px solid #404040;
-  padding-bottom: 8px;
-}
-
-.currency-item {
-  border-left: 4px solid #f59e0b;
-}
-
-.currency-value {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px 0;
-}
-
-.value-label {
-  font-weight: 500;
-  color: #666;
-}
-
-.value-display {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #f59e0b;
+  border-bottom: 1px solid #333;
+  padding-bottom: 6px;
 }
 
 .currency-controls {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .currency-controls .n-input-number {
@@ -573,27 +488,6 @@ const handleItemCreated = async () => {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-}
-
-.subsection-header {
-  margin: 16px 0 12px 0;
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #cccccc;
-  border-bottom: 1px solid #333;
-  padding-bottom: 4px;
-}
-
-.available-items-section {
-  margin-bottom: 24px;
-}
-
-.inventory-items-section {
-  margin-bottom: 24px;
-}
-
-.available-item {
-  border-left: 4px solid #10b981;
 }
 
 @media (max-width: 768px) {

@@ -21,7 +21,7 @@ vi.mock('pinia', async () => {
   const actual = await vi.importActual('pinia')
   return {
     ...actual,
-    storeToRefs: (store: any) => ({
+    storeToRefs: (store: { ingredients?: Ingredient[] }) => ({
       ingredients: { value: store.ingredients || [] }
     })
   }

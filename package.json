@@ -11,6 +11,7 @@
         "start": "docker compose up --build",
         "test": "pnpm -r test",
         "lint": "pnpm -r lint",
+		"lint:fix": "pnpm -r lint --fix",
         "tsc": "tsc --build tsconfig.build.json",
         "quality": "pnpm test && pnpm lint && pnpm tsc",
         "clean": "rm -rf dist packages/*/dist packages/*/node_modules",

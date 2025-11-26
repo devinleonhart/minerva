@@ -46,7 +46,8 @@ const navigationRoutes: NavigationRoute[] = [
   { path: '/inventory', name: 'Inventory' },
   { path: '/scheduler', name: 'Scheduler' },
   { path: '/people', name: 'People' },
-  { path: '/spells-and-skills', name: 'Spells & Skills' }
+  { path: '/spells', name: 'Spells' },
+  { path: '/skills', name: 'Skills' }
 ]
 
 const currentRoute = computed(() => route.path)

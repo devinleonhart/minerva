@@ -4,86 +4,89 @@
       <n-empty description="No ingredients found." />
     </div>
 
-    <GridLayout v-else variant="default">
-      <n-card
+    <ResourceList v-else>
+      <ResourceRow
         v-for="ingredient in sortedIngredients"
         :key="ingredient.id"
-        size="medium"
-        class="ingredient-card"
+        :title="ingredient.name"
+        :subtitle="ingredient.description"
       >
-        <template #header>
-          <div class="ingredient-header">
-            <CardHeader :title="ingredient.name">
-              <template #actions>
-                <n-button
-                  @click="handleAddToInventory(ingredient.id, 'HQ')"
-                  type="success"
-                  size="small"
-                  class="quality-btn"
-                >
-                  HQ
-                </n-button>
-                <n-button
-                  @click="handleAddToInventory(ingredient.id, 'NORMAL')"
-                  type="info"
-                  size="small"
-                  class="quality-btn"
-                >
-                  NQ
-                </n-button>
-                <n-button
-                  @click="handleAddToInventory(ingredient.id, 'LQ')"
-                  type="warning"
-                  size="small"
-                  class="quality-btn"
-                >
-                  LQ
-                </n-button>
-                <n-button
-                  @click="handleEdit(ingredient)"
-                  type="primary"
-                  size="small"
-                >
-                  Edit
-                </n-button>
-                <n-button
-                  v-if="ingredientDeletability[ingredient.id]?.canDelete"
-                  @click="handleDelete(ingredient.id)"
-                  type="error"
-                  size="small"
-                >
-                  Delete
-                </n-button>
-                <n-tooltip v-else-if="ingredientDeletability[ingredient.id]?.reason" trigger="hover">
-                  <template #trigger>
-                    <n-button
-                      disabled
-                      type="error"
-                      size="small"
-                    >
-                      Delete
-                    </n-button>
-                  </template>
-                  {{ ingredientDeletability[ingredient.id]?.reason }}
-                </n-tooltip>
-              </template>
-            </CardHeader>
+        <template #leading>
+          <div class="ingredient-leading">
             <span
               class="secured-star"
-              :class="{ 'secured': ingredient.secured }"
+              :class="{ secured: ingredient.secured }"
               @click="handleToggleSecured(ingredient.id, !ingredient.secured)"
               :title="ingredient.secured ? 'Secured ingredient - click to unsecure' : 'Unsecured ingredient - click to secure'"
             >
               ★
             </span>
+            <div class="ingredient-leading-text">
+              <p class="ingredient-name">{{ ingredient.name }}</p>
+              <p class="ingredient-description" :title="ingredient.description">{{ ingredient.description }}</p>
+            </div>
           </div>
         </template>
 
-        <div class="ingredient-content">
-          <p class="ingredient-description">{{ ingredient.description }}</p>
+        <div class="ingredient-tags">
+          <span class="ingredient-pill" :class="ingredient.secured ? 'pill-secured' : 'pill-unsecured'">
+            {{ ingredient.secured ? 'Secured' : 'Unsecured' }}
+          </span>
         </div>
-      </n-card>
-    </GridLayout>
+
+        <template #actions>
+          <div class="ingredient-actions">
+            <n-button
+              @click="handleAddToInventory(ingredient.id, 'HQ')"
+              type="success"
+              size="small"
+              ghost
+            >
+              HQ
+            </n-button>
+            <n-button
+              @click="handleAddToInventory(ingredient.id, 'NORMAL')"
+              type="info"
+              size="small"
+              ghost
+            >
+              NQ
+            </n-button>
+            <n-button
+              @click="handleAddToInventory(ingredient.id, 'LQ')"
+              type="warning"
+              size="small"
+              ghost
+            >
+              LQ
+            </n-button>
+            <n-button
+              @click="handleEdit(ingredient)"
+              type="primary"
+              size="small"
+            >
+              Edit
+            </n-button>
+            <n-button
+              v-if="ingredientDeletability[ingredient.id]?.canDelete"
+              @click="handleDelete(ingredient.id)"
+              type="error"
+              size="small"
+            >
+              Delete
+            </n-button>
+            <n-tooltip v-else-if="ingredientDeletability[ingredient.id]?.reason" trigger="hover">
+              <template #trigger>
+                <n-button disabled type="error" size="small">
+                  Delete
+                </n-button>
+              </template>
+              {{ ingredientDeletability[ingredient.id]?.reason }}
+            </n-tooltip>
+          </div>
+        </template>
+      </ResourceRow>
+    </ResourceList>
 
     <EditIngredientModal
       v-model:modelValue="showEditModal"
@@ -100,12 +103,11 @@ import { useInventoryStore } from '@/store/inventory'
 import { useToast } from '@/composables/useToast'
 import {
   NButton,
-  NCard,
   NEmpty,
   NTooltip
 } from 'naive-ui'
-import GridLayout from '@/components/shared/GridLayout.vue'
-import CardHeader from '@/components/shared/CardHeader.vue'
+import ResourceList from '@/components/shared/ResourceList.vue'
+import ResourceRow from '@/components/shared/ResourceRow.vue'
 import EditIngredientModal from './EditIngredientModal.vue'
 
 import type { IngredientListProps } from '@/types/components'
@@ -190,32 +192,26 @@ const handleAddToInventory = async (ingredientId: number, quality: 'HQ' | 'NORMA
 
 <style scoped>
 .ingredient-list {
-  padding: 20px;
+  padding: 0 0 16px;
 }
 
 .empty-state {
   margin-top: 20px;
 }
 
-.ingredient-card {
-  height: fit-content;
-}
-
-.ingredient-header {
-  position: relative;
-  width: 100%;
+.ingredient-leading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .secured-star {
-  position: absolute;
-  top: 0;
-  right: 0;
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
   color: #e0e0e0;
-  z-index: 10;
 }
 
 .secured-star:hover {
@@ -230,17 +226,58 @@ const handleAddToInventory = async (ingredientId: number, quality: 'HQ' | 'NORMA
   color: #d97706;
 }
 
-.ingredient-content {
-  margin-top: 8px;
+.ingredient-leading-text {
+  min-width: 0;
+}
+
+.ingredient-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ingredient-description {
-  margin: 8px 0;
-  color: #666;
-  line-height: 1.5;
+  margin: 0;
+  font-size: 12px;
+  color: #bcbcbc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.quality-btn {
-  min-width: 36px;
+.ingredient-tags {
+  display: flex;
+  gap: 6px;
+}
+
+.ingredient-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pill-secured {
+  background: rgba(24, 160, 88, 0.15);
+  color: #63e2b7;
+  border: 1px solid rgba(24, 160, 88, 0.4);
+}
+
+.pill-unsecured {
+  background: rgba(208, 48, 80, 0.15);
+  color: #ff7a9b;
+  border: 1px solid rgba(208, 48, 80, 0.3);
+}
+
+.ingredient-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 </style>

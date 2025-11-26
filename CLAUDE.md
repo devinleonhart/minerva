@@ -236,7 +236,8 @@ Vue Router with the following routes:
 - `/inventory` - Inventory management
 - `/scheduler` - Weekly schedule planner
 - `/people` - Character/NPC tracker
-- `/spells-and-skills` - Spell and skill progression
+- `/spells` - Spell progression
+- `/skills` - Skill management
 
 ### Components
 

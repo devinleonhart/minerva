@@ -493,7 +493,7 @@ const cancelCreate = () => {
   }
   selectedIngredients.value = []
   ingredientFilter.value = ''
-    showCreateForm.value = false
+  showCreateForm.value = false
 }
 
 const handleEdit = (recipe: Recipe) => {

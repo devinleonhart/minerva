@@ -20,10 +20,10 @@ describe('UI Bug Detection Tests', () => {
         { path: '/recipes', name: 'recipes', component: { template: '<div>Recipe View</div>' } },
         { path: '/ingredients', name: 'ingredients', component: { template: '<div>Ingredient View</div>' } },
         { path: '/inventory', name: 'inventory', component: { template: '<div>Inventory View</div>' } },
-        { path: '/items', name: 'items', component: { template: '<div>Item View</div>' } },
         { path: '/scheduler', name: 'scheduler', component: { template: '<div>Scheduler View</div>' } },
         { path: '/people', name: 'people', component: { template: '<div>People View</div>' } },
-        { path: '/spells-and-skills', name: 'spells-and-skills', component: { template: '<div>Spells and Skills View</div>' } }
+        { path: '/spells', name: 'spells', component: { template: '<div>Spells View</div>' } },
+        { path: '/skills', name: 'skills', component: { template: '<div>Skills View</div>' } }
       ]
     })
   }
@@ -56,10 +56,10 @@ describe('UI Bug Detection Tests', () => {
         '/recipes',
         '/ingredients',
         '/inventory',
-        '/items',
         '/scheduler',
         '/people',
-        '/spells-and-skills'
+        '/spells',
+        '/skills'
       ]
 
       for (const route of navigationRoutes) {
@@ -82,7 +82,7 @@ describe('UI Bug Detection Tests', () => {
       const routes = router.getRoutes()
       const routePaths = routes.map(r => r.path)
 
-      const expectedPaths = ['/', '/recipes', '/ingredients', '/inventory', '/items', '/scheduler', '/people', '/spells-and-skills']
+      const expectedPaths = ['/', '/recipes', '/ingredients', '/inventory', '/scheduler', '/people', '/spells', '/skills']
 
       expectedPaths.forEach(path => {
         expect(routePaths, `Route ${path} is missing`).toContain(path)

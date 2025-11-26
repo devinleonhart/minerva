@@ -35,7 +35,8 @@ describe('App.vue', () => {
 
         { path: '/scheduler', name: 'scheduler', component: { template: '<div>Scheduler View</div>' } },
         { path: '/people', name: 'people', component: { template: '<div>People View</div>' } },
-        { path: '/spells-and-skills', name: 'spells-and-skills', component: { template: '<div>Spells and Skills View</div>' } }
+        { path: '/spells', name: 'spells', component: { template: '<div>Spells View</div>' } },
+        { path: '/skills', name: 'skills', component: { template: '<div>Skills View</div>' } }
       ]
     })
   }
@@ -72,7 +73,8 @@ describe('App.vue', () => {
       'Inventory',
       'Scheduler',
       'People',
-      'Spells & Skills'
+      'Spells',
+      'Skills'
     ]
 
     expect(navButtons).toHaveLength(expectedRoutes.length)
@@ -133,7 +135,7 @@ describe('App.vue', () => {
     const router = createTestRouter()
     const routes = router.getRoutes()
 
-    const expectedPaths = ['/', '/recipes', '/ingredients', '/inventory', '/scheduler', '/people', '/spells-and-skills']
+    const expectedPaths = ['/', '/recipes', '/ingredients', '/inventory', '/scheduler', '/people', '/spells', '/skills']
 
     expectedPaths.forEach(path => {
       const route = routes.find(r => r.path === path)

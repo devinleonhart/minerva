@@ -14,7 +14,7 @@
 		"lint:fix": "pnpm -r lint --fix",
 		"tsc": "tsc --build tsconfig.build.json",
 		"quality": "pnpm test && pnpm lint && pnpm tsc",
-		"db:seed": "pnpm --filter server exec prisma db seed",
+		"db:seed": "pnpm --filter server exec tsx prisma/seed.ts",
 		"clean": "rm -rf dist packages/*/dist packages/*/node_modules",
         "build": "pnpm clean && pnpm install && pnpm --filter server run prisma:generate:ci && pnpm -r build",
 		"dev:client": "cd packages/client && pnpm dev",

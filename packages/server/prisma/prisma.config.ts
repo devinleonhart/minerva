@@ -1,13 +1,11 @@
-import 'dotenv/config'
-import { defineConfig, env } from 'prisma/config'
+import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
-  schema: 'prisma/schema.prisma',
+  schema: './schema.prisma',
   migrations: {
-    path: 'prisma/migrations',
-    seed: 'tsx prisma/seed.ts',
+    path: './migrations',
   },
   datasource: {
-    url: env('MINERVA_DATABASE_URL'),
+    url: process.env.MINERVA_DATABASE_URL || '',
   },
 })

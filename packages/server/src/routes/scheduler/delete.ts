@@ -1,9 +1,8 @@
 import { Router, RequestHandler } from 'express'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import { parseId } from '../../utils/parseId.js'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../../db.js'
 
-const prisma = new PrismaClient()
 
 const router: Router = Router()
 

@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../../db.js'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import getRoutes from './get.js'
@@ -8,7 +8,6 @@ import updateRoutes from './update.js'
 import deleteRoutes from './delete.js'
 
 const router: Router = Router()
-const prisma = new PrismaClient()
 
 router.use('/', getRoutes)
 router.use('/', createRoutes)

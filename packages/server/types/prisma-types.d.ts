@@ -1,3 +1,3 @@
-import { Prisma, Ingredient, Recipe } from '@prisma/client'
+import { Prisma, Ingredient, Recipe } from '../src/generated/client.js'
 
 export type { Prisma, Ingredient, Recipe }

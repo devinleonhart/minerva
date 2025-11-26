@@ -1,14 +1,17 @@
+import 'dotenv/config'
 import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '../src/generated/client.js'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { execSync } from 'child_process'
+import pg from 'pg'
 
-export const testPrisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: 'postgresql://postgres:postgres@localhost:5433/minerva_test'
-    }
-  }
-})
+const { Pool } = pg
+
+const testConnectionString = 'postgresql://postgres:postgres@localhost:5433/minerva_test'
+const testPool = new Pool({ connectionString: testConnectionString })
+const testAdapter = new PrismaPg(testPool)
+
+export const testPrisma = new PrismaClient({ adapter: testAdapter })
 
 // Global setup flag to ensure database is initialized only once
 let isGlobalSetupDone = false

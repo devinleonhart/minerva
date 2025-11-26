@@ -47,17 +47,17 @@ router.post('/', async (req, res) => {
     }
 
     // Verify ingredient selections match recipe requirements
-    const recipeIngredientIds = recipe.ingredients.map(ri => ri.ingredientId)
-    const selectionIngredientIds = ingredientSelections.map(s => s.ingredientId)
+    const recipeIngredientIds = recipe.ingredients.map((ri: { ingredientId: number }) => ri.ingredientId)
+    const selectionIngredientIds = ingredientSelections.map((s: { ingredientId: number }) => s.ingredientId)
 
-    if (!recipeIngredientIds.every(id => selectionIngredientIds.includes(id))) {
+    if (!recipeIngredientIds.every((id: number) => selectionIngredientIds.includes(id))) {
       res.status(400).json({ error: 'Ingredient selections must match recipe requirements' })
       return
     }
 
     // Verify quantities match recipe requirements
     for (const selection of ingredientSelections) {
-      const recipeIngredient = recipe.ingredients.find(ri => ri.ingredientId === selection.ingredientId)
+      const recipeIngredient = recipe.ingredients.find((ri: { ingredientId: number; quantity: number }) => ri.ingredientId === selection.ingredientId)
       if (!recipeIngredient || selection.quantity !== recipeIngredient.quantity) {
         res.status(400).json({ error: 'Ingredient quantities must match recipe requirements' })
         return
@@ -80,9 +80,9 @@ router.post('/', async (req, res) => {
     }
 
     // Verify sufficient quantities and update inventory
-    const potion = await prisma.$transaction(async (tx) => {
+    const potion = await prisma.$transaction(async (tx: typeof prisma) => {
       for (const selection of ingredientSelections) {
-        const inventoryItem = inventoryItems.find(item => item.id === selection.inventoryItemId)
+        const inventoryItem = inventoryItems.find((item: { id: number }) => item.id === selection.inventoryItemId)
         if (!inventoryItem) {
           throw new Error('Inventory item not found')
         }

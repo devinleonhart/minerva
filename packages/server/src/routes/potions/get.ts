@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 
     // Fetch recipe information for each potion separately
     const potionsWithRecipes = await Promise.all(
-      potions.map(async (potion) => {
+      potions.map(async (potion: { recipeId: number }) => {
         const recipe = await prisma.recipe.findUnique({
           where: { id: potion.recipeId },
           include: {

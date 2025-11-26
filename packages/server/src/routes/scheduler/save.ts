@@ -24,7 +24,7 @@ const saveScheduler: RequestHandler = async (req, res) => {
       const normalizedWeekStart = new Date(currentWeek.weekStartDate)
       normalizedWeekStart.setHours(0, 0, 0, 0)
 
-      const existingWeek = existingWeeks.find(week => {
+      const existingWeek = existingWeeks.find((week: { weekStartDate: Date }) => {
         const existingStart = new Date(week.weekStartDate)
         existingStart.setHours(0, 0, 0, 0)
         return existingStart.getTime() === normalizedWeekStart.getTime()
@@ -46,7 +46,7 @@ const saveScheduler: RequestHandler = async (req, res) => {
     const normalizedWeekStart = new Date(currentWeek.weekStartDate)
     normalizedWeekStart.setHours(0, 0, 0, 0)
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: typeof prisma) => {
       let weekSchedule
 
       if (isUpdate) {

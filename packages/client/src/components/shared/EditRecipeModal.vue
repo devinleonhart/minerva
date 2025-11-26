@@ -170,11 +170,24 @@ const updateIngredientQuantity = (ingredientId: number, quantity: number) => {
 const handleSubmit = () => {
   if (!props.recipe) return
 
-  const updatedRecipe = {
+  // Map selected ingredients back to RecipeIngredient format, preserving original structure
+  const updatedIngredients = selectedIngredients.value.map(selected => {
+    const originalIngredient = props.recipe!.ingredients.find(
+      ing => ing.ingredientId === selected.ingredientId
+    )
+    return originalIngredient || {
+      recipeId: props.recipe!.id,
+      ingredientId: selected.ingredientId,
+      quantity: selected.quantity,
+      ingredient: availableIngredients.value.find(ing => ing.id === selected.ingredientId)!
+    }
+  })
+
+  const updatedRecipe: Recipe = {
     ...props.recipe,
     name: editRecipe.value.name,
     description: editRecipe.value.description,
-    ingredients: selectedIngredients.value
+    ingredients: updatedIngredients
   }
 
   emit('recipe-updated', updatedRecipe)

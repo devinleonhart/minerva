@@ -19,6 +19,7 @@ export interface CardHeaderProps {
 
 export interface GridLayoutProps {
   variant?: 'default' | 'compact'
+  isEmpty?: boolean
 }
 
 export interface CreateEntityFormData {

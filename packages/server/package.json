@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --project .",
+    "build": "tsc --project tsconfig.build.json",
     "dev": "nodemon --watch ./ --ext ts --exec tsx index.ts",
     "lint": "eslint .",
     "tsc": "echo 'TypeScript checking is handled from the root workspace'",
     "test": "vitest run",
+    "quality": "pnpm run lint && pnpm run build && pnpm run test",
     "prisma:generate": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma generate --schema=./prisma/schema.prisma",
     "prisma:generate:ci": "pnpm prisma generate --schema=./prisma/schema.prisma",
     "prisma:migrate": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma migrate dev --schema=./prisma/schema.prisma",

@@ -40,7 +40,7 @@ const deleteAllScheduler: RequestHandler = async (req, res) => {
     currentWeekStart.setDate(now.getDate() - daysToSubtract)
     currentWeekStart.setHours(0, 0, 0, 0)
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: typeof prisma) => {
       const existingWeeks = await tx.weekSchedule.findMany()
 
       if (existingWeeks.length === 0) {

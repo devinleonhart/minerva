@@ -33,7 +33,7 @@ router.get('/craftable', async (req, res) => {
     }
 
     // Check which recipes are craftable and add canCraft property
-    const recipesWithCraftability = recipes.map(recipe => {
+    const recipesWithCraftability = recipes.map((recipe: { id: number; name: string; ingredients: Array<{ ingredientId: number; quantity: number }> }) => {
       const canCraft = recipe.ingredients.every(recipeIngredient => {
         const available = inventoryByIngredient.get(recipeIngredient.ingredientId) || 0
         return available >= recipeIngredient.quantity
@@ -46,7 +46,7 @@ router.get('/craftable', async (req, res) => {
     })
 
     // Filter to only return craftable recipes
-    const craftableRecipes = recipesWithCraftability.filter(recipe => recipe.canCraft)
+    const craftableRecipes = recipesWithCraftability.filter((recipe: { canCraft: boolean }) => recipe.canCraft)
 
     res.json(craftableRecipes)
   } catch (error) {
@@ -81,7 +81,7 @@ router.get('/:id/craftable', async (req, res) => {
     }
 
     // Get all available inventory items for the required ingredients
-    const ingredientIds = recipe.ingredients.map(ri => ri.ingredientId)
+    const ingredientIds = recipe.ingredients.map((ri: { ingredientId: number }) => ri.ingredientId)
     const inventoryItems = await prisma.inventoryItem.findMany({
       where: {
         ingredientId: { in: ingredientIds }
@@ -124,7 +124,7 @@ router.get('/:id/craftable', async (req, res) => {
     }
 
     // Check craftability for each ingredient
-    const craftability = recipe.ingredients.map(recipeIngredient => {
+    const craftability = recipe.ingredients.map((recipeIngredient: { ingredientId: number; quantity: number; ingredient: { name: string } }) => {
       const availableInventory = inventoryByIngredient.get(recipeIngredient.ingredientId) || []
       const totalAvailable = availableInventory.reduce((sum, item) => sum + item.totalAvailable, 0)
       const isCraftable = totalAvailable >= recipeIngredient.quantity
@@ -144,7 +144,7 @@ router.get('/:id/craftable', async (req, res) => {
       }
     })
 
-    const isRecipeCraftable = craftability.every(ing => ing.isCraftable)
+    const isRecipeCraftable = craftability.every((ing: { isCraftable: boolean }) => ing.isCraftable)
 
     res.json({
       recipeId: id,

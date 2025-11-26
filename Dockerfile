@@ -17,11 +17,12 @@ COPY packages/server/package.json /app/packages/server/
 COPY packages/server/prisma /app/packages/server/prisma/
 COPY packages/server/src /app/packages/server/src/
 COPY packages/server/tsconfig.json /app/packages/server/
+COPY packages/server/tsconfig.build.json /app/packages/server/
 COPY packages/server/index.ts /app/packages/server/
 
 COPY tsconfig.json tsconfig.build.json eslint.config.mjs /app/
 
-RUN pnpm install --shamefully-hoist
+RUN pnpm install --shamefully-hoist --ignore-scripts=false
 
 FROM base AS development
 

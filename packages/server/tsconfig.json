@@ -4,8 +4,8 @@
     "composite": true,
     "outDir": "../../dist/server",
     "noEmit": false,
-    "module": "Node16",
-    "moduleResolution": "node16",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true

@@ -7,7 +7,7 @@ import pg from 'pg'
 
 const { Pool } = pg
 
-const testConnectionString = 'postgresql://postgres:postgres@localhost:5433/minerva_test'
+const testConnectionString = process.env.TEST_DATABASE_URL || 'postgresql://postgres:postgres@postgres-test:5432/minerva_test'
 const testPool = new Pool({ connectionString: testConnectionString })
 const testAdapter = new PrismaPg(testPool)
 
@@ -36,7 +36,7 @@ beforeAll(async () => {
 
     // Push the schema to the test database
     try {
-      execSync('DATABASE_URL="postgresql://postgres:postgres@localhost:5433/minerva_test" pnpm prisma db push --force-reset', {
+      execSync(`MINERVA_DATABASE_URL="${testConnectionString}" pnpm prisma db push --schema=./prisma/schema.prisma --config=./prisma/prisma.config.ts --force-reset`, {
         cwd: process.cwd(),
         stdio: 'pipe' // Use pipe instead of inherit to reduce noise
       })

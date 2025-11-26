@@ -86,10 +86,10 @@ const getScheduler: RequestHandler = async (req, res) => {
         weekStartDate: weekSchedule.weekStartDate.toISOString(),
         totalScheduledUnits: weekSchedule.totalScheduledUnits,
         freeTimeUsed: weekSchedule.freeTimeUsed,
-        days: weekSchedule.days.map((day) => {
-          const morning = day.tasks.find((task) => task.timeSlot === 'MORNING')
-          const afternoon = day.tasks.find((task) => task.timeSlot === 'AFTERNOON')
-          const evening = day.tasks.find((task) => task.timeSlot === 'EVENING')
+        days: weekSchedule.days.map((day: { day: number; dayName: string; totalUnits: number; tasks: Array<{ timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null; details: unknown }> }) => {
+          const morning = day.tasks.find((task: { timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null; details: unknown }) => task.timeSlot === 'MORNING')
+          const afternoon = day.tasks.find((task: { timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null; details: unknown }) => task.timeSlot === 'AFTERNOON')
+          const evening = day.tasks.find((task: { timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null; details: unknown }) => task.timeSlot === 'EVENING')
 
           return {
             day: day.day,

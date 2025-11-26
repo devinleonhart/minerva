@@ -84,78 +84,67 @@
     <!-- Recipe List -->
     <n-empty v-if="filteredRecipes.length === 0 && !showCreateForm" description="No recipes created yet. Create your first recipe to get started!" />
 
-    <GridLayout v-else-if="!showCreateForm" variant="default">
-      <n-card
+    <div v-else-if="!showCreateForm" class="recipe-list">
+      <div
         v-for="recipe in filteredRecipes"
         :key="recipe.id"
-        class="recipe-card"
-        size="medium"
+        class="recipe-row"
       >
-        <template #header>
-          <CardHeader :title="recipe.name">
-            <template #actions>
-              <n-tag
-                :type="getRecipeCraftabilityType(recipe.id)"
-                size="small"
-                class="craftability-indicator"
-              >
-                {{ getRecipeCraftabilityText(recipe.id) }}
-              </n-tag>
-              <n-button @click="checkCraftability(recipe.id)" type="info" size="small">
-                Craft
-              </n-button>
-              <n-button @click="handleAddPotion(recipe)" type="success" size="small">
-                Add
-              </n-button>
-              <n-button @click="handleEdit(recipe)" type="primary" size="small">
-                Edit
-              </n-button>
+        <div class="recipe-name-group">
+          <span
+            class="craftability-dot"
+            :class="`status-${getRecipeCraftabilityType(recipe.id)}`"
+            :title="getRecipeCraftabilityText(recipe.id)"
+            aria-hidden="true"
+          />
+          <h3 class="recipe-name">{{ recipe.name }}</h3>
+        </div>
+
+        <div class="recipe-ingredients-inline" aria-label="Recipe ingredients">
+          <span
+            v-for="recipeIngredient in recipe.ingredients"
+            :key="recipeIngredient.ingredientId"
+            class="recipe-ingredient-pill"
+            :title="`${recipeIngredient.ingredient.name} x${recipeIngredient.quantity} · Available ${getAvailableIngredientQuantity(recipeIngredient.ingredientId)}`"
+          >
+            {{ recipeIngredient.ingredient.name }} x{{ recipeIngredient.quantity }}
+            <span class="pill-available">({{ getAvailableIngredientQuantity(recipeIngredient.ingredientId) }})</span>
+          </span>
+        </div>
+
+        <div class="recipe-actions">
+          <n-button @click="checkCraftability(recipe.id)" type="info" size="small">
+            Craft
+          </n-button>
+          <n-button @click="handleAddPotion(recipe)" type="success" size="small">
+            Add
+          </n-button>
+          <n-button @click="handleEdit(recipe)" type="primary" size="small">
+            Edit
+          </n-button>
+          <n-button
+            v-if="recipeDeletability[recipe.id]?.canDelete"
+            @click="deleteRecipe(recipe.id)"
+            type="error"
+            size="small"
+          >
+            Delete
+          </n-button>
+          <n-tooltip v-else-if="recipeDeletability[recipe.id]?.reason" trigger="hover">
+            <template #trigger>
               <n-button
-                v-if="recipeDeletability[recipe.id]?.canDelete"
-                @click="deleteRecipe(recipe.id)"
+                disabled
                 type="error"
                 size="small"
               >
                 Delete
               </n-button>
-              <n-tooltip v-else-if="recipeDeletability[recipe.id]?.reason" trigger="hover">
-                <template #trigger>
-                  <n-button
-                    disabled
-                    type="error"
-                    size="small"
-                  >
-                    Delete
-                  </n-button>
-                </template>
-                {{ recipeDeletability[recipe.id]?.reason }}
-              </n-tooltip>
             </template>
-          </CardHeader>
-        </template>
-
-        <div class="recipe-content">
-          <p class="recipe-description">{{ recipe.description }}</p>
-          <n-divider />
-          <div class="recipe-ingredients">
-            <h4>Ingredients:</h4>
-            <div class="ingredients-tags">
-              <n-tag
-                v-for="recipeIngredient in recipe.ingredients"
-                :key="recipeIngredient.ingredientId"
-                type="info"
-                size="medium"
-                class="ingredient-tag"
-              >
-                {{ recipeIngredient.ingredient.name }} x{{ recipeIngredient.quantity }} ({{ getAvailableIngredientQuantity(recipeIngredient.ingredientId) }})
-              </n-tag>
-            </div>
-          </div>
-
-
+            {{ recipeDeletability[recipe.id]?.reason }}
+          </n-tooltip>
         </div>
-      </n-card>
-    </GridLayout>
+      </div>
+    </div>
 
     <!-- Ingredient Selection Modal for Crafting -->
     <n-modal v-model:show="showCraftModal" preset="card" :title="`Craft ${selectedRecipe?.name}`" style="width: 600px">
@@ -244,7 +233,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRecipeStore } from '@/store/recipe'
 import { useIngredientStore } from '@/store/ingredient'
@@ -261,7 +250,6 @@ import {
   NSelect,
   NSpace,
   NDivider,
-  NCard,
   NTag,
   NEmpty,
   NTooltip
@@ -269,8 +257,6 @@ import {
 import type { Recipe } from '../types/store/recipe'
 import ViewLayout from '@/components/shared/ViewLayout.vue'
 import ViewHeader from '@/components/shared/ViewHeader.vue'
-import GridLayout from '@/components/shared/GridLayout.vue'
-import CardHeader from '@/components/shared/CardHeader.vue'
 import EditRecipeModal from '@/components/shared/EditRecipeModal.vue'
 
 const recipeStore = useRecipeStore()
@@ -292,6 +278,7 @@ const editingRecipe = ref<Recipe | null>(null)
 const recipesCraftability = ref<Record<number, boolean>>({})
 const searchQuery = ref('')
 const ingredientFilter = ref('')
+const craftabilityInitialized = ref(false)
 
 const newRecipe = ref({
   name: '',
@@ -349,23 +336,35 @@ onMounted(async () => {
     ingredientStore.getIngredients(),
     inventoryStore.getInventory()
   ])
-  await Promise.all([
-    checkAllRecipesCraftability(),
-    checkAllRecipesDeletability()
-  ])
+  await checkAllRecipesCraftability()
+  craftabilityInitialized.value = true
+  await checkAllRecipesDeletability()
 })
+
+watch(
+  () => recipes.value,
+  async () => {
+    if (!craftabilityInitialized.value) return
+    await checkAllRecipesCraftability()
+  },
+  { deep: true }
+)
 
 const checkAllRecipesCraftability = async () => {
   for (const recipe of recipes.value) {
-    try {
-      await potionStore.checkRecipeCraftability(recipe.id)
-      if (craftability.value) {
-        recipesCraftability.value[recipe.id] = craftability.value.isCraftable
-      }
-    } catch (error) {
-      console.error(`Error checking craftability for recipe ${recipe.id}:`, error)
-      recipesCraftability.value[recipe.id] = false
+    await updateRecipeCraftability(recipe.id)
+  }
+}
+
+const updateRecipeCraftability = async (recipeId: number) => {
+  try {
+    await potionStore.checkRecipeCraftability(recipeId)
+    if (craftability.value) {
+      recipesCraftability.value[recipeId] = craftability.value.isCraftable
     }
+  } catch (error) {
+    console.error(`Error checking craftability for recipe ${recipeId}:`, error)
+    recipesCraftability.value[recipeId] = false
   }
 }
 
@@ -638,46 +637,107 @@ const getAvailableIngredientQuantity = (ingredientId: number): number => {
   margin-top: 8px;
 }
 
-
-
-.recipe-card {
-  height: fit-content;
-}
-
-.recipe-content {
-  margin-top: 8px;
-}
-
-.recipe-description {
-  margin: 8px 0;
-  color: #666;
-  line-height: 1.5;
-}
-
-.recipe-ingredients {
-  margin-top: 16px;
-}
-
-.recipe-ingredients h4 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #e0e0e0;
-}
-
-.ingredients-tags {
+.recipe-list {
+  padding: 0 20px 20px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recipe-row {
+  border-bottom: 1px solid #2f2f2f;
+  padding: 8px 0;
+  display: grid;
+  grid-template-columns: minmax(160px, 200px) minmax(200px, 1fr) auto;
+  gap: 14px;
   align-items: center;
 }
 
-.ingredient-tag {
-  margin: 0;
+.recipe-name-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.craftability-indicator {
-  margin-right: 10px;
+.recipe-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.recipe-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.craftability-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-flex;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+.craftability-dot.status-success {
+  background-color: #63e2b7;
+}
+
+.craftability-dot.status-error {
+  background-color: #d03050;
+}
+
+.craftability-dot.status-info {
+  background-color: #8a8a8a;
+}
+
+.recipe-ingredients-inline {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.recipe-ingredients-inline::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, #1a1a1a);
+  pointer-events: none;
+}
+
+.recipe-ingredient-pill {
+  font-size: 11px;
+  color: #e6e6e6;
+  background: #252525;
+  border: 1px solid #333333;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.pill-available {
+  color: #7ddba3;
+  margin-left: 4px;
+}
+
+@media (max-width: 768px) {
+  .recipe-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .recipe-ingredients-inline {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
 }
 
 .quality-selection {

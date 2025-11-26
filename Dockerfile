@@ -54,4 +54,4 @@ RUN pnpm prisma generate --schema=/app/server/prisma/schema.prisma
 
 ENV NODE_ENV=production
 
-CMD ["sh", "-c", "cd /app/server && pnpm prisma migrate deploy && node /app/dist/server/index.js"]
+CMD ["sh", "-c", "pnpm prisma migrate deploy --schema=/app/server/prisma/schema.prisma && node /app/dist/server/index.js"]

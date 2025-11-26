@@ -1,8 +1,8 @@
 import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
 import { config } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { defineComponent, h } from 'vue'
 import { vi } from 'vitest'
-
 
 // Mock axios globally
 vi.mock('axios', () => ({
@@ -15,110 +15,106 @@ vi.mock('axios', () => ({
       get: vi.fn(),
       post: vi.fn(),
       put: vi.fn(),
-      delete: vi.fn(),
+      delete: vi.fn()
     }))
   }
 }))
 
-// Mock naive-ui components to avoid rendering issues in tests
-vi.mock('naive-ui', () => ({
-  NButton: {
-    name: 'NButton',
-    template: '<button :data-type="type" :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
-    props: ['type', 'disabled', 'size', 'ghost'],
-    emits: ['click']
-  },
-  NCard: { name: 'NCard', template: '<div class="n-card"><slot name="header" /><slot /></div>' },
-  NModal: {
-    name: 'NModal',
-    template: '<div v-if="modelValue" class="n-modal"><div class="modal-title">{{ title }}</div><slot /></div>',
-    props: ['modelValue', 'title', 'preset'],
-    emits: ['update:modelValue']
-  },
-  NForm: {
-    name: 'NForm',
-    template: '<form @submit="$emit(\'submit\', $event)"><slot /></form>',
-    props: ['model', 'labelPlacement'],
-    emits: ['submit']
-  },
-  NFormItem: {
-    name: 'NFormItem',
-    template: '<div class="n-form-item"><label>{{ label }}</label><slot /></div>',
-    props: ['label', 'path']
-  },
-  NInput: {
-    name: 'NInput',
-    template: '<input :type="type" :placeholder="placeholder" :value="value" @input="$emit(\'update:value\', $event.target.value)" :rows="rows" :required="required" />',
-    props: ['value', 'type', 'placeholder', 'rows', 'required'],
-    emits: ['update:value']
-  },
-  NSpace: {
-    name: 'NSpace',
-    template: '<div class="n-space" :style="{ justifyContent: justify }"><slot /></div>',
-    props: ['justify']
-  },
-  NEmpty: { name: 'NEmpty', template: '<div class="n-empty">{{ description }}</div>', props: ['description'] },
-  NTooltip: { name: 'NTooltip', template: '<div><slot name="trigger" /><div class="tooltip"><slot /></div></div>' },
-  NLayout: { name: 'NLayout', template: '<div class="n-layout"><slot /></div>' },
-  NLayoutHeader: { name: 'NLayoutHeader', template: '<header class="n-layout-header"><slot /></header>' },
-  NLayoutContent: { name: 'NLayoutContent', template: '<main class="n-layout-content"><slot /></main>' },
-  NConfigProvider: { name: 'NConfigProvider', template: '<div><slot /></div>' },
-  NMessageProvider: { name: 'NMessageProvider', template: '<div><slot /></div>' },
-  NNotificationProvider: { name: 'NNotificationProvider', template: '<div><slot /></div>' },
-  darkTheme: {},
-}))
+const sharedProps = {
+  modelValue: { type: [String, Number, Boolean, Object, Array], default: undefined },
+  value: { type: [String, Number, Boolean, Object, Array], default: undefined },
+  disabled: { type: Boolean, default: false },
+  type: { type: String, default: 'default' },
+  size: { type: String, default: 'medium' },
+  ghost: { type: Boolean, default: false },
+  placeholder: { type: String, default: '' },
+  title: { type: String, default: '' },
+  preset: { type: String, default: '' },
+  min: { type: Number, default: undefined },
+  precision: { type: Number, default: undefined }
+} as const
+
+const createStub = (componentName: string) => {
+  const tag =
+    componentName.includes('Button') ? 'button' :
+      componentName.includes('Input') ? 'input' :
+        'div'
+
+  return defineComponent({
+    name: componentName,
+    props: sharedProps,
+    emits: ['click', 'submit', 'update:modelValue', 'update:value'],
+    setup(props, { slots, emit }) {
+      const handleClick = (event: Event) => emit('click', event)
+      const handleInput = (event: Event) => {
+        const target = event.target as HTMLInputElement | undefined
+        emit('update:value', target?.value)
+        emit('update:modelValue', target?.value)
+      }
+
+      return () => {
+        const slotContent = [
+          slots.trigger?.(),
+          slots.default?.()
+        ].flat().filter(Boolean)
+
+        if (tag === 'button') {
+          return h('button', {
+            disabled: props.disabled,
+            'data-component': componentName,
+            onClick: handleClick
+          }, slotContent.length ? slotContent : componentName)
+        }
+
+        if (tag === 'input') {
+          const type = componentName.includes('Number') ? 'number' : 'text'
+          return h('input', {
+            value: props.modelValue ?? props.value ?? '',
+            placeholder: props.placeholder,
+            type,
+            'data-component': componentName,
+            onInput: handleInput
+          })
+        }
+
+        return h('div', {
+          'data-component': componentName,
+          onClick: handleClick
+        }, slotContent.length ? slotContent : componentName)
+      }
+    }
+  })
+}
+
+const componentCache = new Map<string, ReturnType<typeof createStub>>()
+
+// Mock naive-ui using a proxy so any component (present or future) automatically gets stubbed
+vi.mock('naive-ui', () => {
+  return new Proxy({}, {
+    get: (_, componentName: string) => {
+      if (componentName === 'darkTheme') {
+        return {}
+      }
+
+      if (!componentCache.has(componentName)) {
+        componentCache.set(componentName, createStub(componentName))
+      }
+
+      return componentCache.get(componentName)
+    }
+  })
+})
 
 // Setup global test configuration
 beforeAll(() => {
-  // Configure Vue Test Utils
   config.global.plugins = []
-  config.global.stubs = {
-    // Stub Naive UI components globally to prevent resolution warnings
-    'n-button': {
-      template: '<button :data-type="type" :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
-      props: ['type', 'disabled', 'size', 'ghost'],
-      emits: ['click']
-    },
-    'n-layout': { template: '<div class="n-layout"><slot /></div>' },
-    'n-layout-header': { template: '<header class="n-layout-header"><slot /></header>' },
-    'n-layout-content': { template: '<main class="n-layout-content"><slot /></main>' },
-    'n-config-provider': { template: '<div><slot /></div>' },
-    'n-message-provider': { template: '<div><slot /></div>' },
-    'n-notification-provider': { template: '<div><slot /></div>' },
-    'n-modal': {
-      template: '<div v-if="modelValue" class="n-modal"><div class="modal-title">{{ title }}</div><slot /></div>',
-      props: ['modelValue', 'title', 'preset'],
-      emits: ['update:modelValue']
-    },
-    'n-form': {
-      template: '<form @submit="$emit(\'submit\', $event)"><slot /></form>',
-      emits: ['submit']
-    },
-    'n-form-item': {
-      template: '<div class="n-form-item"><label>{{ label }}</label><slot /></div>',
-      props: ['label', 'path']
-    },
-    'n-input': {
-      template: '<input :placeholder="placeholder" :value="value" @input="$emit(\'update:value\', $event.target.value)" />',
-      props: ['value', 'placeholder'],
-      emits: ['update:value']
-    },
-    'n-card': { template: '<div class="n-card"><slot /></div>' },
-    'n-space': { template: '<div class="n-space"><slot /></div>' },
-    'n-empty': { template: '<div class="n-empty"><slot /></div>' },
-    'n-tooltip': { template: '<div><slot /></div>' }
-  }
 })
 
 beforeEach(() => {
-  // Create fresh Pinia instance for each test
   const pinia = createPinia()
   setActivePinia(pinia)
-
-  // Reset all mocks
   vi.resetAllMocks()
 
-  // Suppress Vue component resolution warnings in tests
   config.global.config.warnHandler = () => {
     // Suppress warnings about unresolved components
   }
@@ -133,7 +129,7 @@ afterAll(() => {
 })
 
 // Test utilities
-export const createMockAxiosResponse = (data, status = 200) => ({
+export const createMockAxiosResponse = (data: unknown, status = 200) => ({
   data,
   status,
   statusText: 'OK',

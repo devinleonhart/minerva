@@ -1,6 +1,9 @@
 import { Router } from 'express'
 import { prisma } from '../../db.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
+import type { PrismaClient } from '../../generated/client.js'
+
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 const router: Router = Router()
 
@@ -29,7 +32,7 @@ router.post('/', async (req, res) => {
     }
 
     // Create the potion directly without ingredient requirements
-    const potion = await prisma.$transaction(async (tx) => {
+    const potion = await prisma.$transaction(async (tx: TransactionClient) => {
       // Create the potion
       const newPotion = await tx.potion.create({
         data: {

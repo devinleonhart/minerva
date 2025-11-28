@@ -1,7 +1,9 @@
 import { Router, RequestHandler } from 'express'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import { prisma } from '../../db.js'
+import type { PrismaClient } from '../../generated/client.js'
 
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 const router: Router = Router()
 
@@ -46,7 +48,7 @@ const saveScheduler: RequestHandler = async (req, res) => {
     const normalizedWeekStart = new Date(currentWeek.weekStartDate)
     normalizedWeekStart.setHours(0, 0, 0, 0)
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: TransactionClient) => {
       let weekSchedule
 
       if (isUpdate) {

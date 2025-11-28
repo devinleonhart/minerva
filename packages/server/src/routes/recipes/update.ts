@@ -2,6 +2,9 @@ import { Router } from 'express'
 import { prisma } from '../../db.js'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
+import type { PrismaClient } from '../../generated/client.js'
+
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 interface RecipeIngredientInput {
   ingredientId: number
@@ -36,7 +39,7 @@ router.put('/:id', async (req, res) => {
     }
 
     // Update recipe with ingredients in a transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: TransactionClient) => {
       // Update basic recipe info
       const recipe = await tx.recipe.update({
         where: { id },

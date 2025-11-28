@@ -2,6 +2,9 @@ import { Router } from 'express'
 import { prisma } from '../../db.js'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
+import type { PrismaClient } from '../../generated/client.js'
+
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 const router: Router = Router()
 
@@ -41,7 +44,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Delete recipe with ingredients in a transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: TransactionClient) => {
       // Delete recipe-ingredient relationships first
       await tx.recipeIngredient.deleteMany({
         where: { recipeId: id }

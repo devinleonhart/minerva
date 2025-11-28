@@ -1,6 +1,9 @@
 import { Router } from 'express'
 import { prisma } from '../../db.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
+import type { PrismaClient } from '../../generated/client.js'
+
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 const router: Router = Router()
 
@@ -80,7 +83,7 @@ router.post('/', async (req, res) => {
     }
 
     // Verify sufficient quantities and update inventory
-    const potion = await prisma.$transaction(async (tx) => {
+    const potion = await prisma.$transaction(async (tx: TransactionClient) => {
       for (const selection of ingredientSelections) {
         const inventoryItem = inventoryItems.find((item: { id: number }) => item.id === selection.inventoryItemId)
         if (!inventoryItem) {

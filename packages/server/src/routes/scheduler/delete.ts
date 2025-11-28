@@ -2,7 +2,9 @@ import { Router, RequestHandler } from 'express'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import { parseId } from '../../utils/parseId.js'
 import { prisma } from '../../db.js'
+import type { PrismaClient } from '../../generated/client.js'
 
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 const router: Router = Router()
 
@@ -40,7 +42,7 @@ const deleteAllScheduler: RequestHandler = async (req, res) => {
     currentWeekStart.setDate(now.getDate() - daysToSubtract)
     currentWeekStart.setHours(0, 0, 0, 0)
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: TransactionClient) => {
       const existingWeeks = await tx.weekSchedule.findMany()
 
       if (existingWeeks.length === 0) {

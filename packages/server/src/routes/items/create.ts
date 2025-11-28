@@ -1,6 +1,9 @@
 import { Router } from 'express'
 import { prisma } from '../../db.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
+import type { PrismaClient } from '../../generated/client.js'
+
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 
 const router: Router = Router()
@@ -17,7 +20,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Item description must be a string' })
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: TransactionClient) => {
       const item = await tx.item.create({
         data: {
           name: name.trim(),

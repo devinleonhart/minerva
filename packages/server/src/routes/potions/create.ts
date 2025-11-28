@@ -80,7 +80,7 @@ router.post('/', async (req, res) => {
     }
 
     // Verify sufficient quantities and update inventory
-    const potion = await prisma.$transaction(async (tx: typeof prisma) => {
+    const potion = await prisma.$transaction(async (tx) => {
       for (const selection of ingredientSelections) {
         const inventoryItem = inventoryItems.find((item: { id: number }) => item.id === selection.inventoryItemId)
         if (!inventoryItem) {

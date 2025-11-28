@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
     }
 
     // Create the potion directly without ingredient requirements
-    const potion = await prisma.$transaction(async (tx: typeof prisma) => {
+    const potion = await prisma.$transaction(async (tx) => {
       // Create the potion
       const newPotion = await tx.potion.create({
         data: {

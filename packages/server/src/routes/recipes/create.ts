@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
     }
 
     // Create recipe with ingredients in a transaction
-    const recipe = await prisma.$transaction(async (tx: typeof prisma) => {
+    const recipe = await prisma.$transaction(async (tx) => {
       // Create the recipe
       const newRecipe = await tx.recipe.create({
         data: {

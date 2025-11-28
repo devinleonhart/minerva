@@ -17,7 +17,14 @@ app.use('/api', routes)
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '..', 'client')))
 
-  app.get('/{*splat}', (req, res) => {
+  // Catch-all handler: serve index.html for any non-API routes
+  // This must be last to allow static files and API routes to be handled first
+  // Express 5 uses a different syntax for catch-all routes
+  app.use((req, res, next) => {
+    // Don't serve index.html for API routes or static assets
+    if (req.path.startsWith('/api') || req.path.includes('.')) {
+      return next()
+    }
     res.sendFile(path.join(__dirname, '..', 'client', 'index.html'))
   })
 }

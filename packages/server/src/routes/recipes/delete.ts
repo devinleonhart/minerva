@@ -41,7 +41,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Delete recipe with ingredients in a transaction
-    await prisma.$transaction(async (tx: typeof prisma) => {
+    await prisma.$transaction(async (tx) => {
       // Delete recipe-ingredient relationships first
       await tx.recipeIngredient.deleteMany({
         where: { recipeId: id }

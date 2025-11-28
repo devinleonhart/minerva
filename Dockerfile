@@ -17,7 +17,6 @@ COPY packages/client/tsconfig.json /app/packages/client/
 COPY packages/server/package.json /app/packages/server/
 COPY packages/server/prisma /app/packages/server/prisma/
 COPY packages/server/src /app/packages/server/src/
-COPY packages/server/scripts /app/packages/server/scripts/
 COPY packages/server/tsconfig.json /app/packages/server/
 COPY packages/server/tsconfig.build.json /app/packages/server/
 COPY packages/server/index.ts /app/packages/server/

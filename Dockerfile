@@ -52,14 +52,16 @@ COPY --from=production-build /app/pnpm-lock.yaml /app/pnpm-lock.yaml
 # Copy server package.json to its expected location for pnpm workspace
 COPY --from=production-build /app/packages/server/package.json /app/packages/server/package.json
 
-# Copy built dist and prisma files
+# Copy built dist, source (for tsx), and prisma files
 COPY --from=production-build /app/dist /app/dist
+COPY --from=production-build /app/packages/server/src /app/server/src
 COPY --from=production-build /app/packages/server/prisma /app/server/prisma
+COPY --from=production-build /app/packages/server/index.ts /app/server/index.ts
 
 # Install only production dependencies
 RUN pnpm install --prod --ignore-scripts=false --shamefully-hoist
 
 ENV NODE_ENV=production
 
-# Run migrations and start the server
-CMD ["sh", "-c", "cd /app/server && pnpm prisma migrate deploy --schema=/app/server/prisma/schema.prisma --config=/app/server/prisma/prisma.config.ts && node /app/dist/server/index.js"]
+# Run migrations and start the server using tsx
+CMD ["sh", "-c", "cd /app/server && pnpm prisma migrate deploy --schema=/app/server/prisma/schema.prisma --config=/app/server/prisma/prisma.config.ts && pnpm exec tsx /app/server/index.ts"]

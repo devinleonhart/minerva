@@ -114,23 +114,46 @@ router.post('/', async (req, res) => {
         }
       }
 
-      // Create the potion
-      const potion = await tx.potion.create({
-        data: {
-          quality: quality as 'NORMAL' | 'HQ' | 'LQ',
-          recipeId: recipeId
+      // Check if a potion with the same recipe and quality already exists
+      const existingPotion = await tx.potion.findFirst({
+        where: {
+          recipeId: recipeId,
+          quality: quality as 'NORMAL' | 'HQ' | 'LQ'
+        },
+        include: {
+          inventoryItems: true
         }
       })
 
-      // Add potion to inventory
-      await tx.potionInventoryItem.create({
-        data: {
-          potionId: potion.id,
-          quantity: 1
-        }
-      })
+      if (existingPotion && existingPotion.inventoryItems.length > 0) {
+        // Potion exists, increment its inventory quantity
+        const inventoryItem = existingPotion.inventoryItems[0]
+        await tx.potionInventoryItem.update({
+          where: { id: inventoryItem.id },
+          data: {
+            quantity: inventoryItem.quantity + 1
+          }
+        })
+        return existingPotion
+      } else {
+        // Create new potion
+        const newPotion = await tx.potion.create({
+          data: {
+            quality: quality as 'NORMAL' | 'HQ' | 'LQ',
+            recipeId: recipeId
+          }
+        })
 
-      return potion
+        // Add potion to inventory
+        await tx.potionInventoryItem.create({
+          data: {
+            potionId: newPotion.id,
+            quantity: 1
+          }
+        })
+
+        return newPotion
+      }
     })
 
     // Fetch the created potion with recipe details

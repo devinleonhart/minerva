@@ -56,10 +56,10 @@ COPY --from=production-build /app/packages/server/package.json /app/packages/ser
 COPY --from=production-build /app/dist /app/dist
 COPY --from=production-build /app/packages/server/prisma /app/server/prisma
 
-# Install only production dependencies (prisma and tsx are in server dependencies)
+# Install only production dependencies
 RUN pnpm install --prod --ignore-scripts=false --shamefully-hoist
 
 ENV NODE_ENV=production
 
-# Run migrations - Prisma 7 requires explicit --config flag for prisma.config.ts
-CMD ["sh", "-c", "cd /app/server && pnpm prisma migrate deploy --schema=/app/server/prisma/schema.prisma --config=/app/server/prisma/prisma.config.ts && pnpm exec tsx /app/dist/server/index.js"]
+# Run migrations and start the server
+CMD ["sh", "-c", "cd /app/server && pnpm prisma migrate deploy --schema=/app/server/prisma/schema.prisma --config=/app/server/prisma/prisma.config.ts && node /app/dist/server/index.js"]

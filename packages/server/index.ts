@@ -15,7 +15,9 @@ app.use(express.json())
 app.use('/api', routes)
 
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '..', 'client')))
+  // In production, client files are at /app/dist/client
+  const clientPath = path.join(__dirname, '..', 'dist', 'client')
+  app.use(express.static(clientPath))
 
   // Catch-all handler: serve index.html for any non-API routes
   // This must be last to allow static files and API routes to be handled first
@@ -25,7 +27,7 @@ if (process.env.NODE_ENV === 'production') {
     if (req.path.startsWith('/api') || req.path.includes('.')) {
       return next()
     }
-    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'))
+    res.sendFile(path.join(clientPath, 'index.html'))
   })
 }
 

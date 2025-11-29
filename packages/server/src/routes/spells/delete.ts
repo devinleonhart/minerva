@@ -9,15 +9,14 @@ router.delete('/:id', async (req, res) => {
   try {
     const id = parseId(req)
     if (id === null) {
-      res.status(400).json({ error: 'Invalid spell ID' })
-      return
+      return res.status(400).json({ error: 'Invalid spell ID' })
     }
 
     await prisma.spell.delete({
       where: { id }
     })
 
-    res.status(204).send()
+    return res.status(204).send()
   } catch (error) {
     if ((error as { code?: string }).code === 'P2025') {
       return res.status(404).json({ error: 'Spell not found' })

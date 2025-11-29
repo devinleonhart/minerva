@@ -20,8 +20,7 @@ router.get('/:id/deletable', async (req, res) => {
   try {
     const id = parseId(req)
     if (id === null) {
-      res.status(400).json({ error: 'Invalid recipe ID' })
-      return
+      return res.status(400).json({ error: 'Invalid recipe ID' })
     }
 
     // Check if recipe has potions that are currently in inventory
@@ -38,7 +37,7 @@ router.get('/:id/deletable', async (req, res) => {
 
     const canDelete = potionsInInventory.length === 0
 
-    res.json({
+    return res.json({
       canDelete,
       reason: canDelete ? null : 'Has associated potions'
     })

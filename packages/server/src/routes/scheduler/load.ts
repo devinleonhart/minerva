@@ -11,10 +11,9 @@ const loadScheduler: RequestHandler = async (req, res) => {
 
     // Validate the date parameter
     if (!weekStartDate || isNaN(Date.parse(weekStartDate))) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Invalid week start date'
       })
-      return
     }
 
     // Load from database
@@ -31,11 +30,10 @@ const loadScheduler: RequestHandler = async (req, res) => {
     })
 
     if (!weekSchedule) {
-      res.json({
+      return res.json({
         currentWeek: null,
         taskDefinitions: []
       })
-      return
     }
 
     // Transform the data to match the expected format
@@ -82,7 +80,7 @@ const loadScheduler: RequestHandler = async (req, res) => {
       orderBy: { type: 'asc' }
     })
 
-    res.json({
+    return res.json({
       currentWeek,
       taskDefinitions
     })

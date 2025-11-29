@@ -12,10 +12,9 @@ const saveScheduler: RequestHandler = async (req, res) => {
     const { currentWeek, taskDefinitions } = req.body
 
     if (!currentWeek || !taskDefinitions) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Missing required fields: currentWeek and taskDefinitions'
       })
-      return
     }
 
     const existingWeeks = await prisma.weekSchedule.findMany()
@@ -36,12 +35,11 @@ const saveScheduler: RequestHandler = async (req, res) => {
         isUpdate = true
         existingWeekId = existingWeek.id
       } else {
-        res.status(400).json({
+        return res.status(400).json({
           error: 'A week already exists. Please delete the current week first',
           existingWeekId: existingWeeks[0].id,
           existingWeekCount: existingWeeks.length
         })
-        return
       }
     }
 
@@ -162,7 +160,7 @@ const saveScheduler: RequestHandler = async (req, res) => {
       return { weekSchedule }
     })
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Scheduler state saved successfully',
       savedAt: new Date().toISOString(),

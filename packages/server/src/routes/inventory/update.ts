@@ -8,12 +8,11 @@ const router: Router = Router()
 router.put('/:id', async (req, res) => {
   try {
     const id = parseId(req)
-    const { quality, quantity } = req.body
-
     if (id === null) {
-      res.status(400).json({ error: 'Invalid inventory item ID' })
-      return
+      return res.status(400).json({ error: 'Invalid inventory item ID' })
     }
+
+    const { quality, quantity } = req.body
 
     // Check if inventory item exists
     const existingItem = await prisma.inventoryItem.findUnique({
@@ -21,35 +20,44 @@ router.put('/:id', async (req, res) => {
     })
 
     if (!existingItem) {
-      res.status(404).json({ error: 'Inventory item not found' })
-      return
+      return res.status(404).json({ error: 'Inventory item not found' })
     }
 
     // Validate quality if provided
-    if (quality && !['NORMAL', 'HQ', 'LQ'].includes(quality)) {
-      res.status(400).json({ error: 'Invalid quality. Must be NORMAL, HQ, or LQ' })
-      return
+    if (quality !== undefined) {
+      if (typeof quality !== 'string' || !['NORMAL', 'HQ', 'LQ'].includes(quality)) {
+        return res.status(400).json({ error: 'Invalid quality. Must be NORMAL, HQ, or LQ' })
+      }
     }
 
     // Validate quantity if provided
     if (quantity !== undefined && (quantity < 0 || !Number.isInteger(quantity))) {
-      res.status(400).json({ error: 'Quantity must be a non-negative integer' })
-      return
+      return res.status(400).json({ error: 'Quantity must be a non-negative integer' })
+    }
+
+    // Build update data object
+    const updateData: {
+      quality?: string
+      quantity?: number
+    } = {}
+
+    if (quality !== undefined) {
+      updateData.quality = quality
+    }
+    if (quantity !== undefined) {
+      updateData.quantity = quantity
     }
 
     // Update the inventory item
     const updatedItem = await prisma.inventoryItem.update({
       where: { id },
-      data: {
-        ...(quality !== undefined && { quality }),
-        ...(quantity !== undefined && { quantity })
-      },
+      data: updateData,
       include: {
         ingredient: true
       }
     })
 
-    res.json(updatedItem)
+    return res.json(updatedItem)
   } catch (error) {
     handleUnknownError(res, 'updating inventory item', error)
   }

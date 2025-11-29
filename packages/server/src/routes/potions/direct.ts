@@ -16,9 +16,18 @@ router.post('/', async (req, res) => {
   try {
     const { recipeId, quality = 'NORMAL' } = req.body as DirectPotionRequest
 
+    // Validate quality
+    if (quality !== undefined && (
+      quality === null ||
+      quality === '' ||
+      typeof quality !== 'string' ||
+      !['NORMAL', 'HQ', 'LQ'].includes(quality)
+    )) {
+      return res.status(400).json({ error: 'Invalid quality. Must be NORMAL, HQ, or LQ' })
+    }
+
     if (!recipeId) {
-      res.status(400).json({ error: 'recipeId is required' })
-      return
+      return res.status(400).json({ error: 'recipeId is required' })
     }
 
     // Verify recipe exists
@@ -27,8 +36,7 @@ router.post('/', async (req, res) => {
     })
 
     if (!recipe) {
-      res.status(404).json({ error: 'Recipe not found' })
-      return
+      return res.status(404).json({ error: 'Recipe not found' })
     }
 
     // Create the potion directly without ingredient requirements
@@ -61,11 +69,10 @@ router.post('/', async (req, res) => {
     })
 
     if (!potionWithRecipe) {
-      res.status(500).json({ error: 'Failed to create potion' })
-      return
+      return res.status(500).json({ error: 'Failed to create potion' })
     }
 
-    res.status(201).json(potionWithRecipe)
+    return res.status(201).json(potionWithRecipe)
   } catch (error) {
     handleUnknownError(res, 'creating potion directly', error)
   }

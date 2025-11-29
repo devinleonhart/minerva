@@ -27,7 +27,7 @@ const deleteSchedulerById: RequestHandler = async (req, res) => {
       where: { id }
     })
 
-    res.status(200).json({ deletedWeeks: 1, message: 'Week deleted successfully' })
+    return res.status(200).json({ deletedWeeks: 1, message: 'Week deleted successfully' })
   } catch (error) {
     handleUnknownError(res, 'deleting scheduler week', error)
   }
@@ -51,7 +51,7 @@ const deleteAllScheduler: RequestHandler = async (req, res) => {
 
       await tx.weekSchedule.deleteMany()
 
-      res.json({ deletedWeeks: existingWeeks.length, message: 'All weeks deleted successfully' })
+      return res.json({ deletedWeeks: existingWeeks.length, message: 'All weeks deleted successfully' })
     })
   } catch (error) {
     handleUnknownError(res, 'deleting scheduler week', error)

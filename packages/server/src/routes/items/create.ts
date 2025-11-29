@@ -12,11 +12,13 @@ router.post('/', async (req, res) => {
   try {
     const { name, description } = req.body
 
+    // Validate name
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return res.status(400).json({ error: 'Item name is required' })
     }
 
-    if (description && typeof description !== 'string') {
+    // Validate description - schema requires it, so we default to empty string if not provided
+    if (description !== undefined && typeof description !== 'string') {
       return res.status(400).json({ error: 'Item description must be a string' })
     }
 
@@ -52,7 +54,7 @@ router.post('/', async (req, res) => {
       }
     })
 
-    res.status(201).json(createdItem)
+    return res.status(201).json(createdItem)
   } catch (error) {
     handleUnknownError(res, 'creating item', error)
   }

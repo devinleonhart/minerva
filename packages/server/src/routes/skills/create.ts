@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
       data: { name: name.trim() }
     })
 
-    res.status(201).json(skill)
+    return res.status(201).json(skill)
   } catch (error) {
     if ((error as { code?: string }).code === 'P2002') {
       return res.status(409).json({ error: 'A skill with this name already exists' })

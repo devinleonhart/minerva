@@ -9,14 +9,18 @@ router.put('/:id', async (req, res) => {
   try {
     const id = parseId(req)
     if (id === null) {
-      res.status(400).json({ error: 'Invalid spell ID' })
-      return
+      return res.status(400).json({ error: 'Invalid spell ID' })
     }
 
     const { name, neededStars, currentStars } = req.body
 
-    if (name !== undefined && (typeof name !== 'string' || name.trim().length === 0)) {
-      return res.status(400).json({ error: 'Spell name must be a non-empty string' })
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: 'Spell name must be a non-empty string' })
+      }
+      if (name.trim().length > 255) {
+        return res.status(400).json({ error: 'Spell name must be 255 characters or less' })
+      }
     }
 
     if (neededStars !== undefined && (typeof neededStars !== 'number' || neededStars < 1 || !Number.isInteger(neededStars))) {
@@ -52,7 +56,7 @@ router.put('/:id', async (req, res) => {
       }
     })
 
-    res.json(spell)
+    return res.json(spell)
   } catch (error) {
     if ((error as { code?: string }).code === 'P2025') {
       return res.status(404).json({ error: 'Spell not found' })

@@ -8,19 +8,15 @@ router.get('/:id', async (req, res) => {
   try {
     const id = parseId(req)
     if (id === null) {
-      res.status(400).json({ error: 'Invalid ingredient ID' })
-      return
+      return res.status(400).json({ error: 'Invalid ingredient ID' })
     }
-    else {
-      const ingredient = await prisma.ingredient.findUnique({ where: { id } })
-      if (!ingredient) {
-        res.status(404).json({ error: 'Ingredient not found' })
-        return
-      }
-      else {
-        res.json(ingredient)
-      }
+
+    const ingredient = await prisma.ingredient.findUnique({ where: { id } })
+    if (!ingredient) {
+      return res.status(404).json({ error: 'Ingredient not found' })
     }
+
+    return res.json(ingredient)
   } catch (error) {
     handleUnknownError(res, 'fetching ingredient', error)
   }
@@ -28,8 +24,10 @@ router.get('/:id', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const ingredients = await prisma.ingredient.findMany()
-    res.json(ingredients)
+    const ingredients = await prisma.ingredient.findMany({
+      orderBy: { name: 'asc' }
+    })
+    return res.json(ingredients)
   } catch (error) {
     handleUnknownError(res, 'fetching ingredients', error)
   }

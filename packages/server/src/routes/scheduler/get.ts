@@ -122,11 +122,10 @@ const getScheduler: RequestHandler = async (req, res) => {
     }
 
     if (!weekSchedule) {
-      res.json({
+      return res.json({
         currentWeek: null,
         taskDefinitions: []
       })
-      return
     }
 
     let taskDefinitions: Awaited<ReturnType<typeof prisma.taskDefinition.findMany>> = []
@@ -141,7 +140,7 @@ const getScheduler: RequestHandler = async (req, res) => {
       taskDefinitions = []
     }
 
-    res.json({
+    return res.json({
       currentWeek,
       taskDefinitions
     })

@@ -25,8 +25,7 @@ router.put('/:id', async (req, res) => {
     }
 
     if (id === null) {
-      res.status(400).json({ error: 'Invalid recipe ID' })
-      return
+      return res.status(400).json({ error: 'Invalid recipe ID' })
     }
 
     const existingRecipe = await prisma.recipe.findUnique({
@@ -34,18 +33,44 @@ router.put('/:id', async (req, res) => {
     })
 
     if (!existingRecipe) {
-      res.status(404).json({ error: 'Recipe not found' })
-      return
+      return res.status(404).json({ error: 'Recipe not found' })
     }
 
     // Update recipe with ingredients in a transaction
     await prisma.$transaction(async (tx: TransactionClient) => {
+      // Validate name if provided
+      if (name !== undefined && (typeof name !== 'string' || name.trim() === '')) {
+        throw new Error('Recipe name is required')
+      }
+
+      // Validate description if provided
+      if (description !== undefined && (typeof description !== 'string' || description.trim() === '')) {
+        throw new Error('Recipe description is required')
+      }
+
+      // Validate ingredients if provided
+      if (ingredients !== undefined) {
+        if (!Array.isArray(ingredients)) {
+          throw new Error('Ingredients must be an array')
+        }
+        if (ingredients.length === 0) {
+          throw new Error('Recipe must have at least one ingredient')
+        }
+
+        // Check for duplicate ingredients
+        const ingredientIds = ingredients.map((ing: RecipeIngredientInput) => ing.ingredientId)
+        const uniqueIngredientIds = [...new Set(ingredientIds)]
+        if (ingredientIds.length !== uniqueIngredientIds.length) {
+          throw new Error('Recipe cannot contain duplicate ingredients')
+        }
+      }
+
       // Update basic recipe info
       const recipe = await tx.recipe.update({
         where: { id },
         data: {
-          ...(name !== undefined && { name }),
-          ...(description !== undefined && { description })
+          ...(name !== undefined && { name: name.trim() }),
+          ...(description !== undefined && { description: description.trim() })
         }
       })
 
@@ -59,7 +84,8 @@ router.put('/:id', async (req, res) => {
           }
         })
 
-        if (existingIngredients.length !== ingredientIds.length) {
+        const uniqueIngredientIds = [...new Set(ingredientIds)]
+        if (existingIngredients.length !== uniqueIngredientIds.length) {
           throw new Error('One or more ingredients not found')
         }
 
@@ -97,8 +123,15 @@ router.put('/:id', async (req, res) => {
       }
     })
 
-    res.json(recipeWithIngredients)
+    return res.json(recipeWithIngredients)
   } catch (error) {
+    // Handle validation errors from transaction
+    if (error instanceof Error) {
+      const errorMessage = error.message
+      if (errorMessage.includes('required') || errorMessage.includes('must be') || errorMessage.includes('duplicate') || errorMessage.includes('not found')) {
+        return res.status(400).json({ error: errorMessage })
+      }
+    }
     handleUnknownError(res, 'updating recipe', error)
   }
 })

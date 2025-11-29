@@ -7,15 +7,9 @@
     "build": "tsc --project tsconfig.build.json",
     "dev": "nodemon --watch ./ --ext ts --exec tsx index.ts",
     "lint": "eslint .",
-    "tsc": "echo 'TypeScript checking is handled from the root workspace'",
-    "test": "vitest run",
     "quality": "pnpm run lint && pnpm run build && pnpm run test",
-    "prisma:generate": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma generate --schema=./prisma/schema.prisma",
-    "prisma:generate:ci": "pnpm prisma generate --schema=./prisma/schema.prisma",
-    "prisma:migrate": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma migrate dev --schema=./prisma/schema.prisma",
-    "prisma:migrate:ci": "pnpm prisma migrate deploy",
-    "prisma:reset": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma migrate reset --schema=./prisma/schema.prisma",
-    "prisma:studio": "docker compose -f ../docker-compose.dev.yml exec prisma pnpm prisma studio --schema=./prisma/schema.prisma"
+    "test": "vitest run",
+    "tsc": "echo 'TypeScript checking is handled from the root workspace'"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.1",
@@ -32,7 +26,6 @@
     "@types/express": "^5.0.5",
     "@types/pg": "^8.15.6",
     "@types/supertest": "^6.0.3",
-    "dotenv": "^17.2.3",
     "nodemon": "^3.1.11",
     "supertest": "^7.1.4",
     "vitest": "^4.0.14"

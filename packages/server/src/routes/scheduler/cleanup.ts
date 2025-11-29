@@ -13,7 +13,7 @@ const cleanupScheduler: RequestHandler = async (req, res) => {
 
     const deletedWeeks = await prisma.weekSchedule.deleteMany()
 
-    res.json({
+    return res.json({
       deletedTasks: deletedTasks.count,
       deletedDays: deletedDays.count,
       deletedWeeks: deletedWeeks.count,

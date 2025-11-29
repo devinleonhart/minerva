@@ -28,7 +28,7 @@ router.patch('/:id/progress', async (req, res) => {
       return res.status(400).json({ error: 'Current stars is required and must be a number' })
     }
 
-    if (currentStars < 0) {
+    if (currentStars < 0 || !Number.isInteger(currentStars)) {
       return res.status(400).json({ error: 'Current stars must be a non-negative integer' })
     }
 
@@ -52,7 +52,7 @@ router.patch('/:id/progress', async (req, res) => {
       }
     })
 
-    res.json(updatedSpell)
+    return res.json(updatedSpell)
   } catch (error) {
     handleUnknownError(res, 'updating spell progress', error)
   }

@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
       })
     )
 
-    res.json(potionsWithRecipes)
+    return res.json(potionsWithRecipes)
   } catch (error) {
     handleUnknownError(res, 'fetching potions', error)
   }

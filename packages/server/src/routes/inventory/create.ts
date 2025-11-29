@@ -8,20 +8,24 @@ router.post('/', async (req, res) => {
   try {
     const { ingredientId, quantity = 1, quality = 'NORMAL' } = req.body
 
+    // Validate ingredientId
     if (!ingredientId) {
-      res.status(400).json({ error: 'ingredientId is required' })
-      return
+      return res.status(400).json({ error: 'ingredientId is required' })
     }
 
-    // Validate quality first - check for invalid values
+    // Validate quality
     if (quality !== undefined && (
       quality === null ||
       quality === '' ||
       typeof quality !== 'string' ||
       !['NORMAL', 'HQ', 'LQ'].includes(quality)
     )) {
-      res.status(400).json({ error: 'Invalid quality. Must be NORMAL, HQ, or LQ' })
-      return
+      return res.status(400).json({ error: 'Invalid quality. Must be NORMAL, HQ, or LQ' })
+    }
+
+    // Validate quantity
+    if (quantity !== undefined && (quantity < 0 || !Number.isInteger(quantity))) {
+      return res.status(400).json({ error: 'Quantity must be a non-negative integer' })
     }
 
     // Check if ingredient exists
@@ -30,8 +34,7 @@ router.post('/', async (req, res) => {
     })
 
     if (!ingredient) {
-      res.status(404).json({ error: 'Ingredient not found' })
-      return
+      return res.status(404).json({ error: 'Ingredient not found' })
     }
 
     // Check if item already exists in inventory with the same quality
@@ -51,8 +54,7 @@ router.post('/', async (req, res) => {
           ingredient: true
         }
       })
-      res.json(updatedItem)
-      return
+      return res.json(updatedItem)
     }
 
     // Create new inventory item
@@ -67,7 +69,7 @@ router.post('/', async (req, res) => {
       }
     })
 
-    res.json(inventoryItem)
+    return res.status(201).json(inventoryItem)
   } catch (error) {
     handleUnknownError(res, 'creating inventory item', error)
   }

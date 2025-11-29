@@ -60,7 +60,7 @@ router.get('/', async (req, res) => {
       })
     )
 
-    res.json({
+    return res.json({
       ingredients: ingredientItems,
       potions: potionItemsWithRecipes,
       items: itemItems,

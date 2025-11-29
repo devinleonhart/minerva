@@ -28,8 +28,6 @@ services:
     volumes:
       - ./packages/server:/app/packages/server
       - /app/packages/client/node_modules
-    environment:
-      - MINERVA_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/minerva
     depends_on:
       - postgres
 
@@ -42,8 +40,6 @@ services:
     command: ["tail", "-f", "/dev/null"]
     volumes:
       - ./packages/server:/app/packages/server
-    environment:
-      - MINERVA_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/minerva
     depends_on:
       - postgres
     ports:

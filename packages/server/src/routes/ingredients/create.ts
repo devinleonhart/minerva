@@ -6,25 +6,25 @@ const router: Router = Router()
 router.post('/', async (req, res) => {
   const { name, description, secured = false } = req.body
 
+  // Validate name
   if (!name || typeof name !== 'string' || name.trim() === '') {
-    res.status(400).json({ error: 'Ingredient name is required' })
-    return
+    return res.status(400).json({ error: 'Ingredient name is required' })
   }
 
-  if (!description || typeof description !== 'string') {
-    res.status(400).json({ error: 'Ingredient description is required' })
-    return
+  // Validate description
+  if (!description || typeof description !== 'string' || description.trim() === '') {
+    return res.status(400).json({ error: 'Ingredient description is required' })
   }
 
   try {
     const ingredient = await prisma.ingredient.create({
       data: {
-        name,
-        description,
+        name: name.trim(),
+        description: description.trim(),
         secured: Boolean(secured)
       }
     })
-    res.status(201).json(ingredient)
+    return res.status(201).json(ingredient)
   } catch (error) {
     handleUnknownError(res, 'creating ingredient', error)
   }

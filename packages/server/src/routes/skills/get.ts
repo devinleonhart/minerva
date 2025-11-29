@@ -9,17 +9,15 @@ router.get('/:id', async (req, res) => {
   try {
     const id = parseId(req)
     if (id === null) {
-      res.status(400).json({ error: 'Invalid skill ID' })
-      return
+      return res.status(400).json({ error: 'Invalid skill ID' })
     }
 
     const skill = await prisma.skill.findUnique({ where: { id } })
     if (!skill) {
-      res.status(404).json({ error: 'Skill not found' })
-      return
+      return res.status(404).json({ error: 'Skill not found' })
     }
 
-    res.json(skill)
+    return res.json(skill)
   } catch (error) {
     handleUnknownError(res, 'fetching skill', error)
   }
@@ -33,7 +31,7 @@ router.get('/', async (req, res) => {
       }
     })
 
-    res.json(skills)
+    return res.json(skills)
   } catch (error) {
     handleUnknownError(res, 'fetching skills', error)
   }

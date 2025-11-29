@@ -5,6 +5,7 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     setupFiles: ['./test/setup.ts'],
+    globalSetup: ['./test/globalSetup.ts'],
     testTimeout: 30000,
     hookTimeout: 30000,
     teardownTimeout: 30000,
@@ -15,9 +16,10 @@ export default defineConfig({
         singleThread: true
       }
     },
+    // Ensure test files run sequentially, not in parallel
+    fileParallelism: false,
     env: {
-      NODE_ENV: 'test',
-      MINERVA_DATABASE_URL: 'postgresql://postgres:postgres@localhost:5433/minerva_test'
+      NODE_ENV: 'test'
     }
   }
 })

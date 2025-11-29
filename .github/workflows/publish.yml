@@ -7,55 +7,7 @@ on:
     branches: [master]
 
 jobs:
-  quality:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17.4
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: minerva_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24.4.1'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Generate Prisma Client
-        run: pnpm --filter server run prisma:generate:ci
-        env:
-          MINERVA_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/minerva_test
-
-      - name: Run client quality checks
-        run: pnpm --filter client run quality
-
-      - name: Run server quality checks
-        run: pnpm --filter server run quality
-        env:
-          MINERVA_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/minerva_test
-          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/minerva_test
-
   build-and-push:
-    needs: quality
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:

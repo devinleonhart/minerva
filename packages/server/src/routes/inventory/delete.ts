@@ -13,8 +13,7 @@ router.delete('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid inventory item ID' })
     }
 
-    // This endpoint is specifically for ingredient inventory items
-    // Check if this is a general inventory item (ingredient)
+    // Check if inventory item exists
     const inventoryItem = await prisma.inventoryItem.findUnique({
       where: { id }
     })
@@ -27,7 +26,7 @@ router.delete('/:id', async (req, res) => {
       where: { id }
     })
 
-    res.status(204).send()
+    return res.status(204).send()
   } catch (error) {
     handleUnknownError(res, 'deleting inventory item', error)
   }

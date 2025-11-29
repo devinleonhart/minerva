@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
       }
     })
 
-    res.status(201).json(spell)
+    return res.status(201).json(spell)
   } catch (error) {
     if ((error as { code?: string }).code === 'P2002') {
       return res.status(409).json({ error: 'A spell with this name already exists' })

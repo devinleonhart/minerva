@@ -267,10 +267,13 @@ Vue Router with the following routes:
 pnpm dev          # Start all services (client, server, postgres)
 ```
 
-**Individual Services**:
+> All backend commands should be executed inside the Docker containers so they can reach the `postgres` and `postgres-test` services. Use `docker compose exec <service> <command>` or `docker compose run --rm <service> <command>` as shown below.
+
+**Container Shell Examples**:
 ```bash
-pnpm dev:client   # Vite dev server on port 5173 (mapped to 8080 in Docker)
-pnpm dev:server   # Express server on port 3000
+docker compose exec client pnpm dev          # Vite dev server
+docker compose exec server pnpm dev:server   # Express server with nodemon
+docker compose exec server sh                # Drop into server container shell
 ```
 
 **Docker Services**:
@@ -282,38 +285,38 @@ pnpm dev:server   # Express server on port 3000
 
 ### Database Management
 
-**Prisma Commands** (from server package):
+**Prisma Commands** (inside server container):
 ```bash
-pnpm prisma:generate  # Generate Prisma Client
-pnpm prisma:migrate   # Run migrations
-pnpm prisma:reset     # Reset database
-pnpm prisma:studio    # Open Prisma Studio (port 5555)
+docker compose exec server pnpm prisma generate --schema=./prisma/schema.prisma
+docker compose exec server pnpm prisma migrate dev --schema=./prisma/schema.prisma
+docker compose exec server pnpm prisma migrate reset --schema=./prisma/schema.prisma
+docker compose exec server pnpm prisma studio --schema=./prisma/schema.prisma
 ```
 
-**Environment Variable**:
-```
-MINERVA_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/minerva
-```
+**Database Connection**:
+- Local development: Defaults to Docker service names (`postgres:5432`, `postgres-test:5432`)
+- Production: Set `MINERVA_DATABASE_URL` environment variable
+- CI/Testing: Optionally set `TEST_DATABASE_URL` (defaults to `postgres-test:5432`)
 
 ### Testing
 
-**Run All Tests**:
+**Run All Tests (server)**:
 ```bash
-pnpm test         # Run tests in all packages
+docker compose run --rm server pnpm run test
 ```
 
 **Package-Specific**:
 ```bash
-cd packages/client && pnpm test  # Frontend tests
-cd packages/server && pnpm test  # Backend tests
+docker compose run --rm client pnpm test   # Frontend tests
+docker compose run --rm server pnpm test   # Backend tests
 ```
 
 ### Quality Checks
 
 ```bash
-pnpm lint         # ESLint all packages
-pnpm tsc          # TypeScript check all packages
-pnpm quality      # Run test + lint + tsc
+docker compose run --rm server pnpm run lint
+docker compose run --rm server pnpm run build
+docker compose run --rm server pnpm run quality
 ```
 
 ### Building for Production
@@ -370,25 +373,25 @@ Production build:
 
 ### Development
 ```bash
-pnpm dev              # Start full stack in Docker
-pnpm dev:client       # Frontend only (Vite)
-pnpm dev:server       # Backend only (tsx + nodemon)
+pnpm dev                                 # Start full stack via Docker Compose
+docker compose exec client pnpm dev      # Frontend only (Vite inside container)
+docker compose exec server pnpm dev:server  # Backend only (tsx + nodemon inside container)
 ```
 
 ### Database
 ```bash
-pnpm prisma:generate  # Generate Prisma Client
-pnpm prisma:migrate   # Create and run migrations
-pnpm prisma:reset     # Reset and reseed database
-pnpm prisma:studio    # Open Prisma Studio UI
+docker compose exec server pnpm prisma generate --schema=./prisma/schema.prisma
+docker compose exec server pnpm prisma migrate dev --schema=./prisma/schema.prisma
+docker compose exec server pnpm prisma migrate reset --schema=./prisma/schema.prisma
+docker compose exec server pnpm prisma studio --schema=./prisma/schema.prisma
 ```
 
 ### Quality
 ```bash
-pnpm test            # Run all tests
-pnpm lint            # Lint all code
-pnpm tsc             # Type check
-pnpm quality         # All quality checks
+docker compose run --rm server pnpm run test
+docker compose run --rm server pnpm run lint
+docker compose run --rm server pnpm run build
+docker compose run --rm server pnpm run quality
 ```
 
 ### Build
@@ -416,9 +419,11 @@ docker compose logs -f server      # Follow server logs
 - Prisma Studio: localhost:5555
 
 ### Environment Variables
-- `MINERVA_DATABASE_URL`: PostgreSQL connection string
+- `MINERVA_DATABASE_URL`: (Optional) PostgreSQL connection string. Required for production. Defaults to `postgres:5432/minerva` in local Docker.
+- `TEST_DATABASE_URL`: (Optional) Test database connection string. Defaults to `postgres-test:5432/minerva_test` in local Docker.
 - `VITE_API_BASE`: API base path for frontend (`/api`)
 - `NODE_ENV`: Set to `production` for production builds
+- Database URLs are fixed to Docker service hostnames (`postgres`, `postgres-test`)
 
 ### Data Relationships
 - Ingredients can be "secured" (boolean flag)
@@ -455,14 +460,14 @@ docker compose logs -f server      # Follow server logs
 ### Modifying the Database Schema
 
 1. Edit `packages/server/prisma/schema.prisma`
-2. Run `pnpm prisma:migrate` (creates migration and applies it)
+2. Run `docker compose exec server pnpm prisma migrate dev --schema=./prisma/schema.prisma` (creates migration and applies it)
 3. Update TypeScript types if needed
-4. Regenerate Prisma Client: `pnpm prisma:generate`
+4. Regenerate Prisma Client: `docker compose exec server pnpm prisma generate --schema=./prisma/schema.prisma`
 
 ### Debugging
 
 - **Server logs**: Check `packages/server/server.log` or Docker logs
-- **Database inspection**: Use Prisma Studio (`pnpm prisma:studio`)
+- **Database inspection**: Use Prisma Studio (`docker compose exec server pnpm prisma studio --schema=./prisma/schema.prisma`)
 - **Frontend**: Vue DevTools browser extension
 - **API testing**: Use Prisma Studio, curl, or Postman against `http://localhost:3000/api`
 

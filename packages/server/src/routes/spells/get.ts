@@ -9,17 +9,15 @@ router.get('/:id', async (req, res) => {
   try {
     const id = parseId(req)
     if (id === null) {
-      res.status(400).json({ error: 'Invalid spell ID' })
-      return
+      return res.status(400).json({ error: 'Invalid spell ID' })
     }
 
     const spell = await prisma.spell.findUnique({ where: { id } })
     if (!spell) {
-      res.status(404).json({ error: 'Spell not found' })
-      return
+      return res.status(404).json({ error: 'Spell not found' })
     }
 
-    res.json(spell)
+    return res.json(spell)
   } catch (error) {
     handleUnknownError(res, 'fetching spell', error)
   }
@@ -34,7 +32,7 @@ router.get('/', async (req, res) => {
       ]
     })
 
-    res.json(spells)
+    return res.json(spells)
   } catch (error) {
     handleUnknownError(res, 'fetching spells', error)
   }

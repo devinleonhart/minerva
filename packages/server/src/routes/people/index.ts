@@ -35,7 +35,7 @@ router.patch('/:id/favorite', async (req, res) => {
       data: { isFavorited: !person.isFavorited }
     })
 
-    res.json(updatedPerson)
+    return res.json(updatedPerson)
   } catch (error) {
     handleUnknownError(res, 'toggling person favorite status', error)
   }

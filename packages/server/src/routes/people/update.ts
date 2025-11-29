@@ -39,19 +39,41 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'isFavorited must be a boolean' })
     }
 
+    // Build update data object
+    const updateData: {
+      name?: string
+      description?: string | null
+      relationship?: string | null
+      notableEvents?: string | null
+      url?: string | null
+      isFavorited?: boolean
+    } = {}
+
+    if (name !== undefined) {
+      updateData.name = name.trim()
+    }
+    if (description !== undefined) {
+      updateData.description = description?.trim() || null
+    }
+    if (relationship !== undefined) {
+      updateData.relationship = relationship?.trim() || null
+    }
+    if (notableEvents !== undefined) {
+      updateData.notableEvents = notableEvents?.trim() || null
+    }
+    if (url !== undefined) {
+      updateData.url = url?.trim() || null
+    }
+    if (isFavorited !== undefined) {
+      updateData.isFavorited = isFavorited
+    }
+
     const person = await prisma.person.update({
       where: { id },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(description !== undefined && { description }),
-        ...(relationship !== undefined && { relationship }),
-        ...(notableEvents !== undefined && { notableEvents }),
-        ...(url !== undefined && { url }),
-        ...(isFavorited !== undefined && { isFavorited })
-      }
+      data: updateData
     })
 
-    res.json(person)
+    return res.json(person)
   } catch (error) {
     if ((error as { code?: string }).code === 'P2025') {
       return res.status(404).json({ error: 'Person not found' })

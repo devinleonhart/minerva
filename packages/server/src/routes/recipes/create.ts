@@ -22,9 +22,21 @@ router.post('/', async (req, res) => {
       ingredients: RecipeIngredientInput[]
     }
 
-    if (!name || !description || !ingredients || !Array.isArray(ingredients)) {
-      res.status(400).json({ error: 'name, description, and ingredients array are required' })
-      return
+    // Validate required fields
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ error: 'Recipe name is required' })
+    }
+
+    if (!description || typeof description !== 'string' || description.trim() === '') {
+      return res.status(400).json({ error: 'Recipe description is required' })
+    }
+
+    if (!ingredients || !Array.isArray(ingredients)) {
+      return res.status(400).json({ error: 'Ingredients array is required' })
+    }
+
+    if (ingredients.length === 0) {
+      return res.status(400).json({ error: 'Recipe must have at least one ingredient' })
     }
 
     // Check for duplicate ingredients
@@ -32,8 +44,7 @@ router.post('/', async (req, res) => {
     const uniqueIngredientIds = [...new Set(ingredientIds)]
 
     if (ingredientIds.length !== uniqueIngredientIds.length) {
-      res.status(400).json({ error: 'Recipe cannot contain duplicate ingredients' })
-      return
+      return res.status(400).json({ error: 'Recipe cannot contain duplicate ingredients' })
     }
 
     // Verify all ingredients exist
@@ -44,8 +55,7 @@ router.post('/', async (req, res) => {
     })
 
     if (existingIngredients.length !== uniqueIngredientIds.length) {
-      res.status(400).json({ error: 'One or more ingredients not found' })
-      return
+      return res.status(400).json({ error: 'One or more ingredients not found' })
     }
 
     // Create recipe with ingredients in a transaction
@@ -53,8 +63,8 @@ router.post('/', async (req, res) => {
       // Create the recipe
       const newRecipe = await tx.recipe.create({
         data: {
-          name,
-          description
+          name: name.trim(),
+          description: description.trim()
         }
       })
 
@@ -86,7 +96,7 @@ router.post('/', async (req, res) => {
       }
     })
 
-    res.status(201).json(recipeWithIngredients)
+    return res.status(201).json(recipeWithIngredients)
   } catch (error) {
     handleUnknownError(res, 'creating recipe', error)
   }

@@ -48,7 +48,7 @@ router.get('/craftable', async (req, res) => {
     // Filter to only return craftable recipes
     const craftableRecipes = recipesWithCraftability.filter((recipe: { canCraft: boolean }) => recipe.canCraft)
 
-    res.json(craftableRecipes)
+    return res.json(craftableRecipes)
   } catch (error) {
     handleUnknownError(res, 'fetching craftable recipes', error)
   }
@@ -59,8 +59,7 @@ router.get('/:id/craftable', async (req, res) => {
     const id = parseId(req)
 
     if (id === null) {
-      res.status(400).json({ error: 'Invalid ID' })
-      return
+      return res.status(400).json({ error: 'Invalid recipe ID' })
     }
 
     // Get recipe with ingredients
@@ -76,8 +75,7 @@ router.get('/:id/craftable', async (req, res) => {
     })
 
     if (!recipe) {
-      res.status(404).json({ error: 'Recipe not found' })
-      return
+      return res.status(404).json({ error: 'Recipe not found' })
     }
 
     // Get all available inventory items for the required ingredients
@@ -146,7 +144,7 @@ router.get('/:id/craftable', async (req, res) => {
 
     const isRecipeCraftable = craftability.every((ing: { isCraftable: boolean }) => ing.isCraftable)
 
-    res.json({
+    return res.json({
       recipeId: id,
       recipeName: recipe.name,
       isCraftable: isRecipeCraftable,

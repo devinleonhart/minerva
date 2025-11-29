@@ -21,9 +21,18 @@ router.post('/', async (req, res) => {
   try {
     const { recipeId, quality = 'NORMAL', ingredientSelections } = req.body as CraftPotionRequest
 
+    // Validate quality
+    if (quality !== undefined && (
+      quality === null ||
+      quality === '' ||
+      typeof quality !== 'string' ||
+      !['NORMAL', 'HQ', 'LQ'].includes(quality)
+    )) {
+      return res.status(400).json({ error: 'Invalid quality. Must be NORMAL, HQ, or LQ' })
+    }
+
     if (!recipeId || !ingredientSelections || !Array.isArray(ingredientSelections)) {
-      res.status(400).json({ error: 'recipeId and ingredientSelections array are required' })
-      return
+      return res.status(400).json({ error: 'recipeId and ingredientSelections array are required' })
     }
 
     // Verify recipe exists
@@ -39,14 +48,12 @@ router.post('/', async (req, res) => {
     })
 
     if (!recipe) {
-      res.status(404).json({ error: 'Recipe not found' })
-      return
+      return res.status(404).json({ error: 'Recipe not found' })
     }
 
     // Verify all required ingredients are provided
     if (ingredientSelections.length !== recipe.ingredients.length) {
-      res.status(400).json({ error: 'All recipe ingredients must be provided' })
-      return
+      return res.status(400).json({ error: 'All recipe ingredients must be provided' })
     }
 
     // Verify ingredient selections match recipe requirements
@@ -54,16 +61,14 @@ router.post('/', async (req, res) => {
     const selectionIngredientIds = ingredientSelections.map((s: { ingredientId: number }) => s.ingredientId)
 
     if (!recipeIngredientIds.every((id: number) => selectionIngredientIds.includes(id))) {
-      res.status(400).json({ error: 'Ingredient selections must match recipe requirements' })
-      return
+      return res.status(400).json({ error: 'Ingredient selections must match recipe requirements' })
     }
 
     // Verify quantities match recipe requirements
     for (const selection of ingredientSelections) {
       const recipeIngredient = recipe.ingredients.find((ri: { ingredientId: number; quantity: number }) => ri.ingredientId === selection.ingredientId)
       if (!recipeIngredient || selection.quantity !== recipeIngredient.quantity) {
-        res.status(400).json({ error: 'Ingredient quantities must match recipe requirements' })
-        return
+        return res.status(400).json({ error: 'Ingredient quantities must match recipe requirements' })
       }
     }
 
@@ -78,8 +83,7 @@ router.post('/', async (req, res) => {
     })
 
     if (inventoryItems.length !== ingredientSelections.length) {
-      res.status(400).json({ error: 'One or more inventory items not found' })
-      return
+      return res.status(400).json({ error: 'One or more inventory items not found' })
     }
 
     // Verify sufficient quantities and update inventory
@@ -135,8 +139,7 @@ router.post('/', async (req, res) => {
     })
 
     if (!potionWithRecipe) {
-      res.status(500).json({ error: 'Failed to create potion' })
-      return
+      return res.status(500).json({ error: 'Failed to create potion' })
     }
 
     // Fetch recipe information separately
@@ -156,7 +159,7 @@ router.post('/', async (req, res) => {
       recipe: recipeData
     }
 
-    res.status(201).json(potionWithRecipeData)
+    return res.status(201).json(potionWithRecipeData)
   } catch (error) {
     handleUnknownError(res, 'crafting potion', error)
   }

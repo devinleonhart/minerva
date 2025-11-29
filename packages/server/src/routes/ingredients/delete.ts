@@ -8,8 +8,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const id = parseId(req)
     if (id === null) {
-      res.status(400).json({ error: 'Invalid ingredient ID' })
-      return
+      return res.status(400).json({ error: 'Invalid ingredient ID' })
     }
 
     // Check if ingredient is used in any recipes
@@ -18,11 +17,10 @@ router.delete('/:id', async (req, res) => {
     })
 
     if (recipeUsage) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Cannot delete ingredient that is used in recipes',
         code: 'INGREDIENT_IN_USE'
       })
-      return
     }
 
     // Check if ingredient has any inventory items
@@ -31,21 +29,18 @@ router.delete('/:id', async (req, res) => {
     })
 
     if (inventoryUsage) {
-      res.status(400).json({
+      return res.status(400).json({
         error: 'Cannot delete ingredient that has inventory items',
         code: 'INGREDIENT_IN_INVENTORY'
       })
-      return
     }
 
     try {
       await prisma.ingredient.delete({ where: { id } })
-      res.status(204).send()
+      return res.status(204).send()
     } catch (deleteError: unknown) {
       if (deleteError && typeof deleteError === 'object' && 'code' in deleteError && deleteError.code === 'P2025') {
-        // Record not found
-        res.status(404).json({ error: 'Ingredient not found' })
-        return
+        return res.status(404).json({ error: 'Ingredient not found' })
       }
       throw deleteError
     }

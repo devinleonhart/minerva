@@ -1,60 +1,30 @@
-import 'dotenv/config'
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
-import { PrismaClient } from '../src/generated/client.js'
+import { beforeAll, afterAll, beforeEach } from 'vitest'
+import { PrismaClient, Prisma } from '../src/generated/client.js'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { execSync } from 'child_process'
 import pg from 'pg'
+import { getTestDatabaseUrl } from '../src/config/databaseUrls.js'
 
 const { Pool } = pg
 
-const testConnectionString = process.env.TEST_DATABASE_URL || 'postgresql://postgres:postgres@postgres-test:5432/minerva_test'
+const testConnectionString = getTestDatabaseUrl()
 const testPool = new Pool({ connectionString: testConnectionString })
 const testAdapter = new PrismaPg(testPool)
 
 export const testPrisma = new PrismaClient({ adapter: testAdapter })
 
-// Global setup flag to ensure database is initialized only once
-let isGlobalSetupDone = false
-
 beforeAll(async () => {
-  // Only do global setup once across all test files
-  if (!isGlobalSetupDone) {
-    // Wait for test database to be ready
-    let retries = 30
-    while (retries > 0) {
-      try {
-        await testPrisma.$connect()
-        break
-      } catch {
-        retries--
-        if (retries === 0) {
-          throw new Error('Could not connect to test database after 30 retries')
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-    }
-
-    // Push the schema to the test database
-    try {
-      execSync(`MINERVA_DATABASE_URL="${testConnectionString}" pnpm prisma db push --schema=./prisma/schema.prisma --config=./prisma/prisma.config.ts --force-reset`, {
-        cwd: process.cwd(),
-        stdio: 'pipe' // Use pipe instead of inherit to reduce noise
-      })
-      isGlobalSetupDone = true
-    } catch (error) {
-      console.error('Failed to push schema to test database:', error)
-      throw error
-    }
+  // Connect to database (schema is already set up by globalSetup)
+  try {
+    await testPrisma.$connect()
+  } catch {
+    // If already connected, ignore
   }
+  // Clean database before each test file starts
+  await cleanDatabase()
 })
 
 beforeEach(async () => {
   // Clean all tables before each test
-  await cleanDatabase()
-})
-
-afterEach(async () => {
-  // Clean all tables after each test
   await cleanDatabase()
 })
 
@@ -63,144 +33,65 @@ afterAll(async () => {
 })
 
 export async function cleanDatabase() {
-  // Delete in correct order to avoid foreign key constraints
-  // Use try-catch to handle tables that might not exist
+  // Delete all data and reset sequences in a single transaction for atomicity
+  await testPrisma.$transaction(async (tx) => {
+    // Delete in correct order to avoid foreign key constraints
+    // First delete all dependent tables that have foreign keys
+    await tx.scheduledTask.deleteMany().catch(() => {})
+    await tx.daySchedule.deleteMany().catch(() => {})
+    await tx.weekSchedule.deleteMany().catch(() => {})
+    await tx.taskDefinition.deleteMany().catch(() => {})
 
-  // First delete all dependent tables that have foreign keys
-  try {
-    await testPrisma.scheduledTask.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
+    // Delete inventory items before ingredients/items/potions
+    await tx.inventoryItem.deleteMany().catch(() => {})
+    await tx.itemInventoryItem.deleteMany().catch(() => {})
+    await tx.potionInventoryItem.deleteMany().catch(() => {})
+    await tx.currency.deleteMany().catch(() => {})
 
-  try {
-    await testPrisma.daySchedule.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
+    // Delete potions before recipes (potions depend on recipes)
+    await tx.potion.deleteMany().catch(() => {})
 
-  try {
-    await testPrisma.weekSchedule.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
+    // Delete recipe ingredients before recipes and ingredients
+    await tx.recipeIngredient.deleteMany().catch(() => {})
 
-  try {
-    await testPrisma.taskDefinition.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  // Delete inventory items before ingredients/items/potions
-  try {
-    await testPrisma.inventoryItem.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  try {
-    await testPrisma.itemInventoryItem.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  try {
-    await testPrisma.potionInventoryItem.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  try {
-    await testPrisma.currency.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  // Delete potions before recipes (potions depend on recipes)
-  try {
-    await testPrisma.potion.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  // Delete recipe ingredients before recipes and ingredients
-  try {
-    await testPrisma.recipeIngredient.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  // Now delete main entities
-  try {
-    await testPrisma.recipe.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  try {
-    await testPrisma.ingredient.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  try {
-    await testPrisma.item.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  try {
-    await testPrisma.person.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  try {
-    await testPrisma.skill.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
-
-  try {
-    await testPrisma.spell.deleteMany()
-  } catch {
-    // Table might not exist, ignore
-  }
+    // Now delete main entities
+    await tx.recipe.deleteMany().catch(() => {})
+    await tx.ingredient.deleteMany().catch(() => {})
+    await tx.item.deleteMany().catch(() => {})
+    await tx.person.deleteMany().catch(() => {})
+    await tx.skill.deleteMany().catch(() => {})
+    await tx.spell.deleteMany().catch(() => {})
+  })
 
   // Reset auto-increment sequences to ensure consistent IDs
+  // Do this after the transaction to ensure all deletes are committed
+  // Use setval with 1, false to set the last_value to 1, so nextval will return 2
+  // Or use RESTART WITH 1 to reset the sequence to start at 1
   try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "Ingredient_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "Item_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "Recipe_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "Potion_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "InventoryItem_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "PotionInventoryItem_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "ItemInventoryItem_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "Currency_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "Person_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "Skill_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
-  try {
-    await testPrisma.$executeRaw`ALTER SEQUENCE "Spell_id_seq" RESTART WITH 1`
-  } catch { /* ignore */ }
+    await testPrisma.$executeRawUnsafe(`
+      DO $$
+      BEGIN
+        ALTER SEQUENCE "Ingredient_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "Item_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "Recipe_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "Potion_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "InventoryItem_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "PotionInventoryItem_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "ItemInventoryItem_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "Currency_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "Person_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "Skill_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "Spell_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "WeekSchedule_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "DaySchedule_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "ScheduledTask_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "TaskDefinition_id_seq" RESTART WITH 1;
+      END $$;
+    `)
+  } catch (error) {
+    // Log error for debugging but don't fail the test
+    console.error('Error resetting sequences:', error)
+  }
 }
 
 export async function createTestIngredient(data: {
@@ -243,19 +134,19 @@ export async function createTestCurrency(data: {
 
 export async function createTestPerson(data: {
   name: string
-  description?: string
-  relationship?: string
-  notableEvents?: string
-  url?: string
+  description?: string | null
+  relationship?: string | null
+  notableEvents?: string | null
+  url?: string | null
   isFavorited?: boolean
 }) {
   return await testPrisma.person.create({
     data: {
       name: data.name,
-      description: data.description,
-      relationship: data.relationship,
-      notableEvents: data.notableEvents,
-      url: data.url,
+      description: data.description || null,
+      relationship: data.relationship || null,
+      notableEvents: data.notableEvents || null,
+      url: data.url || null,
       isFavorited: data.isFavorited || false
     }
   })
@@ -270,9 +161,9 @@ export async function createTestSpell(data: {
   return await testPrisma.spell.create({
     data: {
       name: data.name,
-      currentStars: data.currentStars || 0,
-      neededStars: data.neededStars || 1,
-      isLearned: data.isLearned || false
+      currentStars: data.currentStars ?? 0,
+      neededStars: data.neededStars ?? 1,
+      isLearned: data.isLearned ?? (data.currentStars !== undefined && data.neededStars !== undefined ? data.currentStars >= data.neededStars : false)
     }
   })
 }
@@ -287,6 +178,20 @@ export async function createTestSkill(data: {
   })
 }
 
+export async function createTestInventoryItem(data: {
+  ingredientId: number
+  quantity?: number
+  quality?: 'NORMAL' | 'HQ' | 'LQ'
+}) {
+  return await testPrisma.inventoryItem.create({
+    data: {
+      ingredientId: data.ingredientId,
+      quantity: data.quantity || 1,
+      quality: data.quality || 'NORMAL'
+    }
+  })
+}
+
 export async function createTestRecipe(data: {
   name: string
   description?: string
@@ -295,6 +200,128 @@ export async function createTestRecipe(data: {
     data: {
       name: data.name,
       description: data.description || 'Test recipe'
+    }
+  })
+}
+
+export async function createTestRecipeWithIngredients(data: {
+  name: string
+  description?: string
+  ingredientIds: number[]
+  quantities?: number[]
+}) {
+  const recipe = await testPrisma.recipe.create({
+    data: {
+      name: data.name,
+      description: data.description || 'Test recipe'
+    }
+  })
+
+  // Add ingredients to recipe
+  const quantities = data.quantities || data.ingredientIds.map(() => 1)
+  for (let i = 0; i < data.ingredientIds.length; i++) {
+    await testPrisma.recipeIngredient.create({
+      data: {
+        recipeId: recipe.id,
+        ingredientId: data.ingredientIds[i],
+        quantity: quantities[i]
+      }
+    })
+  }
+
+  return recipe
+}
+
+export async function createTestPotion(data: {
+  recipeId: number
+  quality?: 'NORMAL' | 'HQ' | 'LQ'
+}) {
+  const potion = await testPrisma.potion.create({
+    data: {
+      recipeId: data.recipeId,
+      quality: data.quality || 'NORMAL'
+    }
+  })
+
+  // Create inventory item for potion
+  await testPrisma.potionInventoryItem.create({
+    data: {
+      potionId: potion.id,
+      quantity: 1
+    }
+  })
+
+  return potion
+}
+
+export async function createTestWeekSchedule(data: {
+  weekStartDate: Date
+  totalScheduledUnits?: number
+  freeTimeUsed?: boolean
+}) {
+  return await testPrisma.weekSchedule.create({
+    data: {
+      weekStartDate: data.weekStartDate,
+      totalScheduledUnits: data.totalScheduledUnits || 0,
+      freeTimeUsed: data.freeTimeUsed || false
+    }
+  })
+}
+
+export async function createTestDaySchedule(data: {
+  weekScheduleId: number
+  day: number
+  dayName: string
+  totalUnits?: number
+}) {
+  return await testPrisma.daySchedule.create({
+    data: {
+      weekScheduleId: data.weekScheduleId,
+      day: data.day,
+      dayName: data.dayName,
+      totalUnits: data.totalUnits || 0
+    }
+  })
+}
+
+export async function createTestScheduledTask(data: {
+  dayScheduleId: number
+  type: 'GATHER_INGREDIENT' | 'BREWING' | 'SECURE_INGREDIENTS' | 'RESEARCH_RECIPES' | 'RESEARCH_SPELL'
+  timeSlot: 'MORNING' | 'AFTERNOON' | 'EVENING'
+  timeUnits: number
+  day: number
+  notes?: string | null
+  details?: unknown
+}) {
+  return await testPrisma.scheduledTask.create({
+    data: {
+      dayScheduleId: data.dayScheduleId,
+      type: data.type,
+      timeSlot: data.timeSlot,
+      timeUnits: data.timeUnits,
+      day: data.day,
+      notes: data.notes || null,
+      details: data.details as Prisma.InputJsonValue | undefined
+    }
+  })
+}
+
+export async function createTestTaskDefinition(data: {
+  type: 'GATHER_INGREDIENT' | 'BREWING' | 'SECURE_INGREDIENTS' | 'RESEARCH_RECIPES' | 'RESEARCH_SPELL'
+  name: string
+  timeUnits: number
+  color: string
+  description: string
+  restrictions?: unknown
+}) {
+  return await testPrisma.taskDefinition.create({
+    data: {
+      type: data.type,
+      name: data.name,
+      timeUnits: data.timeUnits,
+      color: data.color,
+      description: data.description,
+      restrictions: data.restrictions as Prisma.InputJsonValue | undefined
     }
   })
 }

@@ -126,7 +126,7 @@ async function handleAddToInventory(ingredientId: number, quality: 'HQ' | 'NORMA
 </script>
 
 <template>
-  <PageLayout title="Ingredients" description="Manage your ingredient collection">
+  <PageLayout title="Ingredients" description="Why only have one when I can have two?">
     <template #actions>
       <div class="flex items-center gap-2">
         <div class="relative w-64">

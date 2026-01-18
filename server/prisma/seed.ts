@@ -184,7 +184,6 @@ async function seedRecipes() {
     {
       name: 'Radiant Renewal',
       description: 'Restorative draught that rapidly knits wounds while boosting morale.',
-      cauldronName: 'Solar Mend',
       fireEssence: 'Cauterizes wounds instantly',
       lifeEssence: 'Doubles healing over time',
       ingredients: [
@@ -196,7 +195,6 @@ async function seedRecipes() {
     {
       name: 'Phoenix Tears',
       description: 'Legendary healing potion that can revive from the brink of death.',
-      cauldronName: 'Rebirth Elixir',
       fireEssence: 'Adds temporary fire immunity',
       lifeEssence: 'Full health restoration',
       deathEssence: 'Prevents death once',
@@ -219,7 +217,6 @@ async function seedRecipes() {
     {
       name: 'Chilling Clarity',
       description: 'Frosty tonic that clears the mind and dampens emotional surges.',
-      cauldronName: 'Frozen Mind',
       waterEssence: 'Extends duration significantly',
       airEssence: 'Adds thought-speed bonus',
       ingredients: [
@@ -241,7 +238,6 @@ async function seedRecipes() {
     {
       name: 'Inferno Tonic',
       description: 'Aggressive brew that enhances physical prowess at the cost of calm.',
-      cauldronName: 'Berserker\'s Fury',
       fireEssence: 'Adds fire damage to attacks',
       earthEssence: 'Reduces self-damage taken',
       ingredients: [
@@ -253,7 +249,6 @@ async function seedRecipes() {
     {
       name: 'Stone Skin',
       description: 'Fortifying draught that hardens skin against physical attacks.',
-      cauldronName: 'Iron Hide',
       earthEssence: 'Doubles armor bonus',
       waterEssence: 'Adds magic resistance',
       ingredients: [
@@ -267,7 +262,6 @@ async function seedRecipes() {
     {
       name: 'Phantom Veil',
       description: 'Renders the drinker nearly invisible for a short duration.',
-      cauldronName: 'Ghost Walk',
       airEssence: 'Adds silent movement',
       deathEssence: 'Can pass through thin walls',
       ingredients: [
@@ -290,7 +284,6 @@ async function seedRecipes() {
     {
       name: 'Arcane Surge',
       description: 'Dramatically boosts magical power for a brief window.',
-      cauldronName: 'Mana Overflow',
       lightningEssence: 'Instant cast next spell',
       airEssence: 'Reduces spell cooldowns',
       ingredients: [
@@ -302,7 +295,6 @@ async function seedRecipes() {
     {
       name: 'Void Touch',
       description: 'Mysterious potion with unpredictable but powerful magical effects.',
-      cauldronName: 'Chaos Brew',
       deathEssence: 'Guaranteed powerful effect',
       lifeEssence: 'Removes negative outcomes',
       ingredients: [
@@ -360,7 +352,6 @@ async function seedRecipes() {
       data: {
         name: recipe.name,
         description: recipe.description,
-        cauldronName: recipe.cauldronName || null,
         fireEssence: recipe.fireEssence || null,
         airEssence: recipe.airEssence || null,
         waterEssence: recipe.waterEssence || null,

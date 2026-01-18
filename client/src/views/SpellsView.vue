@@ -88,7 +88,7 @@ async function handleDeleteSpell(id: number) {
 </script>
 
 <template>
-  <PageLayout title="Spells" description="Track your spell learning progress">
+  <PageLayout title="Spells" description="I accidentally burned it down...">
     <template #actions>
       <div class="flex items-center gap-2">
         <div class="relative w-64">

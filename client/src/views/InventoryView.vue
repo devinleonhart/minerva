@@ -49,13 +49,12 @@ const filteredPotions = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(item =>
-      item.potion.recipe?.name?.toLowerCase().includes(query) ||
-      item.potion.recipe?.cauldronName?.toLowerCase().includes(query)
+      item.potion.recipe?.name?.toLowerCase().includes(query)
     )
   }
   return filtered.sort((a, b) => {
-    const nameA = a.potion?.recipe?.cauldronName || a.potion?.recipe?.name || ''
-    const nameB = b.potion?.recipe?.cauldronName || b.potion?.recipe?.name || ''
+    const nameA = a.potion?.recipe?.name || ''
+    const nameB = b.potion?.recipe?.name || ''
     return nameA.localeCompare(nameB)
   })
 })
@@ -242,7 +241,7 @@ async function handleAddItem(data: { name: string; description: string; quantity
 </script>
 
 <template>
-  <PageLayout title="Inventory" description="Manage your items, ingredients, potions, and currencies">
+  <PageLayout title="Inventory" description="This is the worst knapsack I've ever had!">
     <template #actions>
       <div class="flex items-center gap-2">
         <div class="relative w-64">

@@ -5,7 +5,6 @@ export interface Recipe {
   potionId: number
   createdAt: string
   updatedAt: string
-  cauldronName?: string | null
   fireEssence?: string | null
   airEssence?: string | null
   waterEssence?: string | null
@@ -34,7 +33,6 @@ export interface CreateRecipeRequest {
   name: string
   description: string
   ingredients: Array<{ ingredientId: number; quantity: number }>
-  cauldronName?: string
   fireEssence?: string
   airEssence?: string
   waterEssence?: string
@@ -48,7 +46,6 @@ export interface UpdateRecipeRequest {
   name?: string
   description?: string
   ingredients?: Array<{ ingredientId: number; quantity: number }>
-  cauldronName?: string
   fireEssence?: string
   airEssence?: string
   waterEssence?: string

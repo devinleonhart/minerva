@@ -25,7 +25,6 @@ export interface PotionInventoryItem {
       id: number
       name: string
       description: string
-      cauldronName?: string | null
       fireEssence?: string | null
       airEssence?: string | null
       waterEssence?: string | null

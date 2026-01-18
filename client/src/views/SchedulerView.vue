@@ -126,7 +126,7 @@ function handleUpdateNotes(dayIndex: number, timeSlot: TimeSlot, notes: string) 
 </script>
 
 <template>
-  <PageLayout title="Scheduler" description="Plan your weekly activities">
+  <PageLayout title="Scheduler" description="That's it! Now I'm mad!">
     <template #actions>
       <div class="flex items-center gap-2">
         <Button @click="handleNewWeek" :disabled="!!currentWeek">

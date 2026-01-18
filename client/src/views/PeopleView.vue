@@ -103,7 +103,7 @@ async function handleToggleFavorite(id: number, isFavorited: boolean) {
 </script>
 
 <template>
-  <PageLayout title="People" description="Manage your contacts and relationships">
+  <PageLayout title="People" description="Faun, Faun... Come in Faun!">
     <template #actions>
       <div class="flex items-center gap-2">
         <div class="relative w-64">

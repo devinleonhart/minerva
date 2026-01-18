@@ -185,7 +185,7 @@ async function handleCraft(data: {
 </script>
 
 <template>
-  <PageLayout title="Recipes" description="Create and manage your potion recipes">
+  <PageLayout title="Recipes" description="Hey, my little camping cauldron!">
     <template #actions>
       <div class="flex items-center gap-2">
         <div class="relative w-64">
@@ -203,29 +203,25 @@ async function handleCraft(data: {
       </div>
     </template>
 
-    <Card>
-      <CardContent class="p-0">
-        <div v-if="isLoading" class="flex items-center justify-center py-12">
-          <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+    <div v-if="isLoading" class="flex items-center justify-center py-12">
+      <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
 
-        <div v-else-if="filteredRecipes.length === 0" class="py-12 text-center text-muted-foreground">
-          {{ searchQuery ? `No recipes match "${searchQuery}"` : 'No recipes yet. Create your first recipe!' }}
-        </div>
+    <div v-else-if="filteredRecipes.length === 0" class="py-12 text-center text-muted-foreground">
+      {{ searchQuery ? `No recipes match "${searchQuery}"` : 'No recipes yet. Create your first recipe!' }}
+    </div>
 
-        <RecipeList
-          v-else
-          :recipes="filteredRecipes"
-          :craftability="recipesCraftability"
-          :deletability="recipeDeletability"
-          :inventory-items="inventoryItems"
-          @craft="handleCraftRecipe"
-          @add-potion="handleAddPotion"
-          @edit="handleEditRecipe"
-          @delete="handleDeleteRecipe"
-        />
-      </CardContent>
-    </Card>
+    <RecipeList
+      v-else
+      :recipes="filteredRecipes"
+      :craftability="recipesCraftability"
+      :deletability="recipeDeletability"
+      :inventory-items="inventoryItems"
+      @craft="handleCraftRecipe"
+      @add-potion="handleAddPotion"
+      @edit="handleEditRecipe"
+      @delete="handleDeleteRecipe"
+    />
 
     <RecipeForm
       :open="showForm"

@@ -25,7 +25,6 @@ model Recipe {
   updatedAt     DateTime      @updatedAt
   name          String        @db.VarChar(255)
   description   String
-  cauldronName  String?       @db.VarChar(255) // Optional name when using Crystal Cauldron
   fireEssence   String?       // Effect when Fire essence is added
   airEssence    String?       // Effect when Air essence is added
   waterEssence  String?       // Effect when Water essence is added

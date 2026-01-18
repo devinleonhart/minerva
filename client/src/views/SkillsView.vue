@@ -65,7 +65,7 @@ async function handleDeleteSkill(id: number) {
 </script>
 
 <template>
-  <PageLayout title="Skills" description="Manage your character's skills">
+  <PageLayout title="Skills" description="This should do the trick!">
     <template #actions>
       <div class="relative w-64">
         <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

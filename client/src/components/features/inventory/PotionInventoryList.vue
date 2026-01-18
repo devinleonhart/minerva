@@ -24,7 +24,7 @@ const emit = defineEmits<{
 function getDisplayName(item: PotionInventoryItem): string {
   const recipe = item.potion?.recipe
   if (!recipe) return 'Unknown Potion'
-  return recipe.cauldronName || recipe.name || 'Unknown Potion'
+  return recipe.name || 'Unknown Potion'
 }
 </script>
 

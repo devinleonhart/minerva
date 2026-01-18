@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestIngredient, createTestInventoryItem } from '../setup.js'
+import { testPrisma, createTestIngredient, createTestInventoryItem, createTestItem, createTestCurrency, createTestRecipe, createTestPotion } from '../setup.js'
 
 const app = createTestApp()
 
@@ -471,6 +471,603 @@ describe('Inventory Routes', () => {
 
       expect(response.body).toMatchObject({
         error: 'Inventory item not found'
+      })
+    })
+  })
+
+  // Currency Routes
+  describe('POST /api/inventory/currency', () => {
+    it('should create a new currency', async () => {
+      const response = await request(app)
+        .post('/api/inventory/currency')
+        .send({
+          name: 'Gold',
+          value: 100
+        })
+        .expect(201)
+
+      expect(response.body).toMatchObject({
+        name: 'Gold',
+        value: 100
+      })
+      expect(response.body).toHaveProperty('id')
+      expect(response.body).toHaveProperty('createdAt')
+    })
+
+    it('should return 400 for missing name', async () => {
+      const response = await request(app)
+        .post('/api/inventory/currency')
+        .send({
+          value: 100
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Currency name is required and must be a string'
+      })
+    })
+
+    it('should return 400 for non-string name', async () => {
+      const response = await request(app)
+        .post('/api/inventory/currency')
+        .send({
+          name: 123,
+          value: 100
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Currency name is required and must be a string'
+      })
+    })
+
+    it('should return 400 for missing value', async () => {
+      const response = await request(app)
+        .post('/api/inventory/currency')
+        .send({
+          name: 'Gold'
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Currency value must be a non-negative integer'
+      })
+    })
+
+    it('should return 400 for negative value', async () => {
+      const response = await request(app)
+        .post('/api/inventory/currency')
+        .send({
+          name: 'Gold',
+          value: -10
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Currency value must be a non-negative integer'
+      })
+    })
+
+    it('should return 400 for non-integer value', async () => {
+      const response = await request(app)
+        .post('/api/inventory/currency')
+        .send({
+          name: 'Gold',
+          value: 10.5
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Currency value must be a non-negative integer'
+      })
+    })
+
+    it('should return 409 for duplicate currency name', async () => {
+      await createTestCurrency({ name: 'Gold', value: 50 })
+
+      const response = await request(app)
+        .post('/api/inventory/currency')
+        .send({
+          name: 'Gold',
+          value: 100
+        })
+        .expect(409)
+
+      expect(response.body).toMatchObject({
+        error: 'A currency with this name already exists'
+      })
+    })
+  })
+
+  describe('PUT /api/inventory/currency/:id', () => {
+    let currency: Awaited<ReturnType<typeof createTestCurrency>>
+
+    beforeEach(async () => {
+      currency = await createTestCurrency({ name: 'Gold', value: 100 })
+    })
+
+    it('should update currency name', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/currency/${currency.id}`)
+        .send({
+          name: 'Silver'
+        })
+        .expect(200)
+
+      expect(response.body).toMatchObject({
+        id: currency.id,
+        name: 'Silver',
+        value: 100
+      })
+    })
+
+    it('should update currency value', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/currency/${currency.id}`)
+        .send({
+          value: 200
+        })
+        .expect(200)
+
+      expect(response.body).toMatchObject({
+        id: currency.id,
+        name: 'Gold',
+        value: 200
+      })
+    })
+
+    it('should update both name and value', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/currency/${currency.id}`)
+        .send({
+          name: 'Platinum',
+          value: 500
+        })
+        .expect(200)
+
+      expect(response.body).toMatchObject({
+        name: 'Platinum',
+        value: 500
+      })
+    })
+
+    it('should return 400 for invalid ID', async () => {
+      const response = await request(app)
+        .put('/api/inventory/currency/abc')
+        .send({
+          value: 200
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Invalid currency ID'
+      })
+    })
+
+    it('should return 400 for empty string name', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/currency/${currency.id}`)
+        .send({
+          name: ''
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Currency name must be a non-empty string'
+      })
+    })
+
+    it('should return 400 for negative value', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/currency/${currency.id}`)
+        .send({
+          value: -10
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Currency value must be a non-negative number'
+      })
+    })
+
+    it('should return 404 for non-existent currency', async () => {
+      const response = await request(app)
+        .put('/api/inventory/currency/99999')
+        .send({
+          value: 200
+        })
+        .expect(404)
+
+      expect(response.body).toMatchObject({
+        error: 'Currency not found'
+      })
+    })
+  })
+
+  describe('DELETE /api/inventory/currency/:id', () => {
+    it('should delete currency successfully', async () => {
+      const currency = await createTestCurrency({ name: 'Gold', value: 100 })
+
+      await request(app)
+        .delete(`/api/inventory/currency/${currency.id}`)
+        .expect(204)
+
+      const deleted = await testPrisma.currency.findUnique({
+        where: { id: currency.id }
+      })
+      expect(deleted).toBeNull()
+    })
+
+    it('should return 400 for invalid ID', async () => {
+      const response = await request(app)
+        .delete('/api/inventory/currency/abc')
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Invalid currency ID'
+      })
+    })
+
+    it('should return 404 for non-existent currency', async () => {
+      const response = await request(app)
+        .delete('/api/inventory/currency/99999')
+        .expect(404)
+
+      expect(response.body).toMatchObject({
+        error: 'Currency not found'
+      })
+    })
+  })
+
+  // Item Inventory Routes
+  describe('POST /api/inventory/item', () => {
+    it('should create a new item and add to inventory', async () => {
+      const response = await request(app)
+        .post('/api/inventory/item')
+        .send({
+          name: 'Magic Wand',
+          description: 'A powerful wand',
+          quantity: 5
+        })
+        .expect(201)
+
+      expect(response.body).toMatchObject({
+        quantity: 5
+      })
+      expect(response.body).toHaveProperty('id')
+      expect(response.body).toHaveProperty('item')
+      expect(response.body.item.name).toBe('Magic Wand')
+      expect(response.body.item.description).toBe('A powerful wand')
+    })
+
+    it('should create item with default quantity of 1', async () => {
+      const response = await request(app)
+        .post('/api/inventory/item')
+        .send({
+          name: 'Scroll',
+          description: 'A magic scroll'
+        })
+        .expect(201)
+
+      expect(response.body.quantity).toBe(1)
+    })
+
+    it('should return 400 for missing name', async () => {
+      const response = await request(app)
+        .post('/api/inventory/item')
+        .send({
+          description: 'A description'
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'name and description are required'
+      })
+    })
+
+    it('should return 400 for missing description', async () => {
+      const response = await request(app)
+        .post('/api/inventory/item')
+        .send({
+          name: 'Item Name'
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'name and description are required'
+      })
+    })
+
+    it('should return 400 for quantity less than 1', async () => {
+      const response = await request(app)
+        .post('/api/inventory/item')
+        .send({
+          name: 'Item',
+          description: 'Description',
+          quantity: 0
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'quantity must be a positive integer'
+      })
+    })
+
+    it('should return 400 for non-integer quantity', async () => {
+      const response = await request(app)
+        .post('/api/inventory/item')
+        .send({
+          name: 'Item',
+          description: 'Description',
+          quantity: 2.5
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'quantity must be a positive integer'
+      })
+    })
+  })
+
+  describe('PUT /api/inventory/item/:id', () => {
+    let itemInventory: { id: number; quantity: number; item: { id: number; name: string } }
+
+    beforeEach(async () => {
+      const item = await createTestItem({ name: 'Test Item', description: 'Test' })
+      const created = await testPrisma.itemInventoryItem.create({
+        data: {
+          itemId: item.id,
+          quantity: 5
+        },
+        include: { item: true }
+      })
+      itemInventory = created
+    })
+
+    it('should update item quantity', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/item/${itemInventory.id}`)
+        .send({
+          quantity: 10
+        })
+        .expect(200)
+
+      expect(response.body).toMatchObject({
+        id: itemInventory.id,
+        quantity: 10
+      })
+      expect(response.body.item.name).toBe('Test Item')
+    })
+
+    it('should allow setting quantity to 0', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/item/${itemInventory.id}`)
+        .send({
+          quantity: 0
+        })
+        .expect(200)
+
+      expect(response.body.quantity).toBe(0)
+    })
+
+    it('should return 400 for missing quantity', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/item/${itemInventory.id}`)
+        .send({})
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'quantity is required'
+      })
+    })
+
+    it('should return 400 for negative quantity', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/item/${itemInventory.id}`)
+        .send({
+          quantity: -1
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'quantity must be a non-negative integer'
+      })
+    })
+
+    it('should return 400 for non-integer quantity', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/item/${itemInventory.id}`)
+        .send({
+          quantity: 5.5
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'quantity must be a non-negative integer'
+      })
+    })
+
+    it('should return 404 for non-existent item inventory', async () => {
+      const response = await request(app)
+        .put('/api/inventory/item/99999')
+        .send({
+          quantity: 10
+        })
+        .expect(404)
+
+      expect(response.body).toMatchObject({
+        error: 'Item inventory item not found'
+      })
+    })
+  })
+
+  describe('DELETE /api/inventory/item/:id', () => {
+    it('should delete item from inventory', async () => {
+      const item = await createTestItem({ name: 'To Delete', description: 'Test' })
+      const itemInventory = await testPrisma.itemInventoryItem.create({
+        data: {
+          itemId: item.id,
+          quantity: 1
+        }
+      })
+
+      const response = await request(app)
+        .delete(`/api/inventory/item/${itemInventory.id}`)
+        .expect(200)
+
+      expect(response.body).toMatchObject({
+        message: 'Item removed from inventory'
+      })
+
+      const deleted = await testPrisma.itemInventoryItem.findUnique({
+        where: { id: itemInventory.id }
+      })
+      expect(deleted).toBeNull()
+    })
+
+    it('should return 400 for invalid ID', async () => {
+      const response = await request(app)
+        .delete('/api/inventory/item/abc')
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Invalid ID'
+      })
+    })
+  })
+
+  // Potion Inventory Routes
+  describe('PUT /api/inventory/potion/:id', () => {
+    let potionInventory: { id: number; quantity: number; potionId: number }
+
+    beforeEach(async () => {
+      const recipe = await createTestRecipe({ name: 'Health Potion Recipe', description: 'Test' })
+      const potion = await testPrisma.potion.create({
+        data: {
+          recipeId: recipe.id,
+          quality: 'NORMAL'
+        }
+      })
+      const created = await testPrisma.potionInventoryItem.create({
+        data: {
+          potionId: potion.id,
+          quantity: 5
+        }
+      })
+      potionInventory = created
+    })
+
+    it('should update potion quantity', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/potion/${potionInventory.id}`)
+        .send({
+          quantity: 10
+        })
+        .expect(200)
+
+      expect(response.body).toMatchObject({
+        id: potionInventory.id,
+        quantity: 10
+      })
+      expect(response.body).toHaveProperty('potion')
+      expect(response.body.potion).toHaveProperty('recipe')
+    })
+
+    it('should delete potion from inventory when quantity is 0', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/potion/${potionInventory.id}`)
+        .send({
+          quantity: 0
+        })
+        .expect(200)
+
+      expect(response.body).toMatchObject({
+        message: 'Potion removed from inventory'
+      })
+
+      const deleted = await testPrisma.potionInventoryItem.findUnique({
+        where: { id: potionInventory.id }
+      })
+      expect(deleted).toBeNull()
+    })
+
+    it('should return 400 for invalid ID', async () => {
+      const response = await request(app)
+        .put('/api/inventory/potion/abc')
+        .send({
+          quantity: 10
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Invalid ID'
+      })
+    })
+
+    it('should return 400 for negative quantity', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/potion/${potionInventory.id}`)
+        .send({
+          quantity: -1
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Quantity must be a non-negative number'
+      })
+    })
+
+    it('should return 400 for non-number quantity', async () => {
+      const response = await request(app)
+        .put(`/api/inventory/potion/${potionInventory.id}`)
+        .send({
+          quantity: 'ten'
+        })
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Quantity must be a non-negative number'
+      })
+    })
+  })
+
+  describe('DELETE /api/inventory/potion/:id', () => {
+    it('should delete potion from inventory', async () => {
+      const recipe = await createTestRecipe({ name: 'Delete Potion Recipe', description: 'Test' })
+      const potion = await testPrisma.potion.create({
+        data: {
+          recipeId: recipe.id,
+          quality: 'NORMAL'
+        }
+      })
+      const potionInventory = await testPrisma.potionInventoryItem.create({
+        data: {
+          potionId: potion.id,
+          quantity: 1
+        }
+      })
+
+      const response = await request(app)
+        .delete(`/api/inventory/potion/${potionInventory.id}`)
+        .expect(200)
+
+      expect(response.body).toMatchObject({
+        message: 'Potion removed from inventory'
+      })
+
+      const deleted = await testPrisma.potionInventoryItem.findUnique({
+        where: { id: potionInventory.id }
+      })
+      expect(deleted).toBeNull()
+    })
+
+    it('should return 400 for invalid ID', async () => {
+      const response = await request(app)
+        .delete('/api/inventory/potion/abc')
+        .expect(400)
+
+      expect(response.body).toMatchObject({
+        error: 'Invalid ID'
       })
     })
   })

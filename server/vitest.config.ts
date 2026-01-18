@@ -22,6 +22,22 @@ export default defineConfig({
     fileParallelism: false,
     env: {
       NODE_ENV: 'test'
+    },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'text-summary', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/generated/**',
+        '**/*.d.ts'
+      ],
+      thresholds: {
+        statements: 70,
+        branches: 70,
+        functions: 70,
+        lines: 70
+      }
     }
   }
 })

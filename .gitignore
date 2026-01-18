@@ -139,6 +139,7 @@ dist
 dist/
 client/dist/
 server/dist/
+server/coverage/
 generated/
 
 # macOS

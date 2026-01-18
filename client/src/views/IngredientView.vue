@@ -1,96 +1,177 @@
-<template>
-  <ViewLayout>
-    <ViewHeader
-      :show-search="true"
-      search-placeholder="Search ingredients..."
-      :search-value="searchQuery"
-      @update:search-value="searchQuery = $event"
-    >
-      <template #left>
-        <n-button @click="showCreateModal = true" type="primary" size="large">
-          Add New Ingredient
-        </n-button>
-      </template>
-    </ViewHeader>
-
-    <CreateEntityModal
-      v-model:modelValue="showCreateModal"
-      title="Add New Ingredient"
-      submit-button-text="Add Ingredient"
-      @submit="handleCreateIngredient"
-      @cancel="showCreateModal = false"
-    />
-
-    <IngredientList :search-query="searchQuery" />
-  </ViewLayout>
-</template>
-
-<script lang="ts" setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { onMounted, ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useIngredientStore } from '@/store/ingredient'
-import type { CreateEntityFormData } from '@/types/components'
-import { NButton } from 'naive-ui'
-import ViewLayout from '@/components/shared/ViewLayout.vue'
-import ViewHeader from '@/components/shared/ViewHeader.vue'
-import IngredientList from '@/components/ingredient/IngredientList.vue'
-import CreateEntityModal from '@/components/shared/CreateEntityModal.vue'
+import { useInventoryStore } from '@/store/inventory'
+import { useToast, useConfirm, useSearch } from '@/composables'
+import type { Ingredient, IngredientForm as IIngredientForm, IngredientDeletability } from '@/types/store/ingredient'
+import { PageLayout } from '@/components/layout'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { IngredientList, IngredientForm } from '@/components/features/ingredients'
+import { Search, Loader2, Plus } from 'lucide-vue-next'
 
 const ingredientStore = useIngredientStore()
-const showCreateModal = ref(false)
-const searchQuery = ref('')
+const inventoryStore = useInventoryStore()
+const { ingredients } = storeToRefs(ingredientStore)
+const toast = useToast()
+const confirm = useConfirm()
 
-const handleCreateIngredient = async (data: CreateEntityFormData) => {
+const isLoading = ref(false)
+const showForm = ref(false)
+const selectedIngredient = ref<Ingredient | null>(null)
+const deletability = ref<Record<number, IngredientDeletability>>({})
+
+const { searchQuery, filteredItems } = useSearch({
+  items: ingredients,
+  searchFields: ['name', 'description']
+})
+
+const sortedIngredients = computed(() =>
+  [...filteredItems.value].sort((a, b) => a.name.localeCompare(b.name))
+)
+
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    await ingredientStore.getIngredients()
+    await checkAllDeletability()
+  } catch {
+    toast.error('Failed to load ingredients')
+  } finally {
+    isLoading.value = false
+  }
+})
+
+async function checkAllDeletability() {
+  for (const ingredient of ingredients.value) {
+    const result = await ingredientStore.checkIngredientDeletability(ingredient.id)
+    deletability.value[ingredient.id] = result
+  }
+}
+
+function handleAddIngredient() {
+  selectedIngredient.value = null
+  showForm.value = true
+}
+
+function handleEditIngredient(ingredient: Ingredient) {
+  selectedIngredient.value = ingredient
+  showForm.value = true
+}
+
+async function handleCreateIngredient(data: IIngredientForm) {
   try {
     await ingredientStore.addIngredient(data)
     await ingredientStore.getIngredients()
-    showCreateModal.value = false
-    console.log('Ingredient added successfully!')
-  } catch (error) {
-    console.error('Failed to add ingredient. Please try again.', error)
+    await checkAllDeletability()
+    toast.success('Ingredient added successfully')
+  } catch {
+    toast.error('Failed to add ingredient')
+  }
+}
+
+async function handleUpdateIngredient(id: number, data: IIngredientForm) {
+  try {
+    await ingredientStore.updateIngredient(id, data)
+    toast.success('Ingredient updated successfully')
+  } catch {
+    toast.error('Failed to update ingredient')
+  }
+}
+
+async function handleDeleteIngredient(id: number) {
+  const confirmed = await confirm.confirm({
+    title: 'Delete Ingredient',
+    message: 'Are you sure you want to delete this ingredient?',
+    confirmText: 'Delete',
+    variant: 'destructive'
+  })
+
+  if (!confirmed) return
+
+  try {
+    await ingredientStore.deleteIngredient(id)
+    await ingredientStore.getIngredients()
+    await checkAllDeletability()
+    toast.success('Ingredient deleted successfully')
+  } catch {
+    toast.error('Failed to delete ingredient')
+  }
+}
+
+async function handleToggleSecured(id: number, secured: boolean) {
+  try {
+    await ingredientStore.toggleSecured(id, secured)
+    toast.success(secured ? 'Ingredient secured' : 'Ingredient unsecured')
+  } catch {
+    toast.error('Failed to update ingredient')
+  }
+}
+
+async function handleAddToInventory(ingredientId: number, quality: 'HQ' | 'NORMAL' | 'LQ') {
+  try {
+    await inventoryStore.addToInventory({
+      ingredientId,
+      quality,
+      quantity: 1
+    })
+    const qualityText = quality === 'HQ' ? 'High Quality' : quality === 'LQ' ? 'Low Quality' : 'Normal Quality'
+    toast.success(`${qualityText} ingredient added to inventory`)
+  } catch {
+    toast.error('Failed to add to inventory')
   }
 }
 </script>
 
-<style scoped>
-.ingredient-view {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: #1a1a1a;
-  min-height: 100vh;
-}
+<template>
+  <PageLayout title="Ingredients" description="Manage your ingredient collection">
+    <template #actions>
+      <div class="flex items-center gap-2">
+        <div class="relative w-64">
+          <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            v-model="searchQuery"
+            placeholder="Search ingredients..."
+            class="pl-9"
+          />
+        </div>
+        <Button @click="handleAddIngredient">
+          <Plus class="mr-2 h-4 w-4" />
+          Add Ingredient
+        </Button>
+      </div>
+    </template>
 
-.view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  gap: 20px;
-}
+    <Card>
+      <CardContent class="p-0">
+        <div v-if="isLoading" class="flex items-center justify-center py-12">
+          <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
 
-.header-left {
-  flex-shrink: 0;
-}
+        <div v-else-if="sortedIngredients.length === 0" class="py-12 text-center text-muted-foreground">
+          {{ searchQuery ? `No ingredients match "${searchQuery}"` : 'No ingredients yet. Add your first ingredient!' }}
+        </div>
 
-.header-right {
-  flex: 1;
-  max-width: 400px;
-}
+        <IngredientList
+          v-else
+          :ingredients="sortedIngredients"
+          :deletability="deletability"
+          @edit="handleEditIngredient"
+          @delete="handleDeleteIngredient"
+          @toggle-secured="handleToggleSecured"
+          @add-to-inventory="handleAddToInventory"
+        />
+      </CardContent>
+    </Card>
 
-.search-input {
-  width: 100%;
-}
-
-/* Responsive design for small screens */
-@media (max-width: 768px) {
-  .view-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-
-  .header-right {
-    max-width: none;
-  }
-}
-</style>
+    <IngredientForm
+      :open="showForm"
+      :ingredient="selectedIngredient"
+      @update:open="showForm = $event"
+      @create="handleCreateIngredient"
+      @update="handleUpdateIngredient"
+    />
+  </PageLayout>
+</template>

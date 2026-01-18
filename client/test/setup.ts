@@ -1,7 +1,6 @@
 import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
 import { config } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { defineComponent, h } from 'vue'
 import { vi } from 'vitest'
 
 // Mock axios globally
@@ -15,91 +14,29 @@ vi.mock('axios', () => ({
       get: vi.fn(),
       post: vi.fn(),
       put: vi.fn(),
-      delete: vi.fn()
-    }))
+      delete: vi.fn(),
+      request: vi.fn(),
+      interceptors: {
+        response: {
+          use: vi.fn()
+        }
+      }
+    })),
+    interceptors: {
+      response: {
+        use: vi.fn()
+      }
+    }
   }
 }))
 
-const createStub = (componentName: string) => {
-  const tag =
-    componentName.includes('Button') ? 'button' :
-      componentName.includes('Input') ? 'input' :
-        'div'
-
-  return defineComponent({
-    name: componentName,
-    props: {
-      modelValue: [String, Number, Boolean, Object, Array],
-      value: [String, Number, Boolean, Object, Array],
-      disabled: { type: Boolean, default: false },
-      type: { type: String, default: 'default' },
-      size: { type: String, default: 'medium' },
-      ghost: { type: Boolean, default: false },
-      placeholder: { type: String, default: '' },
-      title: { type: String, default: '' },
-      preset: { type: String, default: '' },
-      min: Number,
-      precision: Number
-    },
-    emits: ['click', 'submit', 'update:modelValue', 'update:value'],
-    setup(props, { slots, emit }) {
-      const handleClick = (event: Event) => emit('click', event)
-      const handleInput = (event: Event) => {
-        const target = event.target as HTMLInputElement | undefined
-        emit('update:value', target?.value)
-        emit('update:modelValue', target?.value)
-      }
-
-      return () => {
-        const slotContent = [
-          slots.trigger?.(),
-          slots.default?.()
-        ].flat().filter(Boolean)
-
-        if (tag === 'button') {
-          return h('button', {
-            disabled: props.disabled,
-            'data-component': componentName,
-            onClick: handleClick
-          }, slotContent.length ? slotContent : componentName)
-        }
-
-        if (tag === 'input') {
-          const type = componentName.includes('Number') ? 'number' : 'text'
-          return h('input', {
-            value: props.modelValue ?? props.value ?? '',
-            placeholder: props.placeholder,
-            type,
-            'data-component': componentName,
-            onInput: handleInput
-          })
-        }
-
-        return h('div', {
-          'data-component': componentName,
-          onClick: handleClick
-        }, slotContent.length ? slotContent : componentName)
-      }
-    }
-  })
-}
-
-const componentCache = new Map<string, ReturnType<typeof createStub>>()
-
-// Mock naive-ui using a proxy so any component (present or future) automatically gets stubbed
-vi.mock('naive-ui', () => {
+// Mock lucide-vue-next icons
+vi.mock('lucide-vue-next', () => {
   return new Proxy({}, {
-    get: (_, componentName: string) => {
-      if (componentName === 'darkTheme') {
-        return {}
-      }
-
-      if (!componentCache.has(componentName)) {
-        componentCache.set(componentName, createStub(componentName))
-      }
-
-      return componentCache.get(componentName)
-    }
+    get: (_, name) => ({
+      name: `Mock${String(name)}`,
+      render: () => null
+    })
   })
 })
 

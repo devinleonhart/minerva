@@ -1,154 +1,136 @@
-<template>
-  <ViewLayout>
-    <ViewHeader
-      :show-search="true"
-      search-placeholder="Search spells..."
-      :search-value="searchQuery"
-      @update:search-value="searchQuery = $event"
-    >
-      <template #right>
-        <n-button type="primary" size="large" @click="showAddSpellModal = true">
-          Add New Spell
-        </n-button>
-      </template>
-    </ViewHeader>
-
-    <div v-if="isLoading" class="loading-indicator">
-      Loading spells...
-    </div>
-
-    <n-empty
-      v-else-if="filteredSpells.length === 0"
-      :description="searchQuery ? `No spells match '${searchQuery}'` : 'No spells yet. Add your first spell!'"
-    />
-
-    <ResourceList v-else>
-      <ResourceRow
-        v-for="spell in filteredSpells"
-        :key="spell.id"
-        :title="spell.name"
-        :subtitle="spell.isLearned ? 'Learned spell' : `Stars ${spell.currentStars}/${spell.neededStars}`"
-        :indicator="spell.isLearned ? 'success' : 'warning'"
-      >
-        <div class="spell-stars" v-if="!spell.isLearned">
-          <span
-            v-for="i in spell.neededStars"
-            :key="i"
-            class="star"
-            :class="{ filled: i <= spell.currentStars }"
-          >
-            ★
-          </span>
-        </div>
-
-        <template #actions>
-          <div class="spell-actions">
-            <n-button type="info" size="small" @click="editSpell(spell)">
-              Edit
-            </n-button>
-            <n-button type="error" size="small" @click="deleteSpell(spell.id)">
-              Delete
-            </n-button>
-          </div>
-        </template>
-      </ResourceRow>
-    </ResourceList>
-
-    <AddSpellModal v-model="showAddSpellModal" />
-    <EditSpellModal
-      v-if="selectedSpell"
-      v-model="showEditSpellModal"
-      :spell="selectedSpell"
-    />
-  </ViewLayout>
-</template>
-
-<script lang="ts" setup>
+<script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useSpellsStore } from '@/store/spells'
-import type { Spell } from '../types/store/spells'
-import {
-  NButton,
-  NEmpty
-} from 'naive-ui'
-import ViewLayout from '@/components/shared/ViewLayout.vue'
-import ViewHeader from '@/components/shared/ViewHeader.vue'
-import ResourceList from '@/components/shared/ResourceList.vue'
-import ResourceRow from '@/components/shared/ResourceRow.vue'
-import AddSpellModal from '@/components/spells/AddSpellModal.vue'
-import EditSpellModal from '@/components/spells/EditSpellModal.vue'
+import { useToast, useConfirm, useSearch } from '@/composables'
+import type { Spell, CreateSpellRequest, UpdateSpellRequest } from '@/types/store/spells'
+import { PageLayout } from '@/components/layout'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { SpellList, SpellForm } from '@/components/features/spells'
+import { Search, Loader2, Plus } from 'lucide-vue-next'
 
 const spellsStore = useSpellsStore()
 const { spells } = storeToRefs(spellsStore)
+const toast = useToast()
+const confirm = useConfirm()
 
-const searchQuery = ref('')
 const isLoading = ref(false)
-const showAddSpellModal = ref(false)
-const showEditSpellModal = ref(false)
+const showForm = ref(false)
 const selectedSpell = ref<Spell | null>(null)
 
-const filteredSpells = computed(() => {
-  let list = spells.value ?? []
-  if (searchQuery.value) {
-    const term = searchQuery.value.toLowerCase()
-    list = list.filter((spell) =>
-      spell.name.toLowerCase().includes(term)
-    )
-  }
-  return list.sort((a, b) => a.name.localeCompare(b.name))
+const { searchQuery, filteredItems } = useSearch({
+  items: spells,
+  searchFields: ['name']
 })
+
+const sortedSpells = computed(() =>
+  [...filteredItems.value].sort((a, b) => a.name.localeCompare(b.name))
+)
 
 onMounted(async () => {
   isLoading.value = true
   try {
     await spellsStore.getSpells()
-  } catch (error) {
-    console.error('Failed to load spells. Please refresh.', error)
+  } catch {
+    toast.error('Failed to load spells')
   } finally {
     isLoading.value = false
   }
 })
 
-const editSpell = (spell: Spell) => {
-  selectedSpell.value = spell
-  showEditSpellModal.value = true
+function handleAddSpell() {
+  selectedSpell.value = null
+  showForm.value = true
 }
 
-const deleteSpell = async (id: number) => {
+function handleEditSpell(spell: Spell) {
+  selectedSpell.value = spell
+  showForm.value = true
+}
+
+async function handleCreateSpell(data: CreateSpellRequest) {
+  try {
+    await spellsStore.createSpell(data)
+    toast.success('Spell added successfully')
+  } catch {
+    toast.error('Failed to add spell')
+  }
+}
+
+async function handleUpdateSpell(id: number, data: UpdateSpellRequest) {
+  try {
+    await spellsStore.updateSpell(id, data)
+    toast.success('Spell updated successfully')
+  } catch {
+    toast.error('Failed to update spell')
+  }
+}
+
+async function handleDeleteSpell(id: number) {
+  const confirmed = await confirm.confirm({
+    title: 'Delete Spell',
+    message: 'Are you sure you want to delete this spell?',
+    confirmText: 'Delete',
+    variant: 'destructive'
+  })
+
+  if (!confirmed) return
+
   try {
     await spellsStore.deleteSpell(id)
-    console.log('Spell removed successfully!')
-  } catch (error) {
-    console.error('Failed to remove spell. Please try again.', error)
+    toast.success('Spell deleted successfully')
+  } catch {
+    toast.error('Failed to delete spell')
   }
 }
 </script>
 
-<style scoped>
-.loading-indicator {
-  text-align: center;
-  padding: 40px;
-  color: #888;
-}
+<template>
+  <PageLayout title="Spells" description="Track your spell learning progress">
+    <template #actions>
+      <div class="flex items-center gap-2">
+        <div class="relative w-64">
+          <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            v-model="searchQuery"
+            placeholder="Search spells..."
+            class="pl-9"
+          />
+        </div>
+        <Button @click="handleAddSpell">
+          <Plus class="mr-2 h-4 w-4" />
+          Add Spell
+        </Button>
+      </div>
+    </template>
 
-.spell-stars {
-  display: flex;
-  gap: 4px;
-  color: #e0e0e0;
-  font-size: 18px;
-}
+    <Card>
+      <CardContent class="p-0">
+        <div v-if="isLoading" class="flex items-center justify-center py-12">
+          <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
 
-.spell-stars .star {
-  font-size: 18px;
-}
+        <div v-else-if="sortedSpells.length === 0" class="py-12 text-center text-muted-foreground">
+          {{ searchQuery ? `No spells match "${searchQuery}"` : 'No spells yet. Add your first spell!' }}
+        </div>
 
-.spell-stars .star.filled {
-  color: #f59e0b;
-}
+        <SpellList
+          v-else
+          :spells="sortedSpells"
+          @edit="handleEditSpell"
+          @delete="handleDeleteSpell"
+        />
+      </CardContent>
+    </Card>
 
-.spell-actions {
-  display: flex;
-  gap: 8px;
-}
-</style>
+    <SpellForm
+      :open="showForm"
+      :spell="selectedSpell"
+      @update:open="showForm = $event"
+      @create="handleCreateSpell"
+      @update="handleUpdateSpell"
+    />
+  </PageLayout>
+</template>

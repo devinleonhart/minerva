@@ -4,13 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
       target: development
-    working_dir: /app/packages/client
-    command: pnpm dev
+    working_dir: /app
+    command: pnpm run dev:client
     ports:
       - "8080:5173"
     volumes:
-      - ./packages/client:/app/packages/client
-      - /app/packages/client/node_modules
+      - ./client:/app/client
+      - /app/node_modules
     environment:
       - VITE_API_BASE=/api
     depends_on:
@@ -21,13 +21,13 @@ services:
       context: .
       dockerfile: Dockerfile
       target: base
-    working_dir: /app/packages/server
-    command: ["sh", "-c", "pnpm prisma generate && pnpm tsx index.ts"]
+    working_dir: /app
+    command: ["sh", "-c", "pnpm run prisma:generate && pnpm tsx server/index.ts"]
     ports:
       - "3000:3000"
     volumes:
-      - ./packages/server:/app/packages/server
-      - /app/packages/client/node_modules
+      - ./server:/app/server
+      - /app/node_modules
     depends_on:
       - postgres
 
@@ -36,10 +36,10 @@ services:
       context: .
       dockerfile: Dockerfile
       target: development
-    working_dir: /app/packages/server
+    working_dir: /app
     command: ["tail", "-f", "/dev/null"]
     volumes:
-      - ./packages/server:/app/packages/server
+      - ./server:/app/server
     depends_on:
       - postgres
     ports:

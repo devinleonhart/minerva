@@ -137,7 +137,8 @@ dist
 
 # project
 dist/
-packages/*/dist/
+client/dist/
+server/dist/
 generated/
 
 # macOS

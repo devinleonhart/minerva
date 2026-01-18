@@ -8,8 +8,9 @@ const __dirname = path.dirname(__filename)
 
 export default defineConfig({
   plugins: [vue()],
+  root: __dirname,
   build: {
-    outDir: '../../dist/client',
+    outDir: '../dist/client',
     emptyOutDir: true
   },
   test: {

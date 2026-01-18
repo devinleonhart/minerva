@@ -2,9 +2,5 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false
-  },
-  "references": [
-    { "path": "./packages/client" },
-    { "path": "./packages/server" }
-  ]
+  }
 }

@@ -11,13 +11,8 @@
     "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "composite": true,
-    "incremental": true
+    "sourceMap": true
   },
-  "files": [],
-  "references": [
-    { "path": "./packages/client" },
-    { "path": "./packages/server" }
-  ]
+  "include": ["client/src", "client/types", "server/src", "server/index.ts"],
+  "exclude": ["node_modules", "dist"]
 }

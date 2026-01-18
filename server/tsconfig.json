@@ -1,8 +1,7 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
-    "outDir": "../../dist/server",
+    "outDir": "../dist/server",
     "noEmit": false,
     "module": "ESNext",
     "moduleResolution": "bundler",

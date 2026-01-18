@@ -15,13 +15,9 @@ export default defineConfig({
     testTimeout: 30000,
     hookTimeout: 30000,
     teardownTimeout: 30000,
-    // Run tests sequentially to avoid database conflicts
-    pool: 'threads',
-    poolOptions: {
-      threads: {
-        singleThread: true
-      }
-    },
+    // Run tests sequentially to avoid database conflicts (Vitest 4 syntax)
+    maxWorkers: 1,
+    isolate: false,
     // Ensure test files run sequentially, not in parallel
     fileParallelism: false,
     env: {

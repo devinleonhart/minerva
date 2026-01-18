@@ -20,20 +20,6 @@ vi.mock('axios', () => ({
   }
 }))
 
-const sharedProps = {
-  modelValue: { type: [String, Number, Boolean, Object, Array], default: undefined },
-  value: { type: [String, Number, Boolean, Object, Array], default: undefined },
-  disabled: { type: Boolean, default: false },
-  type: { type: String, default: 'default' },
-  size: { type: String, default: 'medium' },
-  ghost: { type: Boolean, default: false },
-  placeholder: { type: String, default: '' },
-  title: { type: String, default: '' },
-  preset: { type: String, default: '' },
-  min: { type: Number, default: undefined },
-  precision: { type: Number, default: undefined }
-} as const
-
 const createStub = (componentName: string) => {
   const tag =
     componentName.includes('Button') ? 'button' :
@@ -42,7 +28,19 @@ const createStub = (componentName: string) => {
 
   return defineComponent({
     name: componentName,
-    props: sharedProps,
+    props: {
+      modelValue: [String, Number, Boolean, Object, Array],
+      value: [String, Number, Boolean, Object, Array],
+      disabled: { type: Boolean, default: false },
+      type: { type: String, default: 'default' },
+      size: { type: String, default: 'medium' },
+      ghost: { type: Boolean, default: false },
+      placeholder: { type: String, default: '' },
+      title: { type: String, default: '' },
+      preset: { type: String, default: '' },
+      min: Number,
+      precision: Number
+    },
     emits: ['click', 'submit', 'update:modelValue', 'update:value'],
     setup(props, { slots, emit }) {
       const handleClick = (event: Event) => emit('click', event)

@@ -37,12 +37,12 @@ router.put('/:id', async (req, res) => {
 
     // Build update data object
     const updateData: {
-      quality?: string
+      quality?: 'NORMAL' | 'HQ' | 'LQ'
       quantity?: number
     } = {}
 
     if (quality !== undefined) {
-      updateData.quality = quality
+      updateData.quality = quality as 'NORMAL' | 'HQ' | 'LQ'
     }
     if (quantity !== undefined) {
       updateData.quantity = quantity

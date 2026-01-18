@@ -15,8 +15,8 @@ app.use(express.json())
 app.use('/api', routes)
 
 if (process.env.NODE_ENV === 'production') {
-  // In production, client files are at /app/dist/client
-  const clientPath = path.join(__dirname, '..', 'dist', 'client')
+  // In production, server runs from dist/server, client is at dist/client
+  const clientPath = path.join(__dirname, '..', 'client')
   app.use(express.static(clientPath))
 
   // Catch-all handler: serve index.html for any non-API routes

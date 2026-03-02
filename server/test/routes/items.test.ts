@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestItem } from '../setup.js'
+import { testDb, createTestItem } from '../setup.js'
+import { eq } from 'drizzle-orm'
+import * as tables from '../../db/index.js'
 
 const app = createTestApp()
 
@@ -124,16 +126,13 @@ describe('Items Routes', () => {
       expect(response.body.inventoryItems[0].quantity).toBe(0)
 
       // Verify it was actually created in the database
-      const item = await testPrisma.item.findUnique({
-        where: { id: response.body.id }
-      })
+      const [itemRow] = await testDb.select().from(tables.item).where(eq(tables.item.id, response.body.id))
+      const item = itemRow ?? null
       expect(item).toBeTruthy()
       expect(item?.name).toBe('New Item')
 
       // Verify inventory item was created
-      const inventoryItems = await testPrisma.itemInventoryItem.findMany({
-        where: { itemId: response.body.id }
-      })
+      const inventoryItems = await testDb.select().from(tables.itemInventoryItem).where(eq(tables.itemInventoryItem.itemId, response.body.id))
       expect(inventoryItems).toHaveLength(1)
       expect(inventoryItems[0].quantity).toBe(0)
     })
@@ -256,9 +255,8 @@ describe('Items Routes', () => {
         .expect(204)
 
       // Verify it was deleted
-      const deleted = await testPrisma.item.findUnique({
-        where: { id: item.id }
-      })
+      const [deletedRow] = await testDb.select().from(tables.item).where(eq(tables.item.id, item.id))
+      const deleted = deletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -289,11 +287,10 @@ describe('Items Routes', () => {
       })
 
       // Manually create an inventory item (the POST endpoint does this automatically)
-      await testPrisma.itemInventoryItem.create({
-        data: {
-          itemId: item.id,
-          quantity: 5
-        }
+      await testDb.insert(tables.itemInventoryItem).values({
+        itemId: item.id,
+        quantity: 5,
+        updatedAt: new Date().toISOString()
       })
 
       const response = await request(app)
@@ -306,9 +303,8 @@ describe('Items Routes', () => {
       })
 
       // Verify item still exists
-      const stillExists = await testPrisma.item.findUnique({
-        where: { id: item.id }
-      })
+      const [stillExistsRow] = await testDb.select().from(tables.item).where(eq(tables.item.id, item.id))
+      const stillExists = stillExistsRow ?? null
       expect(stillExists).toBeTruthy()
     })
 
@@ -319,23 +315,19 @@ describe('Items Routes', () => {
       })
 
       // Create multiple inventory items
-      await testPrisma.itemInventoryItem.create({
-        data: {
-          itemId: item.id,
-          quantity: 3
-        }
+      await testDb.insert(tables.itemInventoryItem).values({
+        itemId: item.id,
+        quantity: 3,
+        updatedAt: new Date().toISOString()
       })
-      await testPrisma.itemInventoryItem.create({
-        data: {
-          itemId: item.id,
-          quantity: 7
-        }
+      await testDb.insert(tables.itemInventoryItem).values({
+        itemId: item.id,
+        quantity: 7,
+        updatedAt: new Date().toISOString()
       })
 
       // Verify we have 2 inventory items
-      const allInventoryItems = await testPrisma.itemInventoryItem.findMany({
-        where: { itemId: item.id }
-      })
+      const allInventoryItems = await testDb.select().from(tables.itemInventoryItem).where(eq(tables.itemInventoryItem.itemId, item.id))
       expect(allInventoryItems).toHaveLength(2)
 
       const response = await request(app)

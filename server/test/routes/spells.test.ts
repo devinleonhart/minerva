@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestSpell } from '../setup.js'
+import { testDb, createTestSpell } from '../setup.js'
+import { eq } from 'drizzle-orm'
+import * as tables from '../../db/index.js'
 
 const app = createTestApp()
 
@@ -137,9 +139,8 @@ describe('Spells Routes', () => {
       expect(response.body).toHaveProperty('updatedAt')
 
       // Verify it was actually created in the database
-      const spell = await testPrisma.spell.findUnique({
-        where: { id: response.body.id }
-      })
+      const [spellRow] = await testDb.select().from(tables.spell).where(eq(tables.spell.id, response.body.id))
+      const spell = spellRow ?? null
       expect(spell).toBeTruthy()
       expect(spell?.name).toBe('New Spell')
     })
@@ -396,9 +397,8 @@ describe('Spells Routes', () => {
       })
 
       // Verify in database
-      const updated = await testPrisma.spell.findUnique({
-        where: { id: spell.id }
-      })
+      const [updatedRow] = await testDb.select().from(tables.spell).where(eq(tables.spell.id, spell.id))
+      const updated = updatedRow ?? null
       expect(updated?.name).toBe('Updated Spell')
       expect(updated?.isLearned).toBe(false)
     })
@@ -637,9 +637,8 @@ describe('Spells Routes', () => {
         .expect(204)
 
       // Verify it was deleted
-      const deleted = await testPrisma.spell.findUnique({
-        where: { id: spell.id }
-      })
+      const [deletedRow] = await testDb.select().from(tables.spell).where(eq(tables.spell.id, spell.id))
+      const deleted = deletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -687,9 +686,8 @@ describe('Spells Routes', () => {
       })
 
       // Verify in database
-      const updated = await testPrisma.spell.findUnique({
-        where: { id: spell.id }
-      })
+      const [updatedRow] = await testDb.select().from(tables.spell).where(eq(tables.spell.id, spell.id))
+      const updated = updatedRow ?? null
       expect(updated?.currentStars).toBe(4)
       expect(updated?.isLearned).toBe(false)
     })
@@ -713,9 +711,8 @@ describe('Spells Routes', () => {
       expect(response.body.isLearned).toBe(true) // 5 >= 5
 
       // Verify in database
-      const updated = await testPrisma.spell.findUnique({
-        where: { id: spell.id }
-      })
+      const [updatedRow] = await testDb.select().from(tables.spell).where(eq(tables.spell.id, spell.id))
+      const updated = updatedRow ?? null
       expect(updated?.isLearned).toBe(true)
     })
 

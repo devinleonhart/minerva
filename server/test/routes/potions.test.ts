@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestIngredient, createTestRecipe, createTestRecipeWithIngredients, createTestInventoryItem, createTestPotion } from '../setup.js'
+import { testDb, createTestIngredient, createTestRecipe, createTestRecipeWithIngredients, createTestInventoryItem, createTestPotion } from '../setup.js'
+import { eq, and } from 'drizzle-orm'
+import * as tables from '../../db/index.js'
 
 const app = createTestApp()
 
@@ -62,9 +64,8 @@ describe('Potions Routes', () => {
       expect(response.body.inventoryItems[0].quantity).toBe(1)
 
       // Verify it was actually created in the database
-      const potion = await testPrisma.potion.findUnique({
-        where: { id: response.body.id }
-      })
+      const [potionRow] = await testDb.select().from(tables.potion).where(eq(tables.potion.id, response.body.id))
+      const potion = potionRow ?? null
       expect(potion).toBeTruthy()
       expect(potion?.quality).toBe('HQ')
     })
@@ -219,26 +220,16 @@ describe('Potions Routes', () => {
       expect(response2.body.id).toBe(firstPotionId)
 
       // Verify the inventory item quantity was incremented
-      const inventoryItem = await testPrisma.potionInventoryItem.findUnique({
-        where: { id: firstInventoryItemId }
-      })
+      const [invItemRow] = await testDb.select().from(tables.potionInventoryItem).where(eq(tables.potionInventoryItem.id, firstInventoryItemId))
+      const inventoryItem = invItemRow ?? null
       expect(inventoryItem?.quantity).toBe(2)
 
       // Verify only one potion exists in the database
-      const potions = await testPrisma.potion.findMany({
-        where: {
-          recipeId: recipe.id,
-          quality: 'NORMAL'
-        }
-      })
+      const potions = await testDb.select().from(tables.potion).where(and(eq(tables.potion.recipeId, recipe.id), eq(tables.potion.quality, 'NORMAL')))
       expect(potions).toHaveLength(1)
 
       // Verify only one inventory item exists
-      const inventoryItems = await testPrisma.potionInventoryItem.findMany({
-        where: {
-          potionId: firstPotionId
-        }
-      })
+      const inventoryItems = await testDb.select().from(tables.potionInventoryItem).where(eq(tables.potionInventoryItem.potionId, firstPotionId))
       expect(inventoryItems).toHaveLength(1)
     })
 
@@ -271,11 +262,7 @@ describe('Potions Routes', () => {
       expect(normalPotionId).not.toBe(hqPotionId)
 
       // Verify two separate potions exist
-      const potions = await testPrisma.potion.findMany({
-        where: {
-          recipeId: recipe.id
-        }
-      })
+      const potions = await testDb.select().from(tables.potion).where(eq(tables.potion.recipeId, recipe.id))
       expect(potions).toHaveLength(2)
     })
 
@@ -309,7 +296,7 @@ describe('Potions Routes', () => {
       expect(potion1Id).not.toBe(potion2Id)
 
       // Verify two separate potions exist
-      const allPotions = await testPrisma.potion.findMany()
+      const allPotions = await testDb.select().from(tables.potion)
       expect(allPotions).toHaveLength(2)
     })
 
@@ -344,14 +331,15 @@ describe('Potions Routes', () => {
         .expect(201)
 
       // Verify the quantity is now 3
-      const inventoryItems = await testPrisma.potionInventoryItem.findMany({
-        where: {
-          potion: {
-            recipeId: recipe.id,
-            quality: 'NORMAL'
-          }
-        }
-      })
+      const inventoryItems = await testDb.select({
+        id: tables.potionInventoryItem.id,
+        createdAt: tables.potionInventoryItem.createdAt,
+        updatedAt: tables.potionInventoryItem.updatedAt,
+        potionId: tables.potionInventoryItem.potionId,
+        quantity: tables.potionInventoryItem.quantity,
+      }).from(tables.potionInventoryItem)
+        .innerJoin(tables.potion, eq(tables.potionInventoryItem.potionId, tables.potion.id))
+        .where(and(eq(tables.potion.recipeId, recipe.id), eq(tables.potion.quality, 'NORMAL')))
       expect(inventoryItems).toHaveLength(1)
       expect(inventoryItems[0].quantity).toBe(3)
     })
@@ -407,12 +395,10 @@ describe('Potions Routes', () => {
       expect(response.body.recipe.ingredients).toHaveLength(2)
 
       // Verify inventory was updated
-      const updatedItem1 = await testPrisma.inventoryItem.findUnique({
-        where: { id: inventoryItem1.id }
-      })
-      const updatedItem2 = await testPrisma.inventoryItem.findUnique({
-        where: { id: inventoryItem2.id }
-      })
+      const [upd1Row] = await testDb.select().from(tables.inventoryItem).where(eq(tables.inventoryItem.id, inventoryItem1.id))
+      const updatedItem1 = upd1Row ?? null
+      const [upd2Row] = await testDb.select().from(tables.inventoryItem).where(eq(tables.inventoryItem.id, inventoryItem2.id))
+      const updatedItem2 = upd2Row ?? null
       expect(updatedItem1?.quantity).toBe(3) // 5 - 2
       expect(updatedItem2?.quantity).toBe(2) // 5 - 3
     })
@@ -471,9 +457,8 @@ describe('Potions Routes', () => {
         .expect(201)
 
       // Verify inventory item was deleted
-      const deleted = await testPrisma.inventoryItem.findUnique({
-        where: { id: inventoryItem.id }
-      })
+      const [deletedRow] = await testDb.select().from(tables.inventoryItem).where(eq(tables.inventoryItem.id, inventoryItem.id))
+      const deleted = deletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -822,27 +807,17 @@ describe('Potions Routes', () => {
       expect(response2.body.id).toBe(firstPotionId)
 
       // Verify the inventory item quantity was incremented
-      const potionInventoryItems = await testPrisma.potionInventoryItem.findMany({
-        where: {
-          potionId: firstPotionId
-        }
-      })
+      const potionInventoryItems = await testDb.select().from(tables.potionInventoryItem).where(eq(tables.potionInventoryItem.potionId, firstPotionId))
       expect(potionInventoryItems).toHaveLength(1)
       expect(potionInventoryItems[0].quantity).toBe(2)
 
       // Verify only one potion exists
-      const potions = await testPrisma.potion.findMany({
-        where: {
-          recipeId: recipe.id,
-          quality: 'NORMAL'
-        }
-      })
+      const potions = await testDb.select().from(tables.potion).where(and(eq(tables.potion.recipeId, recipe.id), eq(tables.potion.quality, 'NORMAL')))
       expect(potions).toHaveLength(1)
 
       // Verify ingredient inventory was decremented correctly
-      const updatedIngredientInventory = await testPrisma.inventoryItem.findUnique({
-        where: { id: inventoryItem.id }
-      })
+      const [updIngRow] = await testDb.select().from(tables.inventoryItem).where(eq(tables.inventoryItem.id, inventoryItem.id))
+      const updatedIngredientInventory = updIngRow ?? null
       expect(updatedIngredientInventory?.quantity).toBe(8) // 10 - 1 - 1
     })
 
@@ -897,11 +872,7 @@ describe('Potions Routes', () => {
       expect(normalPotionId).not.toBe(hqPotionId)
 
       // Verify two separate potions exist
-      const potions = await testPrisma.potion.findMany({
-        where: {
-          recipeId: recipe.id
-        }
-      })
+      const potions = await testDb.select().from(tables.potion).where(eq(tables.potion.recipeId, recipe.id))
       expect(potions).toHaveLength(2)
     })
 
@@ -965,45 +936,35 @@ describe('Potions Routes', () => {
         .expect(201)
 
       // Verify we have exactly 2 potions (one for each quality)
-      const allPotions = await testPrisma.potion.findMany({
-        where: {
-          recipeId: recipe.id
-        }
-      })
+      const allPotions = await testDb.select().from(tables.potion).where(eq(tables.potion.recipeId, recipe.id))
       expect(allPotions).toHaveLength(2)
 
       // Verify the NQ potion has quantity 2
-      const nqPotion = await testPrisma.potion.findFirst({
-        where: {
-          recipeId: recipe.id,
-          quality: 'NORMAL'
-        },
-        include: {
-          inventoryItems: true
-        }
-      })
+      const [nqPotionBase] = await testDb.select().from(tables.potion).where(and(eq(tables.potion.recipeId, recipe.id), eq(tables.potion.quality, 'NORMAL'))).limit(1)
+      const nqPotionInvItems = nqPotionBase
+        ? await testDb.select().from(tables.potionInventoryItem).where(eq(tables.potionInventoryItem.potionId, nqPotionBase.id))
+        : []
+      const nqPotion = nqPotionBase ? { ...nqPotionBase, inventoryItems: nqPotionInvItems } : null
       expect(nqPotion?.inventoryItems[0].quantity).toBe(2)
 
       // Verify the LQ potion has quantity 1
-      const lqPotion = await testPrisma.potion.findFirst({
-        where: {
-          recipeId: recipe.id,
-          quality: 'LQ'
-        },
-        include: {
-          inventoryItems: true
-        }
-      })
+      const [lqPotionBase] = await testDb.select().from(tables.potion).where(and(eq(tables.potion.recipeId, recipe.id), eq(tables.potion.quality, 'LQ'))).limit(1)
+      const lqPotionInvItems = lqPotionBase
+        ? await testDb.select().from(tables.potionInventoryItem).where(eq(tables.potionInventoryItem.potionId, lqPotionBase.id))
+        : []
+      const lqPotion = lqPotionBase ? { ...lqPotionBase, inventoryItems: lqPotionInvItems } : null
       expect(lqPotion?.inventoryItems[0].quantity).toBe(1)
 
       // Verify we have exactly 2 inventory items
-      const allInventoryItems = await testPrisma.potionInventoryItem.findMany({
-        where: {
-          potion: {
-            recipeId: recipe.id
-          }
-        }
-      })
+      const allInventoryItems = await testDb.select({
+        id: tables.potionInventoryItem.id,
+        createdAt: tables.potionInventoryItem.createdAt,
+        updatedAt: tables.potionInventoryItem.updatedAt,
+        potionId: tables.potionInventoryItem.potionId,
+        quantity: tables.potionInventoryItem.quantity,
+      }).from(tables.potionInventoryItem)
+        .innerJoin(tables.potion, eq(tables.potionInventoryItem.potionId, tables.potion.id))
+        .where(eq(tables.potion.recipeId, recipe.id))
       expect(allInventoryItems).toHaveLength(2)
     })
   })

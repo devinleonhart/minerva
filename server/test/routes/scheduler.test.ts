@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestWeekSchedule, createTestDaySchedule, createTestScheduledTask, createTestTaskDefinition } from '../setup.js'
+import { testDb, createTestWeekSchedule, createTestDaySchedule, createTestScheduledTask, createTestTaskDefinition } from '../setup.js'
+import { eq } from 'drizzle-orm'
+import * as tables from '../../db/index.js'
 
 const app = createTestApp()
 
@@ -144,15 +146,9 @@ describe('Scheduler Routes', () => {
       expect(response.body).toHaveProperty('savedAt')
 
       // Verify it was created
-      const weekSchedule = await testPrisma.weekSchedule.findUnique({
-        where: { id: response.body.weekScheduleId },
-        include: {
-          days: {
-            include: {
-              tasks: true
-            }
-          }
-        }
+      const weekSchedule = await testDb.query.weekSchedule.findFirst({
+        where: (ws, { eq: eqFn }) => eqFn(ws.id, response.body.weekScheduleId),
+        with: { days: { with: { tasks: true } } }
       })
       expect(weekSchedule).toBeTruthy()
       expect(weekSchedule?.days).toHaveLength(1)
@@ -186,9 +182,8 @@ describe('Scheduler Routes', () => {
       expect(response.body.weekScheduleId).toBe(existingWeek.id)
 
       // Verify it was updated
-      const updated = await testPrisma.weekSchedule.findUnique({
-        where: { id: existingWeek.id }
-      })
+      const [updatedRow] = await testDb.select().from(tables.weekSchedule).where(eq(tables.weekSchedule.id, existingWeek.id))
+      const updated = updatedRow ?? null
       expect(updated?.totalScheduledUnits).toBe(30)
       expect(updated?.freeTimeUsed).toBe(true)
     })
@@ -369,9 +364,8 @@ describe('Scheduler Routes', () => {
       })
 
       // Verify it was deleted
-      const deleted = await testPrisma.weekSchedule.findUnique({
-        where: { id: weekSchedule.id }
-      })
+      const [deletedRow] = await testDb.select().from(tables.weekSchedule).where(eq(tables.weekSchedule.id, weekSchedule.id))
+      const deleted = deletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -422,7 +416,7 @@ describe('Scheduler Routes', () => {
       })
 
       // Verify all were deleted
-      const remaining = await testPrisma.weekSchedule.findMany()
+      const remaining = await testDb.select().from(tables.weekSchedule)
       expect(remaining).toHaveLength(0)
     })
 
@@ -475,9 +469,9 @@ describe('Scheduler Routes', () => {
       expect(response.body.deletedTasks).toBeGreaterThan(0)
 
       // Verify all were deleted
-      const remainingWeeks = await testPrisma.weekSchedule.findMany()
-      const remainingDays = await testPrisma.daySchedule.findMany()
-      const remainingTasks = await testPrisma.scheduledTask.findMany()
+      const remainingWeeks = await testDb.select().from(tables.weekSchedule)
+      const remainingDays = await testDb.select().from(tables.daySchedule)
+      const remainingTasks = await testDb.select().from(tables.scheduledTask)
       expect(remainingWeeks).toHaveLength(0)
       expect(remainingDays).toHaveLength(0)
       expect(remainingTasks).toHaveLength(0)

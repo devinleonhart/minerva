@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestIngredient, createTestRecipeWithIngredients, createTestInventoryItem, createTestPotion } from '../setup.js'
+import { testDb, createTestIngredient, createTestRecipeWithIngredients, createTestInventoryItem, createTestPotion } from '../setup.js'
+import { eq } from 'drizzle-orm'
+import * as tables from '../../db/index.js'
 
 const app = createTestApp()
 
@@ -140,10 +142,11 @@ describe('Recipes Routes', () => {
       expect(response.body).toHaveProperty('updatedAt')
 
       // Verify it was actually created in the database
-      const recipe = await testPrisma.recipe.findUnique({
-        where: { id: response.body.id },
-        include: { ingredients: true }
-      })
+      const [recipeBaseRow] = await testDb.select().from(tables.recipe).where(eq(tables.recipe.id, response.body.id))
+      const recipeIngredients = recipeBaseRow
+        ? await testDb.select().from(tables.recipeIngredient).where(eq(tables.recipeIngredient.recipeId, recipeBaseRow.id))
+        : []
+      const recipe = recipeBaseRow ? { ...recipeBaseRow, ingredients: recipeIngredients } : null
       expect(recipe).toBeTruthy()
       expect(recipe?.name).toBe('New Recipe')
       expect(recipe?.ingredients).toHaveLength(2)
@@ -384,10 +387,11 @@ describe('Recipes Routes', () => {
       expect(response.body.ingredients[1].ingredientId).toBe(ingredient3.id)
 
       // Verify in database
-      const updated = await testPrisma.recipe.findUnique({
-        where: { id: recipe.id },
-        include: { ingredients: true }
-      })
+      const [updatedBaseRow] = await testDb.select().from(tables.recipe).where(eq(tables.recipe.id, recipe.id))
+      const updatedIngredients = updatedBaseRow
+        ? await testDb.select().from(tables.recipeIngredient).where(eq(tables.recipeIngredient.recipeId, updatedBaseRow.id))
+        : []
+      const updated = updatedBaseRow ? { ...updatedBaseRow, ingredients: updatedIngredients } : null
       expect(updated?.name).toBe('Updated Recipe')
       expect(updated?.ingredients).toHaveLength(2)
     })
@@ -567,9 +571,8 @@ describe('Recipes Routes', () => {
         .expect(204)
 
       // Verify it was deleted
-      const deleted = await testPrisma.recipe.findUnique({
-        where: { id: recipe.id }
-      })
+      const [deletedRow] = await testDb.select().from(tables.recipe).where(eq(tables.recipe.id, recipe.id))
+      const deleted = deletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -613,9 +616,8 @@ describe('Recipes Routes', () => {
       })
 
       // Verify recipe still exists
-      const stillExists = await testPrisma.recipe.findUnique({
-        where: { id: recipe.id }
-      })
+      const [stillExistsRow] = await testDb.select().from(tables.recipe).where(eq(tables.recipe.id, recipe.id))
+      const stillExists = stillExistsRow ?? null
       expect(stillExists).toBeTruthy()
     })
   })

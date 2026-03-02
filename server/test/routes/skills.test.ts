@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestSkill } from '../setup.js'
+import { testDb, createTestSkill } from '../setup.js'
+import { eq } from 'drizzle-orm'
+import * as tables from '../../db/index.js'
 
 const app = createTestApp()
 
@@ -108,9 +110,8 @@ describe('Skills Routes', () => {
       expect(response.body).toHaveProperty('updatedAt')
 
       // Verify it was actually created in the database
-      const skill = await testPrisma.skill.findUnique({
-        where: { id: response.body.id }
-      })
+      const [skillRow] = await testDb.select().from(tables.skill).where(eq(tables.skill.id, response.body.id))
+      const skill = skillRow ?? null
       expect(skill).toBeTruthy()
       expect(skill?.name).toBe('New Skill')
     })
@@ -218,9 +219,8 @@ describe('Skills Routes', () => {
         .expect(204)
 
       // Verify it was deleted
-      const deleted = await testPrisma.skill.findUnique({
-        where: { id: skill.id }
-      })
+      const [deletedRow] = await testDb.select().from(tables.skill).where(eq(tables.skill.id, skill.id))
+      const deleted = deletedRow ?? null
       expect(deleted).toBeNull()
     })
 

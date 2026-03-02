@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestIngredient, createTestInventoryItem, createTestItem, createTestCurrency, createTestRecipe } from '../setup.js'
+import { testDb, createTestIngredient, createTestInventoryItem, createTestItem, createTestCurrency, createTestRecipe } from '../setup.js'
+import { eq, and } from 'drizzle-orm'
+import * as tables from '../../db/index.js'
 
 const app = createTestApp()
 
@@ -74,9 +76,8 @@ describe('Inventory Routes', () => {
       expect(response.body).toHaveProperty('updatedAt')
 
       // Verify it was actually created in the database
-      const inventoryItem = await testPrisma.inventoryItem.findUnique({
-        where: { id: response.body.id }
-      })
+      const [invItemRow] = await testDb.select().from(tables.inventoryItem).where(eq(tables.inventoryItem.id, response.body.id))
+      const inventoryItem = invItemRow ?? null
       expect(inventoryItem).toBeTruthy()
       expect(inventoryItem?.quantity).toBe(10)
       expect(inventoryItem?.quality).toBe('HQ')
@@ -117,9 +118,7 @@ describe('Inventory Routes', () => {
       expect(response.body.quantity).toBe(8) // 5 + 3
 
       // Verify only one item exists
-      const items = await testPrisma.inventoryItem.findMany({
-        where: { ingredientId: ingredient.id, quality: 'NORMAL' }
-      })
+      const items = await testDb.select().from(tables.inventoryItem).where(and(eq(tables.inventoryItem.ingredientId, ingredient.id), eq(tables.inventoryItem.quality, 'NORMAL')))
       expect(items).toHaveLength(1)
     })
 
@@ -143,9 +142,7 @@ describe('Inventory Routes', () => {
       expect(response.body.quantity).toBe(3)
 
       // Verify both items exist
-      const items = await testPrisma.inventoryItem.findMany({
-        where: { ingredientId: ingredient.id }
-      })
+      const items = await testDb.select().from(tables.inventoryItem).where(eq(tables.inventoryItem.ingredientId, ingredient.id))
       expect(items).toHaveLength(2)
     })
 
@@ -313,9 +310,8 @@ describe('Inventory Routes', () => {
       expect(response.body).toHaveProperty('ingredient')
 
       // Verify in database
-      const updated = await testPrisma.inventoryItem.findUnique({
-        where: { id: inventoryItem.id }
-      })
+      const [updatedRow] = await testDb.select().from(tables.inventoryItem).where(eq(tables.inventoryItem.id, inventoryItem.id))
+      const updated = updatedRow ?? null
       expect(updated?.quantity).toBe(10)
       expect(updated?.quality).toBe('HQ')
     })
@@ -448,9 +444,8 @@ describe('Inventory Routes', () => {
         .expect(204)
 
       // Verify it was deleted
-      const deleted = await testPrisma.inventoryItem.findUnique({
-        where: { id: inventoryItem.id }
-      })
+      const [deletedRow] = await testDb.select().from(tables.inventoryItem).where(eq(tables.inventoryItem.id, inventoryItem.id))
+      const deleted = deletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -692,9 +687,8 @@ describe('Inventory Routes', () => {
         .delete(`/api/inventory/currency/${currency.id}`)
         .expect(204)
 
-      const deleted = await testPrisma.currency.findUnique({
-        where: { id: currency.id }
-      })
+      const [currencyDeletedRow] = await testDb.select().from(tables.currency).where(eq(tables.currency.id, currency.id))
+      const deleted = currencyDeletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -814,14 +808,13 @@ describe('Inventory Routes', () => {
 
     beforeEach(async () => {
       const item = await createTestItem({ name: 'Test Item', description: 'Test' })
-      const created = await testPrisma.itemInventoryItem.create({
-        data: {
-          itemId: item.id,
-          quantity: 5
-        },
-        include: { item: true }
-      })
-      itemInventory = created
+      const [createdInvItem] = await testDb.insert(tables.itemInventoryItem).values({
+        itemId: item.id,
+        quantity: 5,
+        updatedAt: new Date().toISOString()
+      }).returning()
+      const [itemRow] = await testDb.select().from(tables.item).where(eq(tables.item.id, item.id))
+      itemInventory = { ...createdInvItem, item: itemRow }
     })
 
     it('should update item quantity', async () => {
@@ -904,12 +897,11 @@ describe('Inventory Routes', () => {
   describe('DELETE /api/inventory/item/:id', () => {
     it('should delete item from inventory', async () => {
       const item = await createTestItem({ name: 'To Delete', description: 'Test' })
-      const itemInventory = await testPrisma.itemInventoryItem.create({
-        data: {
-          itemId: item.id,
-          quantity: 1
-        }
-      })
+      const [itemInventory] = await testDb.insert(tables.itemInventoryItem).values({
+        itemId: item.id,
+        quantity: 1,
+        updatedAt: new Date().toISOString()
+      }).returning()
 
       const response = await request(app)
         .delete(`/api/inventory/item/${itemInventory.id}`)
@@ -919,9 +911,8 @@ describe('Inventory Routes', () => {
         message: 'Item removed from inventory'
       })
 
-      const deleted = await testPrisma.itemInventoryItem.findUnique({
-        where: { id: itemInventory.id }
-      })
+      const [itemInvDeletedRow] = await testDb.select().from(tables.itemInventoryItem).where(eq(tables.itemInventoryItem.id, itemInventory.id))
+      const deleted = itemInvDeletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -942,18 +933,16 @@ describe('Inventory Routes', () => {
 
     beforeEach(async () => {
       const recipe = await createTestRecipe({ name: 'Health Potion Recipe', description: 'Test' })
-      const potion = await testPrisma.potion.create({
-        data: {
-          recipeId: recipe.id,
-          quality: 'NORMAL'
-        }
-      })
-      const created = await testPrisma.potionInventoryItem.create({
-        data: {
-          potionId: potion.id,
-          quantity: 5
-        }
-      })
+      const [potion] = await testDb.insert(tables.potion).values({
+        recipeId: recipe.id,
+        quality: 'NORMAL',
+        updatedAt: new Date().toISOString()
+      }).returning()
+      const [created] = await testDb.insert(tables.potionInventoryItem).values({
+        potionId: potion.id,
+        quantity: 5,
+        updatedAt: new Date().toISOString()
+      }).returning()
       potionInventory = created
     })
 
@@ -985,9 +974,8 @@ describe('Inventory Routes', () => {
         message: 'Potion removed from inventory'
       })
 
-      const deleted = await testPrisma.potionInventoryItem.findUnique({
-        where: { id: potionInventory.id }
-      })
+      const [potInvDelRow] = await testDb.select().from(tables.potionInventoryItem).where(eq(tables.potionInventoryItem.id, potionInventory.id))
+      const deleted = potInvDelRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -1034,18 +1022,16 @@ describe('Inventory Routes', () => {
   describe('DELETE /api/inventory/potion/:id', () => {
     it('should delete potion from inventory', async () => {
       const recipe = await createTestRecipe({ name: 'Delete Potion Recipe', description: 'Test' })
-      const potion = await testPrisma.potion.create({
-        data: {
-          recipeId: recipe.id,
-          quality: 'NORMAL'
-        }
-      })
-      const potionInventory = await testPrisma.potionInventoryItem.create({
-        data: {
-          potionId: potion.id,
-          quantity: 1
-        }
-      })
+      const [potion] = await testDb.insert(tables.potion).values({
+        recipeId: recipe.id,
+        quality: 'NORMAL',
+        updatedAt: new Date().toISOString()
+      }).returning()
+      const [potionInventory] = await testDb.insert(tables.potionInventoryItem).values({
+        potionId: potion.id,
+        quantity: 1,
+        updatedAt: new Date().toISOString()
+      }).returning()
 
       const response = await request(app)
         .delete(`/api/inventory/potion/${potionInventory.id}`)
@@ -1055,9 +1041,8 @@ describe('Inventory Routes', () => {
         message: 'Potion removed from inventory'
       })
 
-      const deleted = await testPrisma.potionInventoryItem.findUnique({
-        where: { id: potionInventory.id }
-      })
+      const [potInvDelRow2] = await testDb.select().from(tables.potionInventoryItem).where(eq(tables.potionInventoryItem.id, potionInventory.id))
+      const deleted = potInvDelRow2 ?? null
       expect(deleted).toBeNull()
     })
 

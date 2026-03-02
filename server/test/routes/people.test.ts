@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestPerson } from '../setup.js'
+import { testDb, createTestPerson } from '../setup.js'
+import { eq } from 'drizzle-orm'
+import * as tables from '../../db/index.js'
 
 const app = createTestApp()
 
@@ -146,9 +148,8 @@ describe('People Routes', () => {
       expect(response.body).toHaveProperty('updatedAt')
 
       // Verify it was actually created in the database
-      const person = await testPrisma.person.findUnique({
-        where: { id: response.body.id }
-      })
+      const [personRow] = await testDb.select().from(tables.person).where(eq(tables.person.id, response.body.id))
+      const person = personRow ?? null
       expect(person).toBeTruthy()
       expect(person?.name).toBe('New Person')
     })
@@ -378,9 +379,8 @@ describe('People Routes', () => {
       })
 
       // Verify in database
-      const updated = await testPrisma.person.findUnique({
-        where: { id: person.id }
-      })
+      const [updatedRow] = await testDb.select().from(tables.person).where(eq(tables.person.id, person.id))
+      const updated = updatedRow ?? null
       expect(updated?.name).toBe('Updated Name')
       expect(updated?.isFavorited).toBe(true)
     })
@@ -601,9 +601,8 @@ describe('People Routes', () => {
         .expect(204)
 
       // Verify it was deleted
-      const deleted = await testPrisma.person.findUnique({
-        where: { id: person.id }
-      })
+      const [deletedRow] = await testDb.select().from(tables.person).where(eq(tables.person.id, person.id))
+      const deleted = deletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -642,9 +641,8 @@ describe('People Routes', () => {
       expect(response.body.isFavorited).toBe(true)
 
       // Verify in database
-      const updated = await testPrisma.person.findUnique({
-        where: { id: person.id }
-      })
+      const [updatedRow] = await testDb.select().from(tables.person).where(eq(tables.person.id, person.id))
+      const updated = updatedRow ?? null
       expect(updated?.isFavorited).toBe(true)
     })
 
@@ -661,9 +659,8 @@ describe('People Routes', () => {
       expect(response.body.isFavorited).toBe(false)
 
       // Verify in database
-      const updated = await testPrisma.person.findUnique({
-        where: { id: person.id }
-      })
+      const [updatedRow2] = await testDb.select().from(tables.person).where(eq(tables.person.id, person.id))
+      const updated = updatedRow2 ?? null
       expect(updated?.isFavorited).toBe(false)
     })
 

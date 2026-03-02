@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestIngredient, createTestRecipe } from '../setup.js'
+import { testDb, createTestIngredient, createTestRecipe } from '../setup.js'
+import { eq } from 'drizzle-orm'
+import * as tables from '../../db/index.js'
 
 const app = createTestApp()
 
@@ -128,9 +130,8 @@ describe('Ingredients Routes', () => {
       expect(response.body).toHaveProperty('updatedAt')
 
       // Verify it was actually created in the database
-      const ingredient = await testPrisma.ingredient.findUnique({
-        where: { id: response.body.id }
-      })
+      const [ingredientRow] = await testDb.select().from(tables.ingredient).where(eq(tables.ingredient.id, response.body.id))
+      const ingredient = ingredientRow ?? null
       expect(ingredient).toBeTruthy()
       expect(ingredient?.name).toBe('New Ingredient')
     })
@@ -299,9 +300,8 @@ describe('Ingredients Routes', () => {
       })
 
       // Verify in database
-      const updated = await testPrisma.ingredient.findUnique({
-        where: { id: ingredient.id }
-      })
+      const [updatedRow] = await testDb.select().from(tables.ingredient).where(eq(tables.ingredient.id, ingredient.id))
+      const updated = updatedRow ?? null
       expect(updated?.name).toBe('Updated Name')
       expect(updated?.description).toBe('Updated Description')
       expect(updated?.secured).toBe(true)
@@ -512,9 +512,8 @@ describe('Ingredients Routes', () => {
         .expect(204)
 
       // Verify it was deleted
-      const deleted = await testPrisma.ingredient.findUnique({
-        where: { id: ingredient.id }
-      })
+      const [deletedRow] = await testDb.select().from(tables.ingredient).where(eq(tables.ingredient.id, ingredient.id))
+      const deleted = deletedRow ?? null
       expect(deleted).toBeNull()
     })
 
@@ -549,12 +548,10 @@ describe('Ingredients Routes', () => {
       })
 
       // Create a recipe ingredient relationship
-      await testPrisma.recipeIngredient.create({
-        data: {
-          recipeId: recipe.id,
-          ingredientId: ingredient.id,
-          quantity: 1
-        }
+      await testDb.insert(tables.recipeIngredient).values({
+        recipeId: recipe.id,
+        ingredientId: ingredient.id,
+        quantity: 1
       })
 
       const response = await request(app)
@@ -567,9 +564,8 @@ describe('Ingredients Routes', () => {
       })
 
       // Verify ingredient still exists
-      const stillExists = await testPrisma.ingredient.findUnique({
-        where: { id: ingredient.id }
-      })
+      const [stillExistsRow] = await testDb.select().from(tables.ingredient).where(eq(tables.ingredient.id, ingredient.id))
+      const stillExists = stillExistsRow ?? null
       expect(stillExists).toBeTruthy()
     })
 
@@ -580,12 +576,11 @@ describe('Ingredients Routes', () => {
       })
 
       // Create an inventory item
-      await testPrisma.inventoryItem.create({
-        data: {
-          ingredientId: ingredient.id,
-          quantity: 5,
-          quality: 'NORMAL'
-        }
+      await testDb.insert(tables.inventoryItem).values({
+        ingredientId: ingredient.id,
+        quantity: 5,
+        quality: 'NORMAL',
+        updatedAt: new Date().toISOString()
       })
 
       const response = await request(app)
@@ -598,9 +593,8 @@ describe('Ingredients Routes', () => {
       })
 
       // Verify ingredient still exists
-      const stillExists = await testPrisma.ingredient.findUnique({
-        where: { id: ingredient.id }
-      })
+      const [stillExistsRow] = await testDb.select().from(tables.ingredient).where(eq(tables.ingredient.id, ingredient.id))
+      const stillExists = stillExistsRow ?? null
       expect(stillExists).toBeTruthy()
     })
   })
@@ -632,12 +626,10 @@ describe('Ingredients Routes', () => {
         description: 'Test'
       })
 
-      await testPrisma.recipeIngredient.create({
-        data: {
-          recipeId: recipe.id,
-          ingredientId: ingredient.id,
-          quantity: 1
-        }
+      await testDb.insert(tables.recipeIngredient).values({
+        recipeId: recipe.id,
+        ingredientId: ingredient.id,
+        quantity: 1
       })
 
       const response = await request(app)
@@ -656,12 +648,11 @@ describe('Ingredients Routes', () => {
         description: 'Has inventory'
       })
 
-      await testPrisma.inventoryItem.create({
-        data: {
-          ingredientId: ingredient.id,
-          quantity: 3,
-          quality: 'NORMAL'
-        }
+      await testDb.insert(tables.inventoryItem).values({
+        ingredientId: ingredient.id,
+        quantity: 3,
+        quality: 'NORMAL',
+        updatedAt: new Date().toISOString()
       })
 
       const response = await request(app)

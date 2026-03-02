@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { potionInventoryItem, potion, recipe } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
@@ -22,36 +24,20 @@ router.put('/:id', async (req, res) => {
     }
 
     if (quantity === 0) {
-      // Delete the inventory item if quantity is 0
-      await prisma.potionInventoryItem.delete({
-        where: { id }
-      })
+      await db.delete(potionInventoryItem).where(eq(potionInventoryItem.id, id))
       res.json({ message: 'Potion removed from inventory' })
       return
     }
 
-    const updatedItem = await prisma.potionInventoryItem.update({
-      where: { id },
-      data: { quantity },
-      include: {
-        potion: true
-      }
-    })
+    const [updated] = await db.update(potionInventoryItem)
+      .set({ quantity, updatedAt: new Date().toISOString() })
+      .where(eq(potionInventoryItem.id, id))
+      .returning()
 
-    // Fetch recipe information separately
-    const recipe = await prisma.recipe.findUnique({
-      where: { id: updatedItem.potion.recipeId }
-    })
+    const [potionRow] = await db.select().from(potion).where(eq(potion.id, updated.potionId))
+    const [recipeRow] = await db.select().from(recipe).where(eq(recipe.id, potionRow.recipeId))
 
-    const updatedItemWithRecipe = {
-      ...updatedItem,
-      potion: {
-        ...updatedItem.potion,
-        recipe: recipe
-      }
-    }
-
-    res.json(updatedItemWithRecipe)
+    res.json({ ...updated, potion: { ...potionRow, recipe: recipeRow } })
   } catch (error) {
     handleUnknownError(res, 'updating potion inventory', error)
   }

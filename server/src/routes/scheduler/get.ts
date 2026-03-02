@@ -1,14 +1,21 @@
 import { Router, RequestHandler } from 'express'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-import { prisma } from '../../db.js'
-
+import { db } from '../../db.js'
+import { taskDefinition } from '../../../db/index.js'
+import { asc, sql } from 'drizzle-orm'
 
 const router: Router = Router()
+
+// Convert PostgreSQL timestamp string to ISO format
+function toISO(ts: string): string {
+  return new Date(ts.includes('T') ? ts : ts.replace(' ', 'T') + 'Z').toISOString()
+}
+
 
 const getScheduler: RequestHandler = async (req, res) => {
   try {
     try {
-      await prisma.$queryRaw`SELECT 1`
+      await db.execute(sql`SELECT 1`)
     } catch (dbConnectionError) {
       console.error('Database connection failed:', dbConnectionError)
       res.status(500).json({
@@ -25,47 +32,37 @@ const getScheduler: RequestHandler = async (req, res) => {
     currentWeekStart.setDate(now.getDate() - daysToSubtract)
     currentWeekStart.setHours(0, 0, 0, 0)
 
-    const weekEnd = new Date(currentWeekStart)
-    weekEnd.setDate(currentWeekStart.getDate() + 6)
-    weekEnd.setHours(23, 59, 59, 999)
+    const dateStr = currentWeekStart.toISOString().split('T')[0]
 
-    let weekSchedule
+    let weekScheduleRow
     try {
-      weekSchedule = await prisma.weekSchedule.findUnique({
-        where: { weekStartDate: currentWeekStart },
-        include: {
+      weekScheduleRow = await db.query.weekSchedule.findFirst({
+        where: (ws, { sql: sqlFn }) => sqlFn`DATE(${ws.weekStartDate}) = DATE(${dateStr})`,
+        with: {
           days: {
-            include: {
-              tasks: true
-            },
-            orderBy: { day: 'asc' }
+            with: { tasks: true }
           }
         }
       })
 
-      if (!weekSchedule) {
-        const allWeeks = await prisma.weekSchedule.findMany({
-          include: {
+      if (!weekScheduleRow) {
+        const allWeeks = await db.query.weekSchedule.findMany({
+          with: {
             days: {
-              include: {
-                tasks: true
-              },
-              orderBy: { day: 'asc' }
+              with: { tasks: true }
             }
           }
         })
 
-        if (allWeeks.length > 0) {
-          for (const week of allWeeks) {
-            const weekStart = new Date(week.weekStartDate)
-            const weekEnd = new Date(weekStart)
-            weekEnd.setDate(weekStart.getDate() + 6)
-            weekEnd.setHours(23, 59, 59, 999)
+        for (const week of allWeeks) {
+          const weekStart = new Date(toISO(week.weekStartDate))
+          const weekEnd = new Date(weekStart)
+          weekEnd.setDate(weekStart.getDate() + 6)
+          weekEnd.setHours(23, 59, 59, 999)
 
-            if (now >= weekStart && now <= weekEnd) {
-              weekSchedule = week
-              break
-            }
+          if (now >= weekStart && now <= weekEnd) {
+            weekScheduleRow = week
+            break
           }
         }
       }
@@ -80,16 +77,16 @@ const getScheduler: RequestHandler = async (req, res) => {
 
     let currentWeek = null
 
-    if (weekSchedule) {
+    if (weekScheduleRow) {
       currentWeek = {
-        id: `week-${weekSchedule.id}`,
-        weekStartDate: weekSchedule.weekStartDate.toISOString(),
-        totalScheduledUnits: weekSchedule.totalScheduledUnits,
-        freeTimeUsed: weekSchedule.freeTimeUsed,
-        days: weekSchedule.days.map((day: { day: number; dayName: string; totalUnits: number; tasks: Array<{ timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null; details: unknown }> }) => {
-          const morning = day.tasks.find((task: { timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null; details: unknown }) => task.timeSlot === 'MORNING')
-          const afternoon = day.tasks.find((task: { timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null; details: unknown }) => task.timeSlot === 'AFTERNOON')
-          const evening = day.tasks.find((task: { timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null; details: unknown }) => task.timeSlot === 'EVENING')
+        id: `week-${weekScheduleRow.id}`,
+        weekStartDate: toISO(weekScheduleRow.weekStartDate),
+        totalScheduledUnits: weekScheduleRow.totalScheduledUnits,
+        freeTimeUsed: weekScheduleRow.freeTimeUsed,
+        days: weekScheduleRow.days.slice().sort((a, b) => a.day - b.day).map((day) => {
+          const morning = day.tasks.find((task) => task.timeSlot === 'MORNING')
+          const afternoon = day.tasks.find((task) => task.timeSlot === 'AFTERNOON')
+          const evening = day.tasks.find((task) => task.timeSlot === 'EVENING')
 
           return {
             day: day.day,
@@ -121,28 +118,24 @@ const getScheduler: RequestHandler = async (req, res) => {
       }
     }
 
-    if (!weekSchedule) {
+    if (!weekScheduleRow) {
       return res.json({
         currentWeek: null,
         taskDefinitions: []
       })
     }
 
-    let taskDefinitions: Awaited<ReturnType<typeof prisma.taskDefinition.findMany>> = []
+    let taskDefs: typeof taskDefinition.$inferSelect[] = []
     try {
-      taskDefinitions = await prisma.taskDefinition.findMany({
-        orderBy: { type: 'asc' }
-      })
-
-      // Task definitions loaded
+      taskDefs = await db.select().from(taskDefinition).orderBy(asc(taskDefinition.type))
     } catch (dbError) {
       console.error('Database error when loading task definitions:', dbError)
-      taskDefinitions = []
+      taskDefs = []
     }
 
     return res.json({
       currentWeek,
-      taskDefinitions
+      taskDefinitions: taskDefs
     })
   } catch (error) {
     handleUnknownError(res, 'getting scheduler', error)

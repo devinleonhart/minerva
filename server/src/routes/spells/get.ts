@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { spell } from '../../../db/index.js'
+import { eq, asc, desc } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
@@ -12,12 +14,12 @@ router.get('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid spell ID' })
     }
 
-    const spell = await prisma.spell.findUnique({ where: { id } })
-    if (!spell) {
+    const [row] = await db.select().from(spell).where(eq(spell.id, id))
+    if (!row) {
       return res.status(404).json({ error: 'Spell not found' })
     }
 
-    return res.json(spell)
+    return res.json(row)
   } catch (error) {
     handleUnknownError(res, 'fetching spell', error)
   }
@@ -25,13 +27,7 @@ router.get('/:id', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const spells = await prisma.spell.findMany({
-      orderBy: [
-        { isLearned: 'desc' },
-        { name: 'asc' }
-      ]
-    })
-
+    const spells = await db.select().from(spell).orderBy(desc(spell.isLearned), asc(spell.name))
     return res.json(spells)
   } catch (error) {
     handleUnknownError(res, 'fetching spells', error)

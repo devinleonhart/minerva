@@ -1,5 +1,6 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { currency } from '../../../db/index.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const router: Router = Router()
@@ -16,16 +17,16 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Currency value must be a non-negative integer' })
     }
 
-    const currency = await prisma.currency.create({
-      data: {
-        name,
-        value
-      }
-    })
+    const [created] = await db.insert(currency).values({
+      name,
+      value,
+      updatedAt: new Date().toISOString()
+    }).returning()
 
-    res.status(201).json(currency)
+    res.status(201).json(created)
   } catch (error) {
-    if ((error as { code?: string }).code === 'P2002') {
+    const e = error as { code?: string; cause?: { code?: string } }
+    if (e?.code === '23505' || e?.cause?.code === '23505') {
       return res.status(409).json({ error: 'A currency with this name already exists' })
     }
     handleUnknownError(res, 'adding currency to inventory', error)

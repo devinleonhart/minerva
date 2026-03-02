@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { skill } from '../../../db/index.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-
 
 const router: Router = Router()
 
@@ -13,13 +13,15 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Skill name is required' })
     }
 
-    const skill = await prisma.skill.create({
-      data: { name: name.trim() }
-    })
+    const [row] = await db.insert(skill).values({
+      name: name.trim(),
+      updatedAt: new Date().toISOString()
+    }).returning()
 
-    return res.status(201).json(skill)
+    return res.status(201).json(row)
   } catch (error) {
-    if ((error as { code?: string }).code === 'P2002') {
+    const e = error as { code?: string; cause?: { code?: string } }
+    if (e?.code === '23505' || e?.cause?.code === '23505') {
       return res.status(409).json({ error: 'A skill with this name already exists' })
     }
     handleUnknownError(res, 'creating skill', error)

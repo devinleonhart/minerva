@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { itemInventoryItem, item } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const router: Router = Router()
@@ -19,25 +21,22 @@ router.put('/:id', async (req, res) => {
       return
     }
 
-    // Check if item inventory item exists
-    const itemInventoryItem = await prisma.itemInventoryItem.findUnique({
-      where: { id: parseInt(id) },
-      include: { item: true }
-    })
+    const [existing] = await db.select().from(itemInventoryItem)
+      .where(eq(itemInventoryItem.id, parseInt(id)))
 
-    if (!itemInventoryItem) {
+    if (!existing) {
       res.status(404).json({ error: 'Item inventory item not found' })
       return
     }
 
-    // Update quantity
-    const updatedItem = await prisma.itemInventoryItem.update({
-      where: { id: parseInt(id) },
-      data: { quantity },
-      include: { item: true }
-    })
+    const [updated] = await db.update(itemInventoryItem)
+      .set({ quantity, updatedAt: new Date().toISOString() })
+      .where(eq(itemInventoryItem.id, parseInt(id)))
+      .returning()
 
-    res.json(updatedItem)
+    const [itemRow] = await db.select().from(item).where(eq(item.id, updated.itemId))
+
+    res.json({ ...updated, item: itemRow })
   } catch (error) {
     handleUnknownError(res, 'updating item quantity', error)
   }

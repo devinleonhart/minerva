@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { skill } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import { parseId } from '../../utils/parseId.js'
 
@@ -12,15 +14,13 @@ router.delete('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid skill ID' })
     }
 
-    await prisma.skill.delete({
-      where: { id }
-    })
+    const [row] = await db.delete(skill).where(eq(skill.id, id)).returning()
+    if (!row) {
+      return res.status(404).json({ error: 'Skill not found' })
+    }
 
     return res.status(204).send()
   } catch (error) {
-    if ((error as { code?: string }).code === 'P2025') {
-      return res.status(404).json({ error: 'Skill not found' })
-    }
     handleUnknownError(res, 'deleting skill', error)
   }
 })

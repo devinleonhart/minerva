@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
@@ -8,21 +8,17 @@ const router: Router = Router()
 router.get('/craftable', async (req, res) => {
   try {
     // Get all recipes
-    const recipes = await prisma.recipe.findMany({
-      include: {
+    const recipes = await db.query.recipe.findMany({
+      with: {
         ingredients: {
-          include: {
-            ingredient: true
-          }
+          with: { ingredient: true }
         }
       }
     })
 
     // Get all inventory items
-    const inventoryItems = await prisma.inventoryItem.findMany({
-      include: {
-        ingredient: true
-      }
+    const inventoryItems = await db.query.inventoryItem.findMany({
+      with: { ingredient: true }
     })
 
     // Group inventory by ingredient ID
@@ -63,13 +59,11 @@ router.get('/:id/craftable', async (req, res) => {
     }
 
     // Get recipe with ingredients
-    const recipe = await prisma.recipe.findUnique({
-      where: { id },
-      include: {
+    const recipe = await db.query.recipe.findFirst({
+      where: (r, { eq }) => eq(r.id, id),
+      with: {
         ingredients: {
-          include: {
-            ingredient: true
-          }
+          with: { ingredient: true }
         }
       }
     })
@@ -79,18 +73,11 @@ router.get('/:id/craftable', async (req, res) => {
     }
 
     // Get all available inventory items for the required ingredients
-    const ingredientIds = recipe.ingredients.map((ri: { ingredientId: number }) => ri.ingredientId)
-    const inventoryItems = await prisma.inventoryItem.findMany({
-      where: {
-        ingredientId: { in: ingredientIds }
-      },
-      include: {
-        ingredient: true
-      },
-      orderBy: [
-        { quality: 'asc' }, // NORMAL first, then HQ, then LQ
-        { quantity: 'desc' }
-      ]
+    const ingredientIds = (recipe.ingredients as Array<{ ingredientId: number }>).map((ri) => ri.ingredientId)
+    const inventoryItems = await db.query.inventoryItem.findMany({
+      where: (inv, { inArray }) => inArray(inv.ingredientId, ingredientIds),
+      with: { ingredient: true },
+      orderBy: (inv, { asc, desc }) => [asc(inv.quality), desc(inv.quantity)]
     })
 
     // Group inventory items by ingredient
@@ -122,7 +109,7 @@ router.get('/:id/craftable', async (req, res) => {
     }
 
     // Check craftability for each ingredient
-    const craftability = recipe.ingredients.map((recipeIngredient: { ingredientId: number; quantity: number; ingredient: { name: string } }) => {
+    const craftability = (recipe.ingredients as Array<{ ingredientId: number; quantity: number; ingredient: { name: string } }>).map((recipeIngredient) => {
       const availableInventory = inventoryByIngredient.get(recipeIngredient.ingredientId) || []
       const totalAvailable = availableInventory.reduce((sum, item) => sum + item.totalAvailable, 0)
       const isCraftable = totalAvailable >= recipeIngredient.quantity

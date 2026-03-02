@@ -3,7 +3,8 @@ import type { Request } from 'express'
 export function parseId(
   req: Request,
 ): number | null {
-  const idString = req.params['id']
+  const raw = req.params['id']
+  const idString = Array.isArray(raw) ? raw[0] : raw
 
   // Check for obviously invalid formats
   if (!idString || idString.trim() === '' || idString.includes('.') || idString.startsWith('-')) {

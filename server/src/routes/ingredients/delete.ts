@@ -1,7 +1,10 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { ingredient } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
+
 const router: Router = Router()
 
 router.delete('/:id', async (req, res) => {
@@ -12,8 +15,8 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Check if ingredient is used in any recipes
-    const recipeUsage = await prisma.recipeIngredient.findFirst({
-      where: { ingredientId: id }
+    const recipeUsage = await db.query.recipeIngredient.findFirst({
+      where: (ri, { eq }) => eq(ri.ingredientId, id)
     })
 
     if (recipeUsage) {
@@ -24,8 +27,8 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Check if ingredient has any inventory items
-    const inventoryUsage = await prisma.inventoryItem.findFirst({
-      where: { ingredientId: id }
+    const inventoryUsage = await db.query.inventoryItem.findFirst({
+      where: (inv, { eq }) => eq(inv.ingredientId, id)
     })
 
     if (inventoryUsage) {
@@ -35,15 +38,11 @@ router.delete('/:id', async (req, res) => {
       })
     }
 
-    try {
-      await prisma.ingredient.delete({ where: { id } })
-      return res.status(204).send()
-    } catch (deleteError: unknown) {
-      if (deleteError && typeof deleteError === 'object' && 'code' in deleteError && deleteError.code === 'P2025') {
-        return res.status(404).json({ error: 'Ingredient not found' })
-      }
-      throw deleteError
+    const [row] = await db.delete(ingredient).where(eq(ingredient.id, id)).returning()
+    if (!row) {
+      return res.status(404).json({ error: 'Ingredient not found' })
     }
+    return res.status(204).send()
   } catch (error) {
     handleUnknownError(res, 'deleting ingredient', error)
   }

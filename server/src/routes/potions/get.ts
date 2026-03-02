@@ -1,34 +1,30 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { potion } from '../../../db/index.js'
+import { desc } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const router: Router = Router()
 
 router.get('/', async (req, res) => {
   try {
-    const potions = await prisma.potion.findMany({
-      orderBy: {
-        id: 'desc'
-      }
-    })
+    const potions = await db.select().from(potion).orderBy(desc(potion.id))
 
     // Fetch recipe information for each potion separately
     const potionsWithRecipes = await Promise.all(
-      potions.map(async (potion: { recipeId: number }) => {
-        const recipe = await prisma.recipe.findUnique({
-          where: { id: potion.recipeId },
-          include: {
+      potions.map(async (p) => {
+        const recipeRow = await db.query.recipe.findFirst({
+          where: (r, { eq }) => eq(r.id, p.recipeId),
+          with: {
             ingredients: {
-              include: {
-                ingredient: true
-              }
+              with: { ingredient: true }
             }
           }
         })
 
         return {
-          ...potion,
-          recipe: recipe
+          ...p,
+          recipe: recipeRow
         }
       })
     )

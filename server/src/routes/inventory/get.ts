@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { inventoryItem, ingredient, itemInventoryItem, item, currency } from '../../../db/index.js'
+import { eq, asc } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const router: Router = Router()
@@ -7,64 +9,55 @@ const router: Router = Router()
 router.get('/', async (req, res) => {
   try {
     const [ingredientItems, potionItems, itemItems, currencies] = await Promise.all([
-      prisma.inventoryItem.findMany({
-        include: {
-          ingredient: true
-        },
-        orderBy: {
+      db
+        .select({
+          id: inventoryItem.id,
+          createdAt: inventoryItem.createdAt,
+          updatedAt: inventoryItem.updatedAt,
+          ingredientId: inventoryItem.ingredientId,
+          quality: inventoryItem.quality,
+          quantity: inventoryItem.quantity,
           ingredient: {
-            name: 'asc'
+            id: ingredient.id,
+            name: ingredient.name,
+            description: ingredient.description,
+            secured: ingredient.secured,
+            createdAt: ingredient.createdAt,
+            updatedAt: ingredient.updatedAt,
           }
-        }
-      }),
-      prisma.potionInventoryItem.findMany({
-        include: {
-          potion: true
-        },
-        orderBy: {
-          potion: {
-            recipeId: 'asc'
-          }
-        }
-      }),
-      prisma.itemInventoryItem.findMany({
-        include: {
-          item: true
-        },
-        orderBy: {
-          item: {
-            name: 'asc'
-          }
-        }
-      }),
-      prisma.currency.findMany({
-        orderBy: {
-          name: 'asc'
-        }
-      })
-    ])
-
-    // Fetch recipe information for potions separately
-    const potionItemsWithRecipes = await Promise.all(
-      potionItems.map(async (potionItem: { potion: { recipeId: number } }) => {
-        const recipe = await prisma.recipe.findUnique({
-          where: { id: potionItem.potion.recipeId }
         })
-        return {
-          ...potionItem,
-          potion: {
-            ...potionItem.potion,
-            recipe: recipe
+        .from(inventoryItem)
+        .innerJoin(ingredient, eq(inventoryItem.ingredientId, ingredient.id))
+        .orderBy(asc(ingredient.name)),
+      db.query.potionInventoryItem.findMany({
+        with: { potion: { with: { recipe: true } } }
+      }),
+      db
+        .select({
+          id: itemInventoryItem.id,
+          createdAt: itemInventoryItem.createdAt,
+          updatedAt: itemInventoryItem.updatedAt,
+          itemId: itemInventoryItem.itemId,
+          quantity: itemInventoryItem.quantity,
+          item: {
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
           }
-        }
-      })
-    )
+        })
+        .from(itemInventoryItem)
+        .innerJoin(item, eq(itemInventoryItem.itemId, item.id))
+        .orderBy(asc(item.name)),
+      db.select().from(currency).orderBy(asc(currency.name))
+    ])
 
     return res.json({
       ingredients: ingredientItems,
-      potions: potionItemsWithRecipes,
+      potions: potionItems,
       items: itemItems,
-      currencies: currencies
+      currencies
     })
   } catch (error) {
     handleUnknownError(res, 'fetching inventory', error)

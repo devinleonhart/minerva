@@ -1,7 +1,10 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { ingredient } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
+
 const router: Router = Router()
 
 router.put('/:id', async (req, res) => {
@@ -37,7 +40,8 @@ router.put('/:id', async (req, res) => {
       name?: string
       description?: string
       secured?: boolean
-    } = {}
+      updatedAt: string
+    } = { updatedAt: new Date().toISOString() }
 
     if (name !== undefined) {
       updateData.name = name.trim()
@@ -49,17 +53,13 @@ router.put('/:id', async (req, res) => {
       updateData.secured = secured
     }
 
-    const ingredient = await prisma.ingredient.update({
-      where: { id },
-      data: updateData
-    })
-
-    return res.json(ingredient)
-  } catch (error) {
-    if ((error as { code?: string }).code === 'P2025') {
+    const [row] = await db.update(ingredient).set(updateData).where(eq(ingredient.id, id)).returning()
+    if (!row) {
       return res.status(404).json({ error: 'Ingredient not found' })
     }
-    // Handle Prisma validation errors (e.g., null values for non-nullable fields)
+
+    return res.json(row)
+  } catch (error) {
     if (error && typeof error === 'object' && 'message' in error) {
       const errorMessage = String(error.message)
       if (errorMessage.includes('must not be null') || (errorMessage.includes('Argument') && errorMessage.includes('must not be null'))) {

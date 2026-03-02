@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { skill } from '../../../db/index.js'
+import { eq, asc } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
@@ -12,12 +14,12 @@ router.get('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid skill ID' })
     }
 
-    const skill = await prisma.skill.findUnique({ where: { id } })
-    if (!skill) {
+    const [row] = await db.select().from(skill).where(eq(skill.id, id))
+    if (!row) {
       return res.status(404).json({ error: 'Skill not found' })
     }
 
-    return res.json(skill)
+    return res.json(row)
   } catch (error) {
     handleUnknownError(res, 'fetching skill', error)
   }
@@ -25,12 +27,7 @@ router.get('/:id', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const skills = await prisma.skill.findMany({
-      orderBy: {
-        name: 'asc'
-      }
-    })
-
+    const skills = await db.select().from(skill).orderBy(asc(skill.name))
     return res.json(skills)
   } catch (error) {
     handleUnknownError(res, 'fetching skills', error)

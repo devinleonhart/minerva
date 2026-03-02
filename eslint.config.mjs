@@ -5,8 +5,11 @@ import tseslint from 'typescript-eslint'
 import pluginVue from 'eslint-plugin-vue'
 
 export default defineConfig([
+  {
+    ignores: ['dist/**', 'server/src/generated/**', 'node_modules/**']
+  },
   { files: ['**/*.{js,mjs,cjs,ts,d.ts,vue}'] },
-  { files: ['**/*.{js,mjs,cjs,ts,d.ts,vue}'], languageOptions: { globals: globals.browser } },
+  { files: ['**/*.{js,mjs,cjs,ts,d.ts,vue}'], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
   { files: ['**/*.{js,mjs,cjs,ts,d.ts,vue}'], plugins: { js }, extends: ['js/recommended'] },
   tseslint.configs.recommended,
   pluginVue.configs['flat/essential'],
@@ -25,8 +28,15 @@ export default defineConfig([
     }
   },
   {
+    // UI primitives are intentionally single-word (Badge, Button, Card, etc.)
+    files: ['client/src/components/ui/**/*.vue'],
     rules: {
-      indent: ['error', 2],
+      'vue/multi-word-component-names': 'off'
+    }
+  },
+  {
+    rules: {
+      indent: ['error', 2, { SwitchCase: 1 }],
       semi: ['error', 'never'],
       quotes: ['error', 'single'],
       '@typescript-eslint/no-empty-object-type': ['off']

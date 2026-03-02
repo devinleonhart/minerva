@@ -1,9 +1,8 @@
 import { Router, RequestHandler } from 'express'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-import { prisma } from '../../db.js'
-import type { PrismaClient } from '../../generated/client.js'
-
-type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
+import { db } from '../../db.js'
+import { weekSchedule, daySchedule, scheduledTask, taskDefinition } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 
 const router: Router = Router()
 
@@ -17,19 +16,18 @@ const saveScheduler: RequestHandler = async (req, res) => {
       })
     }
 
-    const existingWeeks = await prisma.weekSchedule.findMany()
+    const normalizedWeekStart = new Date(currentWeek.weekStartDate)
+    normalizedWeekStart.setHours(0, 0, 0, 0)
+    const normalizedDateStr = normalizedWeekStart.toISOString().split('T')[0]
+
+    const existingWeeks = await db.select().from(weekSchedule)
     let isUpdate = false
-    let existingWeekId = null
+    let existingWeekId: number | null = null
 
     if (existingWeeks.length > 0) {
-      const normalizedWeekStart = new Date(currentWeek.weekStartDate)
-      normalizedWeekStart.setHours(0, 0, 0, 0)
-
-      const existingWeek = existingWeeks.find((week: { weekStartDate: Date }) => {
-        const existingStart = new Date(week.weekStartDate)
-        existingStart.setHours(0, 0, 0, 0)
-        return existingStart.getTime() === normalizedWeekStart.getTime()
-      })
+      const existingWeek = existingWeeks.find(week =>
+        week.weekStartDate.startsWith(normalizedDateStr)
+      )
 
       if (existingWeek) {
         isUpdate = true
@@ -43,121 +41,86 @@ const saveScheduler: RequestHandler = async (req, res) => {
       }
     }
 
-    const normalizedWeekStart = new Date(currentWeek.weekStartDate)
-    normalizedWeekStart.setHours(0, 0, 0, 0)
-
-    const result = await prisma.$transaction(async (tx: TransactionClient) => {
-      let weekSchedule
+    const result = await db.transaction(async (tx) => {
+      let weekRow: typeof weekSchedule.$inferSelect
 
       if (isUpdate) {
-        weekSchedule = await tx.weekSchedule.update({
-          where: { id: existingWeekId! },
-          data: {
+        const [updated] = await tx.update(weekSchedule)
+          .set({
             totalScheduledUnits: currentWeek.totalScheduledUnits,
             freeTimeUsed: currentWeek.freeTimeUsed,
-            updatedAt: new Date()
-          }
-        })
+            updatedAt: new Date().toISOString()
+          })
+          .where(eq(weekSchedule.id, existingWeekId!))
+          .returning()
+        weekRow = updated
+
+        // Delete existing days (cascades to tasks)
+        await tx.delete(daySchedule).where(eq(daySchedule.weekScheduleId, weekRow.id))
       } else {
-        weekSchedule = await tx.weekSchedule.create({
-          data: {
-            weekStartDate: normalizedWeekStart,
-            totalScheduledUnits: currentWeek.totalScheduledUnits,
-            freeTimeUsed: currentWeek.freeTimeUsed
-          }
-        })
+        const [created] = await tx.insert(weekSchedule).values({
+          weekStartDate: normalizedWeekStart.toISOString(),
+          totalScheduledUnits: currentWeek.totalScheduledUnits,
+          freeTimeUsed: currentWeek.freeTimeUsed,
+          updatedAt: new Date().toISOString()
+        }).returning()
+        weekRow = created
       }
 
-      await tx.scheduledTask.deleteMany({
-        where: {
-          daySchedule: {
-            weekScheduleId: weekSchedule.id
-          }
-        }
-      })
-
-      await tx.daySchedule.deleteMany({
-        where: {
-          weekScheduleId: weekSchedule.id
-        }
-      })
-
       for (const day of currentWeek.days) {
-        const daySchedule = await tx.daySchedule.create({
-          data: {
-            weekScheduleId: weekSchedule.id,
-            day: day.day,
-            dayName: day.dayName,
-            totalUnits: day.totalUnits
+        const [dayRow] = await tx.insert(daySchedule).values({
+          weekScheduleId: weekRow.id,
+          day: day.day,
+          dayName: day.dayName,
+          totalUnits: day.totalUnits,
+          updatedAt: new Date().toISOString()
+        }).returning()
+
+        const slots = [
+          { slot: 'MORNING' as const, data: day.morning },
+          { slot: 'AFTERNOON' as const, data: day.afternoon },
+          { slot: 'EVENING' as const, data: day.evening }
+        ]
+
+        for (const { slot, data } of slots) {
+          if (data) {
+            await tx.insert(scheduledTask).values({
+              type: data.type,
+              timeUnits: data.timeUnits,
+              day: day.day,
+              timeSlot: slot,
+              notes: data.notes || null,
+              details: data.details || null,
+              dayScheduleId: dayRow.id,
+              updatedAt: new Date().toISOString()
+            })
           }
-        })
-
-        if (day.morning) {
-          await tx.scheduledTask.create({
-            data: {
-              type: day.morning.type,
-              timeUnits: day.morning.timeUnits,
-              day: day.day,
-              timeSlot: 'MORNING',
-              notes: day.morning.notes || null,
-              details: day.morning.details || null,
-              dayScheduleId: daySchedule.id
-            }
-          })
-        }
-
-        if (day.afternoon) {
-          await tx.scheduledTask.create({
-            data: {
-              type: day.afternoon.type,
-              timeUnits: day.afternoon.timeUnits,
-              day: day.day,
-              timeSlot: 'AFTERNOON',
-              notes: day.afternoon.notes || null,
-              details: day.afternoon.details || null,
-              dayScheduleId: daySchedule.id
-            }
-          })
-        }
-
-        if (day.evening) {
-          await tx.scheduledTask.create({
-            data: {
-              type: day.evening.type,
-              timeUnits: day.evening.timeUnits,
-              day: day.day,
-              timeSlot: 'EVENING',
-              notes: day.evening.notes || null,
-              details: day.evening.details || null,
-              dayScheduleId: daySchedule.id
-            }
-          })
         }
       }
 
       for (const taskDef of taskDefinitions) {
-        await tx.taskDefinition.upsert({
-          where: { type: taskDef.type },
-          update: {
+        await tx.insert(taskDefinition).values({
+          type: taskDef.type,
+          name: taskDef.name,
+          timeUnits: taskDef.timeUnits,
+          color: taskDef.color,
+          description: taskDef.description,
+          restrictions: taskDef.restrictions || null,
+          updatedAt: new Date().toISOString()
+        }).onConflictDoUpdate({
+          target: taskDefinition.type,
+          set: {
             name: taskDef.name,
             timeUnits: taskDef.timeUnits,
             color: taskDef.color,
             description: taskDef.description,
             restrictions: taskDef.restrictions || null,
-            updatedAt: new Date()
-          },
-          create: {
-            type: taskDef.type,
-            name: taskDef.name,
-            timeUnits: taskDef.timeUnits,
-            color: taskDef.color,
-            description: taskDef.description,
-            restrictions: taskDef.restrictions || null
+            updatedAt: new Date().toISOString()
           }
         })
       }
 
-      return { weekSchedule }
+      return { weekSchedule: weekRow }
     })
 
     return res.json({

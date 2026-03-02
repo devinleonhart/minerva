@@ -7,6 +7,7 @@ const __dirname = path.dirname(__filename)
 
 export default defineConfig({
   root: __dirname,
+  envDir: path.resolve(__dirname, '..'),
   test: {
     environment: 'node',
     globals: true,

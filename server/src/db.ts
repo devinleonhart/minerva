@@ -1,13 +1,9 @@
-import { PrismaClient } from './generated/client.js'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { drizzle } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
-import { getPrimaryDatabaseUrl } from './config/databaseUrls.js'
+import * as schema from '../db/index.js'
+import { getDatabaseUrl } from './config/databaseUrls.js'
 
 const { Pool } = pg
 
-const connectionString = getPrimaryDatabaseUrl()
-
-const pool = new Pool({ connectionString })
-const adapter = new PrismaPg(pool)
-
-export const prisma = new PrismaClient({ adapter })
+const pool = new Pool({ connectionString: getDatabaseUrl() })
+export const db = drizzle(pool, { schema })

@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
@@ -12,13 +12,11 @@ router.get('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid recipe ID' })
     }
 
-    const recipe = await prisma.recipe.findUnique({
-      where: { id },
-      include: {
+    const recipe = await db.query.recipe.findFirst({
+      where: (r, { eq }) => eq(r.id, id),
+      with: {
         ingredients: {
-          include: {
-            ingredient: true
-          }
+          with: { ingredient: true }
         }
       }
     })
@@ -35,17 +33,13 @@ router.get('/:id', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const recipes = await prisma.recipe.findMany({
-      include: {
+    const recipes = await db.query.recipe.findMany({
+      with: {
         ingredients: {
-          include: {
-            ingredient: true
-          }
+          with: { ingredient: true }
         }
       },
-      orderBy: {
-        name: 'asc'
-      }
+      orderBy: (r, { asc }) => [asc(r.name)]
     })
 
     return res.json(recipes)

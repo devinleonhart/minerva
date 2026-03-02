@@ -1,10 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { item, itemInventoryItem } from '../../../db/index.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-import type { PrismaClient } from '../../generated/client.js'
-
-type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
-
 
 const router: Router = Router()
 
@@ -22,29 +19,27 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Item description must be a string' })
     }
 
-    const result = await prisma.$transaction(async (tx: TransactionClient) => {
-      const item = await tx.item.create({
-        data: {
-          name: name.trim(),
-          description: description?.trim() || ''
-        }
+    const result = await db.transaction(async (tx) => {
+      const [newItem] = await tx.insert(item).values({
+        name: name.trim(),
+        description: description?.trim() || '',
+        updatedAt: new Date().toISOString()
+      }).returning()
+
+      await tx.insert(itemInventoryItem).values({
+        itemId: newItem.id,
+        quantity: 0,
+        updatedAt: new Date().toISOString()
       })
 
-      await tx.itemInventoryItem.create({
-        data: {
-          itemId: item.id,
-          quantity: 0
-        }
-      })
-
-      return item
+      return newItem
     })
 
-    const createdItem = await prisma.item.findUnique({
-      where: { id: result.id },
-      include: {
-        inventoryItems: {
-          select: {
+    const createdItem = await db.query.item.findFirst({
+      where: (i, { eq }) => eq(i.id, result.id),
+      with: {
+        itemInventoryItems: {
+          columns: {
             id: true,
             quantity: true,
             createdAt: true,
@@ -54,7 +49,9 @@ router.post('/', async (req, res) => {
       }
     })
 
-    return res.status(201).json(createdItem)
+    if (!createdItem) return res.status(500).json({ error: 'Failed to create item' })
+    const { itemInventoryItems, ...rest } = createdItem
+    return res.status(201).json({ ...rest, inventoryItems: itemInventoryItems })
   } catch (error) {
     handleUnknownError(res, 'creating item', error)
   }

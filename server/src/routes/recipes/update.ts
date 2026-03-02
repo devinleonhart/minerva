@@ -1,17 +1,14 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { recipe, recipeIngredient, ingredient } from '../../../db/index.js'
+import { eq, inArray } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-import type { PrismaClient } from '../../generated/client.js'
-
-type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 interface RecipeIngredientInput {
   ingredientId: number
   quantity: number
 }
-
-
 
 const router: Router = Router()
 
@@ -28,8 +25,8 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid recipe ID' })
     }
 
-    const existingRecipe = await prisma.recipe.findUnique({
-      where: { id }
+    const existingRecipe = await db.query.recipe.findFirst({
+      where: (r, { eq }) => eq(r.id, id)
     })
 
     if (!existingRecipe) {
@@ -37,7 +34,7 @@ router.put('/:id', async (req, res) => {
     }
 
     // Update recipe with ingredients in a transaction
-    await prisma.$transaction(async (tx: TransactionClient) => {
+    await db.transaction(async (tx) => {
       // Validate name if provided
       if (name !== undefined && (typeof name !== 'string' || name.trim() === '')) {
         throw new Error('Recipe name is required')
@@ -66,59 +63,45 @@ router.put('/:id', async (req, res) => {
       }
 
       // Update basic recipe info
-      const recipe = await tx.recipe.update({
-        where: { id },
-        data: {
-          ...(name !== undefined && { name: name.trim() }),
-          ...(description !== undefined && { description: description.trim() })
-        }
-      })
+      await tx.update(recipe).set({
+        ...(name !== undefined && { name: name.trim() }),
+        ...(description !== undefined && { description: description.trim() }),
+        updatedAt: new Date().toISOString()
+      }).where(eq(recipe.id, id))
 
       // Update ingredients if provided
       if (ingredients !== undefined) {
         // Verify all ingredients exist
         const ingredientIds = ingredients.map((ing: RecipeIngredientInput) => ing.ingredientId)
-        const existingIngredients = await tx.ingredient.findMany({
-          where: {
-            id: { in: ingredientIds }
-          }
-        })
-
         const uniqueIngredientIds = [...new Set(ingredientIds)]
+        const existingIngredients = await tx.select().from(ingredient).where(inArray(ingredient.id, ingredientIds))
+
         if (existingIngredients.length !== uniqueIngredientIds.length) {
           throw new Error('One or more ingredients not found')
         }
 
         // Remove existing recipe-ingredient relationships
-        await tx.recipeIngredient.deleteMany({
-          where: { recipeId: id }
-        })
+        await tx.delete(recipeIngredient).where(eq(recipeIngredient.recipeId, id))
 
         // Create new recipe-ingredient relationships with quantities
         await Promise.all(
           ingredients.map((ing: RecipeIngredientInput) =>
-            tx.recipeIngredient.create({
-              data: {
-                recipeId: id,
-                ingredientId: ing.ingredientId,
-                quantity: ing.quantity || 1
-              }
+            tx.insert(recipeIngredient).values({
+              recipeId: id,
+              ingredientId: ing.ingredientId,
+              quantity: ing.quantity || 1
             })
           )
         )
       }
-
-      return recipe
     })
 
     // Fetch the updated recipe with ingredients
-    const recipeWithIngredients = await prisma.recipe.findUnique({
-      where: { id },
-      include: {
+    const recipeWithIngredients = await db.query.recipe.findFirst({
+      where: (r, { eq }) => eq(r.id, id),
+      with: {
         ingredients: {
-          include: {
-            ingredient: true
-          }
+          with: { ingredient: true }
         }
       }
     })

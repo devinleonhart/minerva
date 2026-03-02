@@ -1,8 +1,8 @@
-import express from 'express'
+import express, { type Express } from 'express'
 import cors from 'cors'
 import routes from '../src/routes/index.js'
 
-export function createTestApp() {
+export function createTestApp(): Express {
   const app = express()
 
   app.use(cors())

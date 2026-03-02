@@ -1,9 +1,8 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { potion, potionInventoryItem, recipe } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-import type { PrismaClient } from '../../generated/client.js'
-
-type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 const router: Router = Router()
 
@@ -31,71 +30,58 @@ router.post('/', async (req, res) => {
     }
 
     // Verify recipe exists
-    const recipe = await prisma.recipe.findUnique({
-      where: { id: recipeId }
-    })
-
-    if (!recipe) {
+    const [recipeRow] = await db.select().from(recipe).where(eq(recipe.id, recipeId))
+    if (!recipeRow) {
       return res.status(404).json({ error: 'Recipe not found' })
     }
 
     // Create the potion directly without ingredient requirements
-    const potion = await prisma.$transaction(async (tx: TransactionClient) => {
+    const resultPotion = await db.transaction(async (tx) => {
       // Check if a potion with the same recipe and quality already exists
-      const existingPotion = await tx.potion.findFirst({
-        where: {
-          recipeId: recipeId,
-          quality: quality as 'NORMAL' | 'HQ' | 'LQ'
-        },
-        include: {
-          inventoryItems: true
-        }
+      const existingPotion = await tx.query.potion.findFirst({
+        where: (p, { eq, and }) => and(eq(p.recipeId, recipeId), eq(p.quality, quality as 'NORMAL' | 'HQ' | 'LQ')),
+        with: { inventoryItems: true }
       })
 
-      if (existingPotion && existingPotion.inventoryItems.length > 0) {
+      type PotionInvItem = { id: number; quantity: number }
+      if (existingPotion && (existingPotion.inventoryItems as PotionInvItem[]).length > 0) {
         // Potion exists, increment its inventory quantity
-        const inventoryItem = existingPotion.inventoryItems[0]
-        await tx.potionInventoryItem.update({
-          where: { id: inventoryItem.id },
-          data: {
-            quantity: inventoryItem.quantity + 1
-          }
-        })
+        const invItem = (existingPotion.inventoryItems as PotionInvItem[])[0]
+        await tx.update(potionInventoryItem).set({
+          quantity: invItem.quantity + 1,
+          updatedAt: new Date().toISOString()
+        }).where(eq(potionInventoryItem.id, invItem.id))
         return existingPotion
       } else {
         // Create new potion
-        const newPotion = await tx.potion.create({
-          data: {
-            quality: quality as 'NORMAL' | 'HQ' | 'LQ',
-            recipeId: recipeId
-          }
-        })
+        const [newPotion] = await tx.insert(potion).values({
+          quality: quality as 'NORMAL' | 'HQ' | 'LQ',
+          recipeId: recipeId,
+          updatedAt: new Date().toISOString()
+        }).returning()
 
         // Add potion to inventory
-        await tx.potionInventoryItem.create({
-          data: {
-            potionId: newPotion.id,
-            quantity: 1
-          }
+        await tx.insert(potionInventoryItem).values({
+          potionId: newPotion.id,
+          quantity: 1,
+          updatedAt: new Date().toISOString()
         })
 
         return newPotion
       }
     })
 
-    // Fetch the created potion with recipe details
-    const potionWithRecipe = await prisma.potion.findUnique({
-      where: { id: potion.id },
-      include: {
-        inventoryItems: true
-      }
+    // Fetch the created potion with inventory items
+    const potionWithInventory = await db.query.potion.findFirst({
+      where: (p, { eq }) => eq(p.id, resultPotion.id),
+      with: { inventoryItems: true }
     })
 
-    if (!potionWithRecipe) {
+    if (!potionWithInventory) {
       return res.status(500).json({ error: 'Failed to create potion' })
     }
 
-    return res.status(201).json(potionWithRecipe)
+    return res.status(201).json(potionWithInventory)
   } catch (error) {
     handleUnknownError(res, 'creating potion directly', error)
   }

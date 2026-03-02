@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { inventoryItem, ingredient } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
@@ -14,50 +16,38 @@ router.put('/:id', async (req, res) => {
 
     const { quality, quantity } = req.body
 
-    // Check if inventory item exists
-    const existingItem = await prisma.inventoryItem.findUnique({
-      where: { id }
-    })
-
-    if (!existingItem) {
+    const [existing] = await db.select().from(inventoryItem).where(eq(inventoryItem.id, id))
+    if (!existing) {
       return res.status(404).json({ error: 'Inventory item not found' })
     }
 
-    // Validate quality if provided
     if (quality !== undefined) {
       if (typeof quality !== 'string' || !['NORMAL', 'HQ', 'LQ'].includes(quality)) {
         return res.status(400).json({ error: 'Invalid quality. Must be NORMAL, HQ, or LQ' })
       }
     }
 
-    // Validate quantity if provided
     if (quantity !== undefined && (quantity < 0 || !Number.isInteger(quantity))) {
       return res.status(400).json({ error: 'Quantity must be a non-negative integer' })
     }
 
-    // Build update data object
     const updateData: {
       quality?: 'NORMAL' | 'HQ' | 'LQ'
       quantity?: number
-    } = {}
+      updatedAt: string
+    } = { updatedAt: new Date().toISOString() }
 
-    if (quality !== undefined) {
-      updateData.quality = quality as 'NORMAL' | 'HQ' | 'LQ'
-    }
-    if (quantity !== undefined) {
-      updateData.quantity = quantity
-    }
+    if (quality !== undefined) updateData.quality = quality as 'NORMAL' | 'HQ' | 'LQ'
+    if (quantity !== undefined) updateData.quantity = quantity
 
-    // Update the inventory item
-    const updatedItem = await prisma.inventoryItem.update({
-      where: { id },
-      data: updateData,
-      include: {
-        ingredient: true
-      }
-    })
+    const [updated] = await db.update(inventoryItem)
+      .set(updateData)
+      .where(eq(inventoryItem.id, id))
+      .returning()
 
-    return res.json(updatedItem)
+    const [ing] = await db.select().from(ingredient).where(eq(ingredient.id, updated.ingredientId))
+
+    return res.json({ ...updated, ingredient: ing })
   } catch (error) {
     handleUnknownError(res, 'updating inventory item', error)
   }

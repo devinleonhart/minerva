@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { person } from '../../../db/index.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-
 
 const router: Router = Router()
 
@@ -35,18 +35,17 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'isFavorited must be a boolean' })
     }
 
-    const person = await prisma.person.create({
-      data: {
-        name: name.trim(),
-        description: description?.trim() || null,
-        relationship: relationship?.trim() || null,
-        notableEvents: notableEvents?.trim() || null,
-        url: url?.trim() || null,
-        isFavorited: Boolean(isFavorited)
-      }
-    })
+    const [row] = await db.insert(person).values({
+      name: name.trim(),
+      description: description?.trim() || null,
+      relationship: relationship?.trim() || null,
+      notableEvents: notableEvents?.trim() || null,
+      url: url?.trim() || null,
+      isFavorited: Boolean(isFavorited),
+      updatedAt: new Date().toISOString()
+    }).returning()
 
-    return res.status(201).json(person)
+    return res.status(201).json(row)
   } catch (error) {
     handleUnknownError(res, 'creating person', error)
   }

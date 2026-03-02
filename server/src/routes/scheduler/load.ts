@@ -1,50 +1,54 @@
 import { Router, RequestHandler } from 'express'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-import { prisma } from '../../db.js'
-
+import { db } from '../../db.js'
+import { taskDefinition } from '../../../db/index.js'
+import { asc } from 'drizzle-orm'
 
 const router: Router = Router()
 
+// Convert PostgreSQL timestamp string to ISO format
+function toISO(ts: string): string {
+  return new Date(ts.includes('T') ? ts : ts.replace(' ', 'T') + 'Z').toISOString()
+}
+
+
 const loadScheduler: RequestHandler = async (req, res) => {
   try {
-    const { weekStartDate } = req.params
+    const raw = req.params['weekStartDate']
+    const weekStartDate = Array.isArray(raw) ? raw[0] : raw
 
-    // Validate the date parameter
     if (!weekStartDate || isNaN(Date.parse(weekStartDate))) {
       return res.status(400).json({
         error: 'Invalid week start date'
       })
     }
 
-    // Load from database
-    const weekSchedule = await prisma.weekSchedule.findUnique({
-      where: { weekStartDate: new Date(weekStartDate) },
-      include: {
+    const dateStr = new Date(weekStartDate).toISOString().split('T')[0]
+
+    const weekScheduleRow = await db.query.weekSchedule.findFirst({
+      where: (ws, { sql: sqlFn }) => sqlFn`DATE(${ws.weekStartDate}) = DATE(${dateStr})`,
+      with: {
         days: {
-          include: {
-            tasks: true
-          },
-          orderBy: { day: 'asc' }
+          with: { tasks: true }
         }
       }
     })
 
-    if (!weekSchedule) {
+    if (!weekScheduleRow) {
       return res.json({
         currentWeek: null,
         taskDefinitions: []
       })
     }
 
-    // Transform the data to match the expected format
     const currentWeek = {
-      weekStartDate: weekSchedule.weekStartDate.toISOString(),
-      totalScheduledUnits: weekSchedule.totalScheduledUnits,
-      freeTimeUsed: weekSchedule.freeTimeUsed,
-      days: weekSchedule.days.map((day: { day: number; dayName: string; totalUnits: number; tasks: Array<{ timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null }> }) => {
-        const morning = day.tasks.find((task: { timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null }) => task.timeSlot === 'MORNING')
-        const afternoon = day.tasks.find((task: { timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null }) => task.timeSlot === 'AFTERNOON')
-        const evening = day.tasks.find((task: { timeSlot: string; id: number; type: string; timeUnits: number; notes: string | null }) => task.timeSlot === 'EVENING')
+      weekStartDate: toISO(weekScheduleRow.weekStartDate),
+      totalScheduledUnits: weekScheduleRow.totalScheduledUnits,
+      freeTimeUsed: weekScheduleRow.freeTimeUsed,
+      days: weekScheduleRow.days.slice().sort((a, b) => a.day - b.day).map((day) => {
+        const morning = day.tasks.find((task) => task.timeSlot === 'MORNING')
+        const afternoon = day.tasks.find((task) => task.timeSlot === 'AFTERNOON')
+        const evening = day.tasks.find((task) => task.timeSlot === 'EVENING')
 
         return {
           day: day.day,
@@ -75,14 +79,11 @@ const loadScheduler: RequestHandler = async (req, res) => {
       })
     }
 
-    // Load task definitions
-    const taskDefinitions = await prisma.taskDefinition.findMany({
-      orderBy: { type: 'asc' }
-    })
+    const taskDefs = await db.select().from(taskDefinition).orderBy(asc(taskDefinition.type))
 
     return res.json({
       currentWeek,
-      taskDefinitions
+      taskDefinitions: taskDefs
     })
   } catch (error) {
     handleUnknownError(res, 'loading scheduler', error)

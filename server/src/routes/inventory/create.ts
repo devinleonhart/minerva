@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { ingredient, inventoryItem } from '../../../db/index.js'
+import { eq, and } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const router: Router = Router()
@@ -8,12 +10,10 @@ router.post('/', async (req, res) => {
   try {
     const { ingredientId, quantity = 1, quality = 'NORMAL' } = req.body
 
-    // Validate ingredientId
     if (!ingredientId) {
       return res.status(400).json({ error: 'ingredientId is required' })
     }
 
-    // Validate quality
     if (quality !== undefined && (
       quality === null ||
       quality === '' ||
@@ -23,53 +23,34 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Invalid quality. Must be NORMAL, HQ, or LQ' })
     }
 
-    // Validate quantity
     if (quantity !== undefined && (quantity < 0 || !Number.isInteger(quantity))) {
       return res.status(400).json({ error: 'Quantity must be a non-negative integer' })
     }
 
-    // Check if ingredient exists
-    const ingredient = await prisma.ingredient.findUnique({
-      where: { id: ingredientId }
-    })
-
-    if (!ingredient) {
+    const [ing] = await db.select().from(ingredient).where(eq(ingredient.id, ingredientId))
+    if (!ing) {
       return res.status(404).json({ error: 'Ingredient not found' })
     }
 
-    // Check if item already exists in inventory with the same quality
-    const existingItem = await prisma.inventoryItem.findFirst({
-      where: {
-        ingredientId,
-        quality
-      }
-    })
+    const [existing] = await db.select().from(inventoryItem)
+      .where(and(eq(inventoryItem.ingredientId, ingredientId), eq(inventoryItem.quality, quality)))
 
-    if (existingItem) {
-      // Update quantity if item already exists with same quality
-      const updatedItem = await prisma.inventoryItem.update({
-        where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + quantity },
-        include: {
-          ingredient: true
-        }
-      })
-      return res.json(updatedItem)
+    if (existing) {
+      const [updated] = await db.update(inventoryItem)
+        .set({ quantity: existing.quantity + quantity, updatedAt: new Date().toISOString() })
+        .where(eq(inventoryItem.id, existing.id))
+        .returning()
+      return res.json({ ...updated, ingredient: ing })
     }
 
-    // Create new inventory item
-    const inventoryItem = await prisma.inventoryItem.create({
-      data: {
-        ingredientId,
-        quantity,
-        quality
-      },
-      include: {
-        ingredient: true
-      }
-    })
+    const [created] = await db.insert(inventoryItem).values({
+      ingredientId,
+      quantity,
+      quality,
+      updatedAt: new Date().toISOString()
+    }).returning()
 
-    return res.status(201).json(inventoryItem)
+    return res.status(201).json({ ...created, ingredient: ing })
   } catch (error) {
     handleUnknownError(res, 'creating inventory item', error)
   }

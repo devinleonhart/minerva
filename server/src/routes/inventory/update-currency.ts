@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { currency } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import { parseId } from '../../utils/parseId.js'
 
@@ -15,29 +17,31 @@ router.put('/:id', async (req, res) => {
 
     const { name, value } = req.body
 
-    // Validate name if provided
     if (name !== undefined && (typeof name !== 'string' || name.trim() === '')) {
       return res.status(400).json({ error: 'Currency name must be a non-empty string' })
     }
 
-    // Validate value if provided
     if (value !== undefined && (typeof value !== 'number' || value < 0)) {
       return res.status(400).json({ error: 'Currency value must be a non-negative number' })
     }
 
-    const currency = await prisma.currency.update({
-      where: { id },
-      data: {
-        ...(name !== undefined && { name: name.trim() }),
-        ...(value !== undefined && { value })
-      }
-    })
+    const updateData: { name?: string; value?: number; updatedAt: string } = {
+      updatedAt: new Date().toISOString()
+    }
+    if (name !== undefined) updateData.name = name.trim()
+    if (value !== undefined) updateData.value = value
 
-    res.json(currency)
-  } catch (error) {
-    if ((error as { code?: string }).code === 'P2025') {
+    const [updated] = await db.update(currency)
+      .set(updateData)
+      .where(eq(currency.id, id))
+      .returning()
+
+    if (!updated) {
       return res.status(404).json({ error: 'Currency not found' })
     }
+
+    res.json(updated)
+  } catch (error) {
     handleUnknownError(res, 'updating currency in inventory', error)
   }
 })

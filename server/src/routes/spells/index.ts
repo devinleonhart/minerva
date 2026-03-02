@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { spell } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import getRoutes from './get.js'
@@ -32,27 +34,26 @@ router.patch('/:id/progress', async (req, res) => {
       return res.status(400).json({ error: 'Current stars must be a non-negative integer' })
     }
 
-    const spell = await prisma.spell.findUnique({
-      where: { id }
-    })
+    const [row] = await db.select().from(spell).where(eq(spell.id, id))
 
-    if (!spell) {
+    if (!row) {
       return res.status(404).json({ error: 'Spell not found' })
     }
 
-    if (currentStars > spell.neededStars) {
+    if (currentStars > row.neededStars) {
       return res.status(400).json({ error: 'Current stars cannot exceed needed stars' })
     }
 
-    const updatedSpell = await prisma.spell.update({
-      where: { id },
-      data: {
+    const [updated] = await db.update(spell)
+      .set({
         currentStars,
-        isLearned: currentStars >= spell.neededStars
-      }
-    })
+        isLearned: currentStars >= row.neededStars,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(spell.id, id))
+      .returning()
 
-    return res.json(updatedSpell)
+    return res.json(updated)
   } catch (error) {
     handleUnknownError(res, 'updating spell progress', error)
   }

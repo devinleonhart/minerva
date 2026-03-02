@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import request from 'supertest'
 import { createTestApp } from '../helpers.js'
-import { testPrisma, createTestIngredient, createTestInventoryItem, createTestItem, createTestCurrency, createTestRecipe, createTestPotion } from '../setup.js'
+import { testPrisma, createTestIngredient, createTestInventoryItem, createTestItem, createTestCurrency, createTestRecipe } from '../setup.js'
 
 const app = createTestApp()
 

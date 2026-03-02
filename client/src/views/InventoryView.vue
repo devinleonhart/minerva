@@ -16,7 +16,7 @@ import {
   AddCurrencyForm,
   AddItemForm
 } from '@/components/features/inventory'
-import { Search, Loader2, Plus, Coins, Package } from 'lucide-vue-next'
+import { Search, Loader2, Coins, Package } from 'lucide-vue-next'
 
 const inventoryStore = useInventoryStore()
 const { inventoryItems, potionItems, itemItems, currencies } = storeToRefs(inventoryStore)

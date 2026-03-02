@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { spell } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import { parseId } from '../../utils/parseId.js'
 
@@ -32,7 +34,7 @@ router.put('/:id', async (req, res) => {
     }
 
     // Get current spell to validate star constraints
-    const currentSpell = await prisma.spell.findUnique({ where: { id } })
+    const [currentSpell] = await db.select().from(spell).where(eq(spell.id, id))
     if (!currentSpell) {
       return res.status(404).json({ error: 'Spell not found' })
     }
@@ -46,22 +48,22 @@ router.put('/:id', async (req, res) => {
 
     const isLearned = newCurrentStars >= newNeededStars
 
-    const spell = await prisma.spell.update({
-      where: { id },
-      data: {
-        ...(name !== undefined && { name: name.trim() }),
-        ...(neededStars !== undefined && { neededStars: newNeededStars }),
-        ...(currentStars !== undefined && { currentStars: newCurrentStars }),
-        isLearned
-      }
-    })
+    const [row] = await db.update(spell).set({
+      ...(name !== undefined && { name: name.trim() }),
+      ...(neededStars !== undefined && { neededStars: newNeededStars }),
+      ...(currentStars !== undefined && { currentStars: newCurrentStars }),
+      isLearned,
+      updatedAt: new Date().toISOString()
+    }).where(eq(spell.id, id)).returning()
 
-    return res.json(spell)
-  } catch (error) {
-    if ((error as { code?: string }).code === 'P2025') {
+    if (!row) {
       return res.status(404).json({ error: 'Spell not found' })
     }
-    if ((error as { code?: string }).code === 'P2002') {
+
+    return res.json(row)
+  } catch (error) {
+    const e = error as { code?: string; cause?: { code?: string } }
+    if (e?.code === '23505' || e?.cause?.code === '23505') {
       return res.status(409).json({ error: 'A spell with this name already exists' })
     }
     handleUnknownError(res, 'updating spell', error)

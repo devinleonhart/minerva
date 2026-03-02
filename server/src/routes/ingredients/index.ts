@@ -1,7 +1,8 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
+
 const router: Router = Router()
 
 // Import route handlers
@@ -24,14 +25,12 @@ router.get('/:id/deletable', async (req, res) => {
       return
     }
 
-    // Check if ingredient is used in any recipes
-    const recipeUsage = await prisma.recipeIngredient.findFirst({
-      where: { ingredientId: id }
+    const recipeUsage = await db.query.recipeIngredient.findFirst({
+      where: (ri, { eq }) => eq(ri.ingredientId, id)
     })
 
-    // Check if ingredient has any inventory items
-    const inventoryUsage = await prisma.inventoryItem.findFirst({
-      where: { ingredientId: id }
+    const inventoryUsage = await db.query.inventoryItem.findFirst({
+      where: (inv, { eq }) => eq(inv.ingredientId, id)
     })
 
     const canDelete = !recipeUsage && !inventoryUsage

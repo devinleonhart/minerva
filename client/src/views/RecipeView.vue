@@ -10,7 +10,6 @@ import type { Recipe, CreateRecipeRequest, UpdateRecipeRequest, RecipeDeletabili
 import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { RecipeList, RecipeForm, CraftModal } from '@/components/features/recipes'
 import { Search, Loader2, Plus } from 'lucide-vue-next'
 

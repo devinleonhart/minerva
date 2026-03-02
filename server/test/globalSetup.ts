@@ -6,20 +6,23 @@ import { getTestDatabaseUrl } from '../src/config/databaseUrls.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// Load .env from project root so TEST_DATABASE_URL is available when running outside Docker
+const rootDir = path.resolve(__dirname, '..', '..')
+try { process.loadEnvFile(path.resolve(rootDir, '.env')) } catch { /* no .env file is fine */ }
+
 export async function setup() {
   // Push the schema to the test database (only once globally)
   const dbUrl = getTestDatabaseUrl()
 
-  // Get the root directory (two levels up from test directory)
   const rootDir = path.resolve(__dirname, '..', '..')
 
   try {
-    execSync('pnpm prisma db push --schema=./server/prisma/schema.prisma --config=./server/prisma/prisma.config.ts', {
+    execSync('pnpm exec drizzle-kit push --force', {
       cwd: rootDir,
       stdio: 'pipe',
       env: {
         ...process.env,
-        MINERVA_DATABASE_URL: dbUrl
+        DATABASE_URL: dbUrl
       }
     })
   } catch (error) {

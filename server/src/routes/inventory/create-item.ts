@@ -1,5 +1,6 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { item, itemInventoryItem } from '../../../db/index.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
 const router: Router = Router()
@@ -13,32 +14,24 @@ router.post('/', async (req, res) => {
       return
     }
 
-    // Validate quantity
     if (quantity < 1 || !Number.isInteger(quantity)) {
       res.status(400).json({ error: 'quantity must be a positive integer' })
       return
     }
 
-    // Create new item
-    const item = await prisma.item.create({
-      data: {
-        name,
-        description
-      }
-    })
+    const [newItem] = await db.insert(item).values({
+      name,
+      description,
+      updatedAt: new Date().toISOString()
+    }).returning()
 
-    // Add item to inventory
-    const inventoryItem = await prisma.itemInventoryItem.create({
-      data: {
-        itemId: item.id,
-        quantity
-      },
-      include: {
-        item: true
-      }
-    })
+    const [invItem] = await db.insert(itemInventoryItem).values({
+      itemId: newItem.id,
+      quantity,
+      updatedAt: new Date().toISOString()
+    }).returning()
 
-    res.status(201).json(inventoryItem)
+    res.status(201).json({ ...invItem, item: newItem })
   } catch (error) {
     handleUnknownError(res, 'creating item in inventory', error)
   }

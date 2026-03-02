@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ToastRoot, ToastTitle, ToastDescription, ToastClose, ToastAction } from 'radix-vue'
+import { ToastRoot, ToastTitle, ToastDescription, ToastClose } from 'radix-vue'
 import { X } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
 

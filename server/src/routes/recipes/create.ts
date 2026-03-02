@@ -1,16 +1,13 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { recipe, recipeIngredient, ingredient } from '../../../db/index.js'
+import { inArray } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-import type { PrismaClient } from '../../generated/client.js'
-
-type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 interface RecipeIngredientInput {
   ingredientId: number
   quantity: number
 }
-
-
 
 const router: Router = Router()
 
@@ -48,50 +45,41 @@ router.post('/', async (req, res) => {
     }
 
     // Verify all ingredients exist
-    const existingIngredients = await prisma.ingredient.findMany({
-      where: {
-        id: { in: uniqueIngredientIds }
-      }
-    })
+    const existingIngredients = await db.select().from(ingredient).where(inArray(ingredient.id, uniqueIngredientIds))
 
     if (existingIngredients.length !== uniqueIngredientIds.length) {
       return res.status(400).json({ error: 'One or more ingredients not found' })
     }
 
     // Create recipe with ingredients in a transaction
-    const recipe = await prisma.$transaction(async (tx: TransactionClient) => {
+    const newRecipe = await db.transaction(async (tx) => {
       // Create the recipe
-      const newRecipe = await tx.recipe.create({
-        data: {
-          name: name.trim(),
-          description: description.trim()
-        }
-      })
+      const [createdRecipe] = await tx.insert(recipe).values({
+        name: name.trim(),
+        description: description.trim(),
+        updatedAt: new Date().toISOString()
+      }).returning()
 
       // Create recipe-ingredient relationships with quantities
       await Promise.all(
         ingredients.map((ing: RecipeIngredientInput) =>
-          tx.recipeIngredient.create({
-            data: {
-              recipeId: newRecipe.id,
-              ingredientId: ing.ingredientId,
-              quantity: ing.quantity || 1
-            }
+          tx.insert(recipeIngredient).values({
+            recipeId: createdRecipe.id,
+            ingredientId: ing.ingredientId,
+            quantity: ing.quantity || 1
           })
         )
       )
 
-      return newRecipe
+      return createdRecipe
     })
 
     // Fetch the created recipe with ingredients
-    const recipeWithIngredients = await prisma.recipe.findUnique({
-      where: { id: recipe.id },
-      include: {
+    const recipeWithIngredients = await db.query.recipe.findFirst({
+      where: (r, { eq }) => eq(r.id, newRecipe.id),
+      with: {
         ingredients: {
-          include: {
-            ingredient: true
-          }
+          with: { ingredient: true }
         }
       }
     })

@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { person } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import getRoutes from './get.js'
@@ -22,20 +24,18 @@ router.patch('/:id/favorite', async (req, res) => {
       return res.status(400).json({ error: 'Invalid person ID' })
     }
 
-    const person = await prisma.person.findUnique({
-      where: { id }
-    })
+    const [row] = await db.select().from(person).where(eq(person.id, id))
 
-    if (!person) {
+    if (!row) {
       return res.status(404).json({ error: 'Person not found' })
     }
 
-    const updatedPerson = await prisma.person.update({
-      where: { id },
-      data: { isFavorited: !person.isFavorited }
-    })
+    const [updated] = await db.update(person)
+      .set({ isFavorited: !row.isFavorited, updatedAt: new Date().toISOString() })
+      .where(eq(person.id, id))
+      .returning()
 
-    return res.json(updatedPerson)
+    return res.json(updated)
   } catch (error) {
     handleUnknownError(res, 'toggling person favorite status', error)
   }

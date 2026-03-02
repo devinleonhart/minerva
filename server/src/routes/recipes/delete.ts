@@ -1,10 +1,9 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { recipe, recipeIngredient } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-import type { PrismaClient } from '../../generated/client.js'
-
-type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>
 
 const router: Router = Router()
 
@@ -16,8 +15,8 @@ router.delete('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid recipe ID' })
     }
 
-    const existingRecipe = await prisma.recipe.findUnique({
-      where: { id }
+    const existingRecipe = await db.query.recipe.findFirst({
+      where: (r, { eq }) => eq(r.id, id)
     })
 
     if (!existingRecipe) {
@@ -25,15 +24,9 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Check if recipe has potions that are currently in inventory
-    const potionsInInventory = await prisma.potionInventoryItem.findMany({
-      include: {
-        potion: true
-      },
-      where: {
-        potion: {
-          recipeId: id
-        }
-      }
+    const potionsInInventory = await db.query.potionInventoryItem.findMany({
+      with: { potion: true },
+      where: (pii, { sql }) => sql`${pii.potionId} IN (SELECT id FROM "Potion" WHERE "recipeId" = ${id})`
     })
 
     if (potionsInInventory.length > 0) {
@@ -41,16 +34,12 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Delete recipe with ingredients in a transaction
-    await prisma.$transaction(async (tx: TransactionClient) => {
+    await db.transaction(async (tx) => {
       // Delete recipe-ingredient relationships first
-      await tx.recipeIngredient.deleteMany({
-        where: { recipeId: id }
-      })
+      await tx.delete(recipeIngredient).where(eq(recipeIngredient.recipeId, id))
 
       // Delete the recipe
-      await tx.recipe.delete({
-        where: { id }
-      })
+      await tx.delete(recipe).where(eq(recipe.id, id))
     })
 
     return res.status(204).send()

@@ -1,6 +1,8 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { ingredient } from '../../../db/index.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
+
 const router: Router = Router()
 
 router.post('/', async (req, res) => {
@@ -17,14 +19,13 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const ingredient = await prisma.ingredient.create({
-      data: {
-        name: name.trim(),
-        description: description.trim(),
-        secured: Boolean(secured)
-      }
-    })
-    return res.status(201).json(ingredient)
+    const [row] = await db.insert(ingredient).values({
+      name: name.trim(),
+      description: description.trim(),
+      secured: Boolean(secured),
+      updatedAt: new Date().toISOString()
+    }).returning()
+    return res.status(201).json(row)
   } catch (error) {
     handleUnknownError(res, 'creating ingredient', error)
   }

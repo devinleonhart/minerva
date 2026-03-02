@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { currency } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import { parseId } from '../../utils/parseId.js'
 
@@ -13,15 +15,14 @@ router.delete('/:id', async (req, res) => {
       return
     }
 
-    await prisma.currency.delete({
-      where: { id }
-    })
+    const [deleted] = await db.delete(currency).where(eq(currency.id, id)).returning()
+
+    if (!deleted) {
+      return res.status(404).json({ error: 'Currency not found' })
+    }
 
     res.status(204).send()
   } catch (error) {
-    if ((error as { code?: string }).code === 'P2025') {
-      return res.status(404).json({ error: 'Currency not found' })
-    }
     handleUnknownError(res, 'deleting currency from inventory', error)
   }
 })

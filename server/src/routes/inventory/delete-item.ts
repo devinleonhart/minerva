@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { itemInventoryItem } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 
@@ -14,9 +16,7 @@ router.delete('/:id', async (req, res) => {
       return
     }
 
-    await prisma.itemInventoryItem.delete({
-      where: { id }
-    })
+    await db.delete(itemInventoryItem).where(eq(itemInventoryItem.id, id))
 
     res.json({ message: 'Item removed from inventory' })
   } catch (error) {

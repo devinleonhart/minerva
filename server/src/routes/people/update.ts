@@ -1,5 +1,7 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { person } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import { parseId } from '../../utils/parseId.js'
 
@@ -47,7 +49,8 @@ router.put('/:id', async (req, res) => {
       notableEvents?: string | null
       url?: string | null
       isFavorited?: boolean
-    } = {}
+      updatedAt: string
+    } = { updatedAt: new Date().toISOString() }
 
     if (name !== undefined) {
       updateData.name = name.trim()
@@ -68,16 +71,13 @@ router.put('/:id', async (req, res) => {
       updateData.isFavorited = isFavorited
     }
 
-    const person = await prisma.person.update({
-      where: { id },
-      data: updateData
-    })
-
-    return res.json(person)
-  } catch (error) {
-    if ((error as { code?: string }).code === 'P2025') {
+    const [row] = await db.update(person).set(updateData).where(eq(person.id, id)).returning()
+    if (!row) {
       return res.status(404).json({ error: 'Person not found' })
     }
+
+    return res.json(row)
+  } catch (error) {
     handleUnknownError(res, 'updating person', error)
   }
 })

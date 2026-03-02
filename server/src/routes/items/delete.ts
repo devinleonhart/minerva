@@ -1,8 +1,9 @@
 import { Router } from 'express'
-import { prisma } from '../../db.js'
+import { db } from '../../db.js'
+import { item, itemInventoryItem } from '../../../db/index.js'
+import { eq } from 'drizzle-orm'
 import { parseId } from '../../utils/parseId.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-
 
 const router: Router = Router()
 
@@ -13,9 +14,7 @@ router.delete('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid item ID' })
     }
 
-    const existingInventoryItems = await prisma.itemInventoryItem.findMany({
-      where: { itemId: id }
-    })
+    const existingInventoryItems = await db.select().from(itemInventoryItem).where(eq(itemInventoryItem.itemId, id))
 
     if (existingInventoryItems.length > 0) {
       return res.status(400).json({
@@ -24,17 +23,11 @@ router.delete('/:id', async (req, res) => {
       })
     }
 
-    try {
-      await prisma.item.delete({
-        where: { id }
-      })
-      return res.status(204).send()
-    } catch (deleteError: unknown) {
-      if (deleteError && typeof deleteError === 'object' && 'code' in deleteError && deleteError.code === 'P2025') {
-        return res.status(404).json({ error: 'Item not found' })
-      }
-      throw deleteError
+    const [row] = await db.delete(item).where(eq(item.id, id)).returning()
+    if (!row) {
+      return res.status(404).json({ error: 'Item not found' })
     }
+    return res.status(204).send()
   } catch (error) {
     handleUnknownError(res, 'deleting item', error)
   }

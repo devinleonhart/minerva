@@ -5,7 +5,6 @@ import type { Ingredient, IngredientForm as IIngredientForm, IngredientDeletabil
 import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { IngredientList, IngredientForm } from '@/components/features/ingredients'
 import { Search, Loader2, Plus } from 'lucide-vue-next'
 
@@ -140,27 +139,23 @@ async function handleAddToInventory(ingredientId: number, quality: 'HQ' | 'NORMA
       </div>
     </template>
 
-    <Card>
-      <CardContent>
-        <div v-if="isLoading" class="loading-center">
-          <Loader2 />
-        </div>
+    <div v-if="isLoading" class="loading-center">
+      <Loader2 />
+    </div>
 
-        <div v-else-if="sortedIngredients.length === 0" class="empty-state">
-          {{ searchQuery ? `No ingredients match "${searchQuery}"` : 'No ingredients yet. Add your first ingredient!' }}
-        </div>
+    <div v-else-if="sortedIngredients.length === 0" class="empty-state">
+      {{ searchQuery ? `No ingredients match "${searchQuery}"` : 'No ingredients yet. Add your first ingredient!' }}
+    </div>
 
-        <IngredientList
-          v-else
-          :ingredients="sortedIngredients"
-          :deletability="deletability"
-          @edit="handleEditIngredient"
-          @delete="handleDeleteIngredient"
-          @toggle-secured="handleToggleSecured"
-          @add-to-inventory="handleAddToInventory"
-        />
-      </CardContent>
-    </Card>
+    <IngredientList
+      v-else
+      :ingredients="sortedIngredients"
+      :deletability="deletability"
+      @edit="handleEditIngredient"
+      @delete="handleDeleteIngredient"
+      @toggle-secured="handleToggleSecured"
+      @add-to-inventory="handleAddToInventory"
+    />
 
     <IngredientForm
       :open="showForm"

@@ -37,33 +37,32 @@ function handleSelect(taskType: TaskType) {
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <template #content>
-      <DialogContent class="max-w-lg">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Select Task</DialogTitle>
         </DialogHeader>
 
-        <div class="space-y-4">
-          <div class="flex gap-4 text-sm">
-            <div><span class="text-muted-foreground">Day:</span> <span class="font-medium">{{ dayName }}</span></div>
-            <div><span class="text-muted-foreground">Time:</span> <span class="font-medium">{{ timeSlot }}</span></div>
-            <div><span class="text-muted-foreground">Available:</span> <span class="font-medium">{{ availableUnits }} units</span></div>
+        <div>
+          <div>
+            <div><span>Day:</span> <span>{{ dayName }}</span></div>
+            <div><span>Time:</span> <span>{{ timeSlot }}</span></div>
+            <div><span>Available:</span> <span>{{ availableUnits }} units</span></div>
           </div>
 
-          <div class="space-y-2">
-            <h4 class="font-medium">Available Tasks:</h4>
-            <div class="space-y-2 max-h-[300px] overflow-y-auto">
+          <div>
+            <h4>Available Tasks:</h4>
+            <div>
               <Card
                 v-for="task in tasks"
                 :key="task.type"
-                class="p-3 cursor-pointer transition-colors"
-                :class="canSchedule(task.type) ? 'hover:border-primary' : 'opacity-50 cursor-not-allowed'"
+                :style="{ cursor: canSchedule(task.type) ? 'pointer' : 'not-allowed' }"
                 @click="handleSelect(task.type)"
               >
-                <div class="flex items-center gap-3">
-                  <div class="w-3 h-3 rounded-full" :style="{ backgroundColor: task.color }" />
-                  <div class="flex-1">
-                    <div class="font-medium">{{ task.name }}</div>
-                    <div class="text-xs text-muted-foreground">{{ task.description }}</div>
+                <div>
+                  <div :style="{ backgroundColor: task.color }" />
+                  <div>
+                    <div>{{ task.name }}</div>
+                    <div>{{ task.description }}</div>
                   </div>
                   <Badge variant="secondary">{{ task.timeUnits }} unit(s)</Badge>
                 </div>

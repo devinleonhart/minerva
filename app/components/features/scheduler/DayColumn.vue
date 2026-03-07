@@ -18,18 +18,16 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="rounded-lg bg-card p-4 min-h-[500px]">
-    <div class="text-center mb-4 pb-3 border-b">
-      <h3 class="font-semibold text-lg">{{ day.dayName }}</h3>
-      <div class="flex justify-center items-center gap-2 text-sm mt-1">
-        <span class="text-muted-foreground">Units:</span>
-        <span class="font-semibold" :class="day.totalUnits === 3 ? 'text-amber-500' : 'text-green-500'">
-          {{ day.totalUnits }}/3
-        </span>
+  <div>
+    <div>
+      <h3>{{ day.dayName }}</h3>
+      <div>
+        <span>Units:</span>
+        <span>{{ day.totalUnits }}/3</span>
       </div>
     </div>
 
-    <div class="space-y-3">
+    <div>
       <TimeSlotCard
         slot-name="Morning"
         :task="day.morning"

@@ -8,13 +8,13 @@ defineProps<Props>()
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center justify-between">
+  <div>
+    <div>
       <div>
-        <h1 class="text-3xl font-bold tracking-tight">{{ title }}</h1>
-        <p v-if="description" class="text-muted-foreground">{{ description }}</p>
+        <h1>{{ title }}</h1>
+        <p v-if="description">{{ description }}</p>
       </div>
-      <div class="flex items-center gap-2">
+      <div>
         <slot name="actions" />
       </div>
     </div>

@@ -88,41 +88,35 @@ function handleCraft() {
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <template #content>
-      <DialogContent class="max-w-lg">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Craft {{ recipe?.name }}</DialogTitle>
         </DialogHeader>
 
-        <div v-if="craftability" class="space-y-4">
-          <!-- Craftability Status -->
-          <div class="flex items-center gap-2 p-3 rounded-lg" :class="craftability.isCraftable ? 'bg-green-950 border border-green-500/50' : 'bg-red-950 border border-red-500/50'">
-            <component :is="craftability.isCraftable ? Check : X" class="h-5 w-5" :class="craftability.isCraftable ? 'text-green-500' : 'text-red-500'" />
+        <div v-if="craftability">
+          <div>
+            <component :is="craftability.isCraftable ? Check : X" />
             <span>{{ craftability.isCraftable ? 'Recipe is craftable!' : 'Insufficient ingredients' }}</span>
           </div>
 
-          <!-- Quality Selection -->
-          <div class="space-y-2">
-            <label class="text-sm font-medium">Potion Quality</label>
+          <div>
+            <label>Potion Quality</label>
             <Select
               v-model="selectedQuality"
               :options="qualityOptions"
-              class="w-48"
             />
           </div>
 
-          <!-- Ingredient Selections -->
-          <div class="space-y-2">
-            <label class="text-sm font-medium">Select Ingredients</label>
-            <div class="space-y-2">
+          <div>
+            <label>Select Ingredients</label>
+            <div>
               <Card
                 v-for="ing in craftability.ingredients"
                 :key="ing.ingredientId"
-                class="p-3"
-                :class="{ 'border-destructive/50 bg-destructive/10': !ing.isCraftable }"
               >
-                <div class="flex flex-col gap-2">
-                  <div class="flex justify-between">
-                    <span class="font-medium">{{ ing.ingredientName }}</span>
+                <div>
+                  <div>
+                    <span>{{ ing.ingredientName }}</span>
                     <Badge :variant="ing.isCraftable ? 'secondary' : 'destructive'">
                       {{ ing.availableQuantity }} / {{ ing.requiredQuantity }}
                     </Badge>
@@ -138,7 +132,7 @@ function handleCraft() {
                     placeholder="Select quality..."
                     @update:model-value="(val: string) => ingredientSelections[ing.ingredientId] = Number(val)"
                   />
-                  <div v-else class="text-sm text-destructive">
+                  <div v-else>
                     Need {{ ing.requiredQuantity - ing.availableQuantity }} more
                   </div>
                 </div>
@@ -147,7 +141,7 @@ function handleCraft() {
           </div>
         </div>
 
-        <div v-else class="py-8 text-center text-muted-foreground">
+        <div v-else>
           Loading recipe information...
         </div>
 

@@ -117,13 +117,13 @@ function handleSubmit() {
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <template #content>
-      <DialogContent class="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{{ title }}</DialogTitle>
         </DialogHeader>
 
-        <form @submit.prevent="handleSubmit" class="space-y-4">
-          <div class="space-y-2">
+        <form @submit.prevent="handleSubmit">
+          <div>
             <Label for="name">Recipe Name</Label>
             <Input
               id="name"
@@ -132,7 +132,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div class="space-y-2">
+          <div>
             <Label for="description">Description</Label>
             <Textarea
               id="description"
@@ -142,55 +142,51 @@ function handleSubmit() {
             />
           </div>
 
-          <div class="space-y-2">
+          <div>
             <Label>Selected Ingredients</Label>
-            <div v-if="selectedIngredients.length === 0" class="text-sm text-muted-foreground py-2">
+            <div v-if="selectedIngredients.length === 0">
               No ingredients selected. Add some from below.
             </div>
-            <div v-else class="flex flex-wrap gap-2">
+            <div v-else>
               <Badge
                 v-for="ing in selectedIngredients"
                 :key="ing.ingredientId"
-                class="flex items-center gap-2 py-1.5 px-3"
               >
                 {{ ingredients.find(i => i.id === ing.ingredientId)?.name }}
-                <div class="flex items-center gap-1">
-                  <button type="button" class="hover:opacity-70" @click="updateQuantity(ing.ingredientId, -1)">
-                    <Minus class="h-3 w-3" />
+                <div>
+                  <button type="button" @click="updateQuantity(ing.ingredientId, -1)">
+                    <Minus />
                   </button>
-                  <span class="min-w-[20px] text-center">{{ ing.quantity }}</span>
-                  <button type="button" class="hover:opacity-70" @click="updateQuantity(ing.ingredientId, 1)">
-                    <Plus class="h-3 w-3" />
+                  <span>{{ ing.quantity }}</span>
+                  <button type="button" @click="updateQuantity(ing.ingredientId, 1)">
+                    <Plus />
                   </button>
                 </div>
               </Badge>
             </div>
           </div>
 
-          <div class="space-y-2">
+          <div>
             <Label>Available Ingredients</Label>
-            <div class="relative">
-              <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div>
+              <Search />
               <Input
                 v-model="ingredientFilter"
                 placeholder="Filter ingredients..."
-                class="pl-9"
               />
             </div>
-            <div class="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
+            <div>
               <Card
                 v-for="ingredient in filteredIngredients"
                 :key="ingredient.id"
-                class="p-3 cursor-pointer transition-colors"
-                :class="isSelected(ingredient.id) ? 'border-primary bg-primary/10' : 'hover:border-muted-foreground'"
                 @click="toggleIngredient(ingredient.id)"
               >
-                <div class="flex justify-between items-start">
+                <div>
                   <div>
-                    <div class="font-medium text-sm">{{ ingredient.name }}</div>
-                    <div class="text-xs text-muted-foreground truncate">{{ ingredient.description }}</div>
+                    <div>{{ ingredient.name }}</div>
+                    <div>{{ ingredient.description }}</div>
                   </div>
-                  <Badge v-if="isSelected(ingredient.id)" variant="default" class="text-xs">
+                  <Badge v-if="isSelected(ingredient.id)" variant="default">
                     x{{ getQuantity(ingredient.id) }}
                   </Badge>
                 </div>

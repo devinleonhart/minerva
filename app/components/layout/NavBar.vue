@@ -39,21 +39,18 @@ function navigateTo(path: string) {
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 w-full border-b bg-card">
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-center px-4">
-      <nav class="flex gap-2">
-        <Button
-          v-for="navRoute in routes"
-          :key="navRoute.path"
-          :variant="currentPath === navRoute.path ? 'default' : 'ghost'"
-          size="sm"
-          @click="navigateTo(navRoute.path)"
-          class="gap-2"
-        >
-          <component :is="navRoute.icon" class="h-4 w-4" />
-          <span class="hidden sm:inline">{{ navRoute.name }}</span>
-        </Button>
-      </nav>
-    </div>
+  <header>
+    <nav>
+      <Button
+        v-for="navRoute in routes"
+        :key="navRoute.path"
+        :variant="currentPath === navRoute.path ? 'default' : 'ghost'"
+        size="sm"
+        @click="navigateTo(navRoute.path)"
+      >
+        <component :is="navRoute.icon" />
+        <span>{{ navRoute.name }}</span>
+      </Button>
+    </nav>
   </header>
 </template>

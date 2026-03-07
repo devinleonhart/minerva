@@ -75,8 +75,8 @@ function handleSubmit() {
           <DialogTitle>{{ title }}</DialogTitle>
         </DialogHeader>
 
-        <form @submit.prevent="handleSubmit" class="space-y-4">
-          <div class="space-y-2">
+        <form @submit.prevent="handleSubmit">
+          <div>
             <Label for="name">Spell Name</Label>
             <Input
               id="name"
@@ -85,8 +85,8 @@ function handleSubmit() {
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
+          <div>
+            <div>
               <Label for="neededStars">Stars Needed</Label>
               <Input
                 id="neededStars"
@@ -97,7 +97,7 @@ function handleSubmit() {
               />
             </div>
 
-            <div class="space-y-2">
+            <div>
               <Label for="currentStars">Current Stars</Label>
               <Input
                 id="currentStars"

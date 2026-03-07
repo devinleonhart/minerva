@@ -14,14 +14,12 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <Card class="mt-6">
-    <CardHeader class="pb-3">
-      <CardTitle class="text-lg">{{ title }}</CardTitle>
+  <Card>
+    <CardHeader>
+      <CardTitle>{{ title }}</CardTitle>
     </CardHeader>
-    <CardContent class="p-0">
-      <div v-if="empty" class="py-8 text-center text-muted-foreground">
-        {{ emptyMessage }}
-      </div>
+    <CardContent>
+      <div v-if="empty">{{ emptyMessage }}</div>
       <slot v-else />
     </CardContent>
   </Card>

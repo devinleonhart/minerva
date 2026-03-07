@@ -35,24 +35,23 @@ function handleValueChange(id: number, event: Event) {
     <TableBody>
       <TableRow v-for="currency in currencies" :key="currency.id">
         <TableCell>
-          <span class="font-medium">{{ currency.name }}</span>
+          <span>{{ currency.name }}</span>
         </TableCell>
         <TableCell>
           <Input
             type="number"
             :model-value="String(currency.value)"
             min="0"
-            class="w-32"
             @change="handleValueChange(currency.id, $event)"
           />
         </TableCell>
-        <TableCell class="w-[60px] text-right">
+        <TableCell>
           <Button
             variant="ghost"
             size="icon"
             @click="emit('delete', currency.id)"
           >
-            <Trash2 class="h-4 w-4 text-destructive" />
+            <Trash2 />
           </Button>
         </TableCell>
       </TableRow>

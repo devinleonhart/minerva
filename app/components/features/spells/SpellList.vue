@@ -27,15 +27,10 @@ const emit = defineEmits<{
     <TableBody>
       <TableRow v-for="spell in spells" :key="spell.id">
         <TableCell>
-          <div class="flex flex-col gap-1">
-            <span class="font-medium">{{ spell.name }}</span>
-            <div v-if="!spell.isLearned" class="flex items-center gap-1">
-              <Star
-                v-for="i in spell.neededStars"
-                :key="i"
-                class="h-4 w-4"
-                :class="i <= spell.currentStars ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground'"
-              />
+          <div>
+            <span>{{ spell.name }}</span>
+            <div v-if="!spell.isLearned">
+              <Star v-for="i in spell.neededStars" :key="i" />
             </div>
           </div>
         </TableCell>
@@ -44,21 +39,21 @@ const emit = defineEmits<{
             {{ spell.isLearned ? 'Learned' : `${spell.currentStars}/${spell.neededStars}` }}
           </Badge>
         </TableCell>
-        <TableCell class="w-[100px] text-right">
-          <div class="flex justify-end gap-1">
+        <TableCell>
+          <div>
             <Button
               variant="ghost"
               size="icon"
               @click="emit('edit', spell)"
             >
-              <Pencil class="h-4 w-4" />
+              <Pencil />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               @click="emit('delete', spell.id)"
             >
-              <Trash2 class="h-4 w-4 text-destructive" />
+              <Trash2 />
             </Button>
           </div>
         </TableCell>

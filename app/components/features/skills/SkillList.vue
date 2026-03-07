@@ -24,14 +24,14 @@ const emit = defineEmits<{
   <Table>
     <TableBody>
       <TableRow v-for="skill in skills" :key="skill.id">
-        <TableCell class="font-medium">{{ skill.name }}</TableCell>
-        <TableCell class="w-[100px] text-right">
+        <TableCell>{{ skill.name }}</TableCell>
+        <TableCell>
           <Button
             variant="ghost"
             size="icon"
             @click="emit('delete', skill.id)"
           >
-            <Trash2 class="h-4 w-4 text-destructive" />
+            <Trash2 />
           </Button>
         </TableCell>
       </TableRow>

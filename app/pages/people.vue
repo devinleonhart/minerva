@@ -103,29 +103,28 @@ async function handleToggleFavorite(id: number, isFavorited: boolean) {
 <template>
   <PageLayout title="People" description="Faun, Faun... Come in Faun!">
     <template #actions>
-      <div class="flex items-center gap-2">
-        <div class="relative w-64">
-          <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div>
+        <div>
+          <Search />
           <Input
             v-model="searchQuery"
             placeholder="Search people..."
-            class="pl-9"
           />
         </div>
         <Button @click="handleAddPerson">
-          <Plus class="mr-2 h-4 w-4" />
+          <Plus />
           Add Person
         </Button>
       </div>
     </template>
 
     <Card>
-      <CardContent class="p-0">
-        <div v-if="isLoading" class="flex items-center justify-center py-12">
-          <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+      <CardContent>
+        <div v-if="isLoading">
+          <Loader2 />
         </div>
 
-        <div v-else-if="sortedPeople.length === 0" class="py-12 text-center text-muted-foreground">
+        <div v-else-if="sortedPeople.length === 0">
           {{ searchQuery ? `No people match "${searchQuery}"` : 'No people yet. Add your first contact!' }}
         </div>
 

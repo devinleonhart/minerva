@@ -33,47 +33,41 @@ function getDisplayName(item: PotionInventoryItem): string {
     <TableBody>
       <TableRow v-for="item in items" :key="item.id">
         <TableCell>
-          <div class="flex flex-col gap-1">
-            <span class="font-medium">{{ getDisplayName(item) }}</span>
-            <span v-if="item.potion.recipe?.description" class="text-xs text-muted-foreground truncate max-w-[200px]">
-              {{ item.potion.recipe.description }}
-            </span>
+          <div>
+            <span>{{ getDisplayName(item) }}</span>
+            <span v-if="item.potion.recipe?.description">{{ item.potion.recipe.description }}</span>
           </div>
         </TableCell>
         <TableCell>
-          <Badge variant="secondary">
-            {{ item.potion.quality }}
-          </Badge>
+          <Badge variant="secondary">{{ item.potion.quality }}</Badge>
         </TableCell>
         <TableCell>
-          <div class="flex items-center gap-2">
+          <div>
             <Button
               variant="outline"
               size="icon"
-              class="h-8 w-8"
               :disabled="item.quantity <= 1"
               @click="emit('updateQuantity', item.id, item.quantity - 1)"
             >
-              <Minus class="h-3 w-3" />
+              <Minus />
             </Button>
-            <span class="w-8 text-center font-medium">{{ item.quantity }}</span>
+            <span>{{ item.quantity }}</span>
             <Button
               variant="outline"
               size="icon"
-              class="h-8 w-8"
               @click="emit('updateQuantity', item.id, item.quantity + 1)"
             >
-              <Plus class="h-3 w-3" />
+              <Plus />
             </Button>
           </div>
         </TableCell>
-        <TableCell class="w-[60px] text-right">
+        <TableCell>
           <Button
             variant="ghost"
             size="icon"
             @click="emit('delete', item.id)"
           >
-            <Trash2 class="h-4 w-4 text-destructive" />
+            <Trash2 />
           </Button>
         </TableCell>
       </TableRow>

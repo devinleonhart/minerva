@@ -5,9 +5,9 @@ import ConfirmDialog from './ConfirmDialog.vue'
 </script>
 
 <template>
-  <div class="min-h-screen bg-background text-foreground">
+  <div>
     <NavBar />
-    <main class="mx-auto max-w-7xl px-4 py-6">
+    <main>
       <slot />
     </main>
     <Toaster />

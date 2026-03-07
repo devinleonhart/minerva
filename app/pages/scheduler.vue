@@ -126,34 +126,34 @@ function handleUpdateNotes(dayIndex: number, timeSlot: TimeSlot, notes: string) 
 <template>
   <PageLayout title="Scheduler" description="That's it! Now I'm mad!">
     <template #actions>
-      <div class="flex items-center gap-2">
+      <div>
         <Button @click="handleNewWeek" :disabled="!!currentWeek">
-          <Plus class="mr-2 h-4 w-4" />
+          <Plus />
           New Week
         </Button>
         <Button variant="outline" @click="handleRemoveLastTask" :disabled="!canRemoveTask">
-          <Undo2 class="mr-2 h-4 w-4" />
+          <Undo2 />
           Remove Last
         </Button>
         <Button v-if="currentWeek" variant="outline" @click="handleSaveNotes">
-          <Save class="mr-2 h-4 w-4" />
+          <Save />
           Save Notes
         </Button>
         <Button v-if="currentWeek" variant="destructive" @click="handleDeleteWeek">
-          <Trash2 class="mr-2 h-4 w-4" />
+          <Trash2 />
           Delete Week
         </Button>
       </div>
     </template>
 
-    <div v-if="!currentWeek" class="py-12 text-center text-muted-foreground">
+    <div v-if="!currentWeek">
       No week schedule created yet. Click "New Week" to get started!
     </div>
 
-    <div v-else class="space-y-6">
+    <div v-else>
       <WeekSummary :week="currentWeek" />
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+      <div>
         <DayColumn
           v-for="(day, index) in currentWeek.days"
           :key="day.day"

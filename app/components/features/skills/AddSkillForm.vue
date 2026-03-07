@@ -20,15 +20,14 @@ function handleSubmit() {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="flex gap-2">
+  <form @submit.prevent="handleSubmit">
     <Input
       v-model="skillName"
       placeholder="Enter skill name (e.g., Rapid Brewing)"
-      class="flex-1"
       @keyup.enter="handleSubmit"
     />
     <Button type="submit" :disabled="!skillName.trim()">
-      <Plus class="mr-2 h-4 w-4" />
+      <Plus />
       Add Skill
     </Button>
   </form>

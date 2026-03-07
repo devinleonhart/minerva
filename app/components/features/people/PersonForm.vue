@@ -77,13 +77,13 @@ function handleSubmit() {
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <template #content>
-      <DialogContent class="max-w-md">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{{ title }}</DialogTitle>
         </DialogHeader>
 
-        <form @submit.prevent="handleSubmit" class="space-y-4">
-          <div class="space-y-2">
+        <form @submit.prevent="handleSubmit">
+          <div>
             <Label for="name">Name</Label>
             <Input
               id="name"
@@ -92,7 +92,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div class="space-y-2">
+          <div>
             <Label for="relationship">Relationship</Label>
             <Input
               id="relationship"
@@ -101,7 +101,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div class="space-y-2">
+          <div>
             <Label for="description">Description</Label>
             <Textarea
               id="description"
@@ -111,7 +111,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div class="space-y-2">
+          <div>
             <Label for="notableEvents">Notable Events</Label>
             <Textarea
               id="notableEvents"
@@ -121,7 +121,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div class="space-y-2">
+          <div>
             <Label for="url">URL</Label>
             <Input
               id="url"

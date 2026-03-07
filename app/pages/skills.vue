@@ -65,29 +65,28 @@ async function handleDeleteSkill(id: number) {
 <template>
   <PageLayout title="Skills" description="This should do the trick!">
     <template #actions>
-      <div class="relative w-64">
-        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div>
+        <Search />
         <Input
           v-model="searchQuery"
           placeholder="Search skills..."
-          class="pl-9"
         />
       </div>
     </template>
 
     <Card>
-      <CardContent class="pt-6">
+      <CardContent>
         <AddSkillForm @submit="handleAddSkill" />
       </CardContent>
     </Card>
 
-    <Card class="mt-6">
-      <CardContent class="p-0">
-        <div v-if="isLoading" class="flex items-center justify-center py-12">
-          <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+    <Card>
+      <CardContent>
+        <div v-if="isLoading">
+          <Loader2 />
         </div>
 
-        <div v-else-if="sortedSkills.length === 0" class="py-12 text-center text-muted-foreground">
+        <div v-else-if="sortedSkills.length === 0">
           {{ searchQuery ? `No skills match "${searchQuery}"` : 'No skills yet. Add your first skill!' }}
         </div>
 

@@ -20,21 +20,19 @@ function formatDate(dateString: string): string {
 
 <template>
   <Card>
-    <CardContent class="py-4">
-      <div class="flex flex-wrap gap-6">
-        <div class="flex flex-col gap-1">
-          <span class="text-xs text-muted-foreground">Week Starting</span>
-          <span class="font-semibold">{{ formatDate(week.weekStartDate) }}</span>
+    <CardContent>
+      <div>
+        <div>
+          <span>Week Starting</span>
+          <span>{{ formatDate(week.weekStartDate) }}</span>
         </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-xs text-muted-foreground">Total Scheduled</span>
-          <span class="font-semibold">{{ week.totalScheduledUnits }}/21 units</span>
+        <div>
+          <span>Total Scheduled</span>
+          <span>{{ week.totalScheduledUnits }}/21 units</span>
         </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-xs text-muted-foreground">Free Time Used</span>
-          <span class="font-semibold" :class="week.freeTimeUsed ? 'text-purple-400' : ''">
-            {{ week.freeTimeUsed ? 'Yes' : 'No' }}
-          </span>
+        <div>
+          <span>Free Time Used</span>
+          <span>{{ week.freeTimeUsed ? 'Yes' : 'No' }}</span>
         </div>
       </div>
     </CardContent>

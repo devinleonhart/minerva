@@ -124,21 +124,29 @@ function updateQuantity(ingredientId: number, delta: number) {
 function addVariant() {
   const nextType = availableEssenceTypes.value[0]
   if (!nextType) return
-  cauldronVariants.value.push({ essenceType: nextType, variantName: '', essenceIngredientId: 0 })
+  cauldronVariants.value = [...cauldronVariants.value, { essenceType: nextType, variantName: '', essenceIngredientId: 0 }]
 }
 
 function removeVariant(index: number) {
-  cauldronVariants.value.splice(index, 1)
+  cauldronVariants.value = cauldronVariants.value.filter((_, i) => i !== index)
 }
 
 function setVariantEssenceType(index: number, value: string) {
-  const variant = cauldronVariants.value[index]
-  if (variant) variant.essenceType = value as EssenceType
+  cauldronVariants.value = cauldronVariants.value.map((v, i) =>
+    i === index ? { ...v, essenceType: value as EssenceType } : v
+  )
+}
+
+function setVariantName(index: number, value: string) {
+  cauldronVariants.value = cauldronVariants.value.map((v, i) =>
+    i === index ? { ...v, variantName: value } : v
+  )
 }
 
 function setVariantIngredient(index: number, value: string) {
-  const variant = cauldronVariants.value[index]
-  if (variant) variant.essenceIngredientId = parseInt(value)
+  cauldronVariants.value = cauldronVariants.value.map((v, i) =>
+    i === index ? { ...v, essenceIngredientId: parseInt(value) } : v
+  )
 }
 
 function variantEssenceOptions(index: number) {
@@ -213,29 +221,31 @@ function handleSubmit() {
               No cauldron variants. Add one to enable Crystal Cauldron crafting.
             </div>
             <div v-else class="variant-list">
-              <div v-for="(variant, index) in cauldronVariants" :key="index" class="variant-row">
-                <Select
-                  :model-value="variant.essenceType"
-                  :options="variantEssenceOptions(index)"
-                  placeholder="Essence type"
-                  class="variant-essence-select"
-                  @update:model-value="setVariantEssenceType(index, $event)"
-                />
+              <div v-for="(variant, index) in cauldronVariants" :key="index" class="variant-card">
+                <div class="variant-row">
+                  <Select
+                    :model-value="variant.essenceType"
+                    :options="variantEssenceOptions(index)"
+                    placeholder="Essence type"
+                    class="variant-essence-select"
+                    @update:model-value="setVariantEssenceType(index, $event)"
+                  />
+                  <Select
+                    :model-value="variant.essenceIngredientId ? String(variant.essenceIngredientId) : ''"
+                    :options="ingredientOptions"
+                    placeholder="Essence ingredient"
+                    class="variant-ingredient-select"
+                    @update:model-value="setVariantIngredient(index, $event)"
+                  />
+                  <button class="chip-btn chip-remove" type="button" @click="removeVariant(index)">
+                    <X />
+                  </button>
+                </div>
                 <Input
-                  v-model="variant.variantName"
+                  :model-value="variant.variantName"
                   placeholder="Variant name (e.g. Fire Tonic)"
-                  class="variant-name-input"
+                  @update:model-value="setVariantName(index, $event)"
                 />
-                <Select
-                  :model-value="variant.essenceIngredientId ? String(variant.essenceIngredientId) : ''"
-                  :options="ingredientOptions"
-                  placeholder="Essence ingredient"
-                  class="variant-ingredient-select"
-                  @update:model-value="setVariantIngredient(index, $event)"
-                />
-                <button class="chip-btn chip-remove" type="button" @click="removeVariant(index)">
-                  <X />
-                </button>
               </div>
             </div>
           </div>
@@ -319,6 +329,15 @@ function handleSubmit() {
   gap: 0.5rem;
 }
 
+.variant-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.5rem 0.625rem;
+  background-color: var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
 .variant-row {
   display: flex;
   align-items: center;
@@ -326,15 +345,11 @@ function handleSubmit() {
 }
 
 .variant-essence-select {
-  flex: 0 0 8rem;
-}
-
-.variant-name-input {
-  flex: 1;
+  flex: 0 0 7rem;
 }
 
 .variant-ingredient-select {
-  flex: 0 0 10rem;
+  flex: 1;
 }
 
 .selected-list {

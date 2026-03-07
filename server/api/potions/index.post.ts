@@ -120,19 +120,33 @@ export default eventHandler(async (event) => {
           throw new Error('Inventory item not found')
         }
 
-        if (invItem.quantity < selection.quantity) {
+        // Fetch all stacks for this ingredient fresh inside the transaction
+        const allStacks = await tx.select().from(inventoryItem)
+          .where(eq(inventoryItem.ingredientId, invItem.ingredientId))
+        const totalAvailable = allStacks.reduce((sum, s) => sum + s.quantity, 0)
+        if (totalAvailable < selection.quantity) {
           throw new Error(`Insufficient quantity for ${invItem.ingredient!.name}`)
         }
 
-        const newQty = invItem.quantity - selection.quantity
-
-        if (newQty === 0) {
-          await tx.delete(inventoryItem).where(eq(inventoryItem.id, selection.inventoryItemId))
-        } else {
-          await tx.update(inventoryItem).set({
-            quantity: newQty,
-            updatedAt: new Date().toISOString()
-          }).where(eq(inventoryItem.id, selection.inventoryItemId))
+        // Consume from the selected stack first, then spill into others
+        let remaining = selection.quantity
+        const orderedStacks = [
+          ...allStacks.filter(s => s.id === selection.inventoryItemId),
+          ...allStacks.filter(s => s.id !== selection.inventoryItemId)
+        ]
+        for (const stack of orderedStacks) {
+          if (remaining <= 0) break
+          const take = Math.min(stack.quantity, remaining)
+          remaining -= take
+          const newQty = stack.quantity - take
+          if (newQty === 0) {
+            await tx.delete(inventoryItem).where(eq(inventoryItem.id, stack.id))
+          } else {
+            await tx.update(inventoryItem).set({
+              quantity: newQty,
+              updatedAt: new Date().toISOString()
+            }).where(eq(inventoryItem.id, stack.id))
+          }
         }
       }
 

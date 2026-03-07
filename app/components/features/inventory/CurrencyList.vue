@@ -37,9 +37,10 @@ function handleValueChange(id: number, event: Event) {
         <TableCell class="cell-expand">
           <span>{{ currency.name }}</span>
         </TableCell>
-        <TableCell class="value-cell">
+        <TableCell>
           <Input
             type="number"
+            class="currency-input"
             :model-value="String(currency.value)"
             min="0"
             @change="handleValueChange(currency.id, $event)"
@@ -64,7 +65,7 @@ function handleValueChange(id: number, event: Event) {
   width: 100%;
 }
 
-.value-cell {
-  width: 8rem;
+.currency-input {
+  min-width: 7rem;
 }
 </style>

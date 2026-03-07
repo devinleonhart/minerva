@@ -5,7 +5,6 @@ import type { Spell } from '@/types/store/spells'
 import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { SpellList, SpellForm } from '@/components/features/spells'
 import { Search, Loader2, Plus } from 'lucide-vue-next'
 
@@ -111,25 +110,21 @@ async function handleDeleteSpell(id: number) {
       </div>
     </template>
 
-    <Card>
-      <CardContent>
-        <div v-if="isLoading" class="loading-center">
-          <Loader2 />
-        </div>
+    <div v-if="isLoading" class="loading-center">
+      <Loader2 />
+    </div>
 
-        <div v-else-if="sortedSpells.length === 0" class="empty-state">
-          {{ searchQuery ? `No spells match "${searchQuery}"` : 'No spells yet. Add your first spell!' }}
-        </div>
+    <div v-else-if="sortedSpells.length === 0" class="empty-state">
+      {{ searchQuery ? `No spells match "${searchQuery}"` : 'No spells yet. Add your first spell!' }}
+    </div>
 
-        <SpellList
-          v-else
-          :spells="sortedSpells"
-          @edit="handleEditSpell"
-          @delete="handleDeleteSpell"
-          @update-progress="handleUpdateProgress"
-        />
-      </CardContent>
-    </Card>
+    <SpellList
+      v-else
+      :spells="sortedSpells"
+      @edit="handleEditSpell"
+      @delete="handleDeleteSpell"
+      @update-progress="handleUpdateProgress"
+    />
 
     <SpellForm
       :open="showForm"

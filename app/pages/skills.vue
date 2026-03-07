@@ -4,7 +4,6 @@ import { storeToRefs } from 'pinia'
 import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { SkillList, SkillForm } from '@/components/features/skills'
 import { Search, Loader2, Plus } from 'lucide-vue-next'
 
@@ -82,23 +81,19 @@ async function handleDeleteSkill(id: number) {
       </div>
     </template>
 
-    <Card>
-      <CardContent>
-        <div v-if="isLoading" class="loading-center">
-          <Loader2 />
-        </div>
+    <div v-if="isLoading" class="loading-center">
+      <Loader2 />
+    </div>
 
-        <div v-else-if="sortedSkills.length === 0" class="empty-state">
-          {{ searchQuery ? `No skills match "${searchQuery}"` : 'No skills yet. Add your first skill!' }}
-        </div>
+    <div v-else-if="sortedSkills.length === 0" class="empty-state">
+      {{ searchQuery ? `No skills match "${searchQuery}"` : 'No skills yet. Add your first skill!' }}
+    </div>
 
-        <SkillList
-          v-else
-          :skills="sortedSkills"
-          @delete="handleDeleteSkill"
-        />
-      </CardContent>
-    </Card>
+    <SkillList
+      v-else
+      :skills="sortedSkills"
+      @delete="handleDeleteSkill"
+    />
 
     <SkillForm
       :open="showForm"

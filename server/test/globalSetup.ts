@@ -21,8 +21,11 @@ export async function setup() {
   const db = drizzle(pool)
 
   try {
-    // Reset schema to guarantee a clean slate (handles fresh CI DBs and local dev DBs alike)
-    await db.execute(sql`DROP SCHEMA public CASCADE`)
+    // Reset schema to guarantee a clean slate (handles fresh CI DBs and local dev DBs alike).
+    // Drop both 'public' (tables/types) and 'drizzle' (migration tracking table) so
+    // migrate() re-runs the full migration SQL rather than skipping it as already applied.
+    await db.execute(sql`DROP SCHEMA IF EXISTS public CASCADE`)
+    await db.execute(sql`DROP SCHEMA IF EXISTS drizzle CASCADE`)
     await db.execute(sql`CREATE SCHEMA public`)
     await migrate(db, { migrationsFolder: path.join(rootDir, 'server/db') })
   } catch (error) {

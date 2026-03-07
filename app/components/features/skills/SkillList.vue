@@ -24,7 +24,7 @@ const emit = defineEmits<{
   <Table>
     <TableBody>
       <TableRow v-for="skill in skills" :key="skill.id">
-        <TableCell>{{ skill.name }}</TableCell>
+        <TableCell class="cell-expand">{{ skill.name }}</TableCell>
         <TableCell>
           <Button
             variant="ghost"
@@ -38,3 +38,9 @@ const emit = defineEmits<{
     </TableBody>
   </Table>
 </template>
+
+<style scoped>
+.cell-expand {
+  width: 100%;
+}
+</style>

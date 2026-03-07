@@ -34,7 +34,7 @@ function handleValueChange(id: number, event: Event) {
   <Table>
     <TableBody>
       <TableRow v-for="currency in currencies" :key="currency.id">
-        <TableCell>
+        <TableCell class="cell-expand">
           <span>{{ currency.name }}</span>
         </TableCell>
         <TableCell>
@@ -58,3 +58,9 @@ function handleValueChange(id: number, event: Event) {
     </TableBody>
   </Table>
 </template>
+
+<style scoped>
+.cell-expand {
+  width: 100%;
+}
+</style>

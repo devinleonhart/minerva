@@ -30,7 +30,7 @@ function getQualityVariant(): 'secondary' {
   <Table>
     <TableBody>
       <TableRow v-for="item in items" :key="item.id">
-        <TableCell>
+        <TableCell class="cell-expand">
           <div class="info-cell">
             <span class="name">{{ item.ingredient.name }}</span>
             <span v-if="item.ingredient.description" class="sub">{{ item.ingredient.description }}</span>
@@ -74,3 +74,9 @@ function getQualityVariant(): 'secondary' {
     </TableBody>
   </Table>
 </template>
+
+<style scoped>
+.cell-expand {
+  width: 100%;
+}
+</style>

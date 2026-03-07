@@ -32,7 +32,7 @@ function getDisplayName(item: PotionInventoryItem): string {
   <Table>
     <TableBody>
       <TableRow v-for="item in items" :key="item.id">
-        <TableCell>
+        <TableCell class="cell-expand">
           <div class="info-cell">
             <span class="name">{{ getDisplayName(item) }}</span>
             <span v-if="item.potion.recipe?.description" class="sub">{{ item.potion.recipe.description }}</span>
@@ -74,3 +74,9 @@ function getDisplayName(item: PotionInventoryItem): string {
     </TableBody>
   </Table>
 </template>
+
+<style scoped>
+.cell-expand {
+  width: 100%;
+}
+</style>

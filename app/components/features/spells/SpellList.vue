@@ -26,7 +26,7 @@ const emit = defineEmits<{
   <Table>
     <TableBody>
       <TableRow v-for="spell in spells" :key="spell.id">
-        <TableCell>
+        <TableCell class="cell-expand">
           <div class="info-cell">
             <span class="name">{{ spell.name }}</span>
           </div>
@@ -68,6 +68,10 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
+.cell-expand {
+  width: 100%;
+}
+
 .stars {
   display: flex;
   gap: 0.125rem;

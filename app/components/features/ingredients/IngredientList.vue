@@ -38,7 +38,7 @@ const emit = defineEmits<{
             <Shield />
           </button>
         </TableCell>
-        <TableCell>
+        <TableCell class="cell-expand">
           <div class="info-cell">
             <span class="name">{{ ingredient.name }}</span>
             <span v-if="ingredient.description" class="sub">{{ ingredient.description }}</span>
@@ -96,3 +96,9 @@ const emit = defineEmits<{
     </TableBody>
   </Table>
 </template>
+
+<style scoped>
+.cell-expand {
+  width: 100%;
+}
+</style>

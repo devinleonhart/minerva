@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Spell } from '@/types/store/spells'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -29,15 +28,12 @@ const emit = defineEmits<{
         <TableCell>
           <div class="info-cell">
             <span class="name">{{ spell.name }}</span>
-            <div v-if="!spell.isLearned" class="stars">
-              <Star v-for="i in spell.neededStars" :key="i" :class="i <= spell.currentStars ? 'star-filled' : 'star-empty'" />
-            </div>
           </div>
         </TableCell>
         <TableCell>
-          <Badge :variant="spell.isLearned ? 'default' : 'secondary'">
-            {{ spell.isLearned ? 'Learned' : `${spell.currentStars}/${spell.neededStars}` }}
-          </Badge>
+          <div class="stars">
+            <Star v-for="i in spell.neededStars" :key="i" :class="i <= spell.currentStars ? 'star-filled' : 'star-empty'" />
+          </div>
         </TableCell>
         <TableCell>
           <div class="actions">

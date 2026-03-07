@@ -104,7 +104,6 @@ onMounted(async () => {
 async function handleUpdateIngredientQuantity(id: number, quality: string, quantity: number) {
   try {
     await inventoryStore.updateInventoryItem(id, quality, quantity)
-    toast.success('Quantity updated')
   } catch {
     toast.error('Failed to update quantity')
   }
@@ -132,7 +131,6 @@ async function handleDeleteIngredient(id: number) {
 async function handleUpdatePotionQuantity(id: number, quantity: number) {
   try {
     await inventoryStore.updatePotionInventoryItem(id, quantity)
-    toast.success('Quantity updated')
   } catch {
     toast.error('Failed to update quantity')
   }
@@ -160,7 +158,6 @@ async function handleDeletePotion(id: number) {
 async function handleUpdateItemQuantity(id: number, quantity: number) {
   try {
     await inventoryStore.updateItemInventoryItem(id, quantity)
-    toast.success('Quantity updated')
   } catch {
     toast.error('Failed to update quantity')
   }
@@ -198,7 +195,6 @@ async function handleAddCurrency(data: AddCurrencyRequest) {
 async function handleUpdateCurrencyValue(id: number, value: number) {
   try {
     await inventoryStore.updateCurrency(id, value)
-    toast.success('Currency updated')
   } catch {
     toast.error('Failed to update currency')
   }

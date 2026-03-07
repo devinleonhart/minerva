@@ -3,9 +3,10 @@ import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { SkillList, AddSkillForm } from '@/components/features/skills'
-import { Search, Loader2 } from 'lucide-vue-next'
+import { SkillList, SkillForm } from '@/components/features/skills'
+import { Search, Loader2, Plus } from 'lucide-vue-next'
 
 const skillsStore = useSkillsStore()
 const { skills } = storeToRefs(skillsStore)
@@ -13,6 +14,7 @@ const toast = useToast()
 const confirm = useConfirm()
 
 const isLoading = ref(false)
+const showForm = ref(false)
 
 const { searchQuery, filteredItems } = useSearch({
   items: skills,
@@ -65,20 +67,20 @@ async function handleDeleteSkill(id: number) {
 <template>
   <PageLayout title="Skills" description="This should do the trick!">
     <template #actions>
-      <div class="search-group">
-        <Search />
-        <Input
-          v-model="searchQuery"
-          placeholder="Search skills..."
-        />
+      <div class="action-bar">
+        <div class="search-group">
+          <Search />
+          <Input
+            v-model="searchQuery"
+            placeholder="Search skills..."
+          />
+        </div>
+        <Button @click="showForm = true">
+          <Plus />
+          Add Skill
+        </Button>
       </div>
     </template>
-
-    <Card>
-      <CardContent>
-        <AddSkillForm @submit="handleAddSkill" />
-      </CardContent>
-    </Card>
 
     <Card>
       <CardContent>
@@ -97,5 +99,11 @@ async function handleDeleteSkill(id: number) {
         />
       </CardContent>
     </Card>
+
+    <SkillForm
+      :open="showForm"
+      @update:open="showForm = $event"
+      @create="handleAddSkill"
+    />
   </PageLayout>
 </template>

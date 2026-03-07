@@ -6,7 +6,6 @@ import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
-  InventorySection,
   IngredientInventoryList,
   PotionInventoryList,
   ItemInventoryList,
@@ -25,6 +24,14 @@ const isLoading = ref(false)
 const searchQuery = ref('')
 const showAddCurrencyForm = ref(false)
 const showAddItemForm = ref(false)
+const activeTab = ref<'potions' | 'ingredients' | 'items' | 'currencies'>('potions')
+
+const tabs = computed(() => [
+  { key: 'potions' as const, label: 'Potions', count: filteredPotions.value.length },
+  { key: 'ingredients' as const, label: 'Ingredients', count: filteredIngredients.value.length },
+  { key: 'items' as const, label: 'Items', count: filteredItems.value.length },
+  { key: 'currencies' as const, label: 'Currencies', count: filteredCurrencies.value.length },
+])
 
 const filteredIngredients = computed(() => {
   if (!inventoryItems.value?.length) return []
@@ -82,12 +89,6 @@ const filteredCurrencies = computed(() => {
   return filtered.sort((a, b) => a.name.localeCompare(b.name))
 })
 
-const isEmpty = computed(() =>
-  !filteredIngredients.value.length &&
-  !filteredPotions.value.length &&
-  !filteredItems.value.length &&
-  !filteredCurrencies.value.length
-)
 
 onMounted(async () => {
   isLoading.value = true
@@ -245,11 +246,11 @@ async function handleAddItem(data: { name: string; description: string; quantity
             placeholder="Search inventory..."
           />
         </div>
-        <Button @click="showAddCurrencyForm = true" variant="outline">
+        <Button v-if="activeTab === 'currencies'" variant="outline" @click="showAddCurrencyForm = true">
           <Coins />
           Add Currency
         </Button>
-        <Button @click="showAddItemForm = true">
+        <Button v-if="activeTab === 'items'" @click="showAddItemForm = true">
           <Package />
           Add Item
         </Button>
@@ -260,54 +261,69 @@ async function handleAddItem(data: { name: string; description: string; quantity
       <Loader2 />
     </div>
 
-    <div v-else-if="isEmpty" class="empty-state">
-      {{ searchQuery ? `No items match "${searchQuery}"` : 'Your inventory is empty. Add some items to get started!' }}
-    </div>
+    <div v-else class="tab-container">
+      <div class="tab-strip">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          class="tab-btn"
+          :class="{ active: activeTab === tab.key }"
+          @click="activeTab = tab.key"
+        >
+          {{ tab.label }}
+          <span class="tab-count">{{ tab.count }}</span>
+        </button>
+      </div>
 
-    <div v-else class="page-sections">
-      <InventorySection
-        v-if="filteredPotions.length"
-        title="Potions"
-      >
-        <PotionInventoryList
-          :items="filteredPotions"
-          @update-quantity="handleUpdatePotionQuantity"
-          @delete="handleDeletePotion"
-        />
-      </InventorySection>
+      <div class="tab-panel">
+        <template v-if="activeTab === 'potions'">
+          <div v-if="!filteredPotions.length" class="empty-state">
+            {{ searchQuery ? `No potions match "${searchQuery}"` : 'No potions in inventory.' }}
+          </div>
+          <PotionInventoryList
+            v-else
+            :items="filteredPotions"
+            @update-quantity="handleUpdatePotionQuantity"
+            @delete="handleDeletePotion"
+          />
+        </template>
 
-      <InventorySection
-        v-if="filteredIngredients.length"
-        title="Ingredients"
-      >
-        <IngredientInventoryList
-          :items="filteredIngredients"
-          @update-quantity="handleUpdateIngredientQuantity"
-          @delete="handleDeleteIngredient"
-        />
-      </InventorySection>
+        <template v-else-if="activeTab === 'ingredients'">
+          <div v-if="!filteredIngredients.length" class="empty-state">
+            {{ searchQuery ? `No ingredients match "${searchQuery}"` : 'No ingredients in inventory.' }}
+          </div>
+          <IngredientInventoryList
+            v-else
+            :items="filteredIngredients"
+            @update-quantity="handleUpdateIngredientQuantity"
+            @delete="handleDeleteIngredient"
+          />
+        </template>
 
-      <InventorySection
-        v-if="filteredItems.length"
-        title="Items"
-      >
-        <ItemInventoryList
-          :items="filteredItems"
-          @update-quantity="handleUpdateItemQuantity"
-          @delete="handleDeleteItem"
-        />
-      </InventorySection>
+        <template v-else-if="activeTab === 'items'">
+          <div v-if="!filteredItems.length" class="empty-state">
+            {{ searchQuery ? `No items match "${searchQuery}"` : 'No items in inventory.' }}
+          </div>
+          <ItemInventoryList
+            v-else
+            :items="filteredItems"
+            @update-quantity="handleUpdateItemQuantity"
+            @delete="handleDeleteItem"
+          />
+        </template>
 
-      <InventorySection
-        v-if="filteredCurrencies.length"
-        title="Currencies"
-      >
-        <CurrencyList
-          :currencies="filteredCurrencies"
-          @update-value="handleUpdateCurrencyValue"
-          @delete="handleDeleteCurrency"
-        />
-      </InventorySection>
+        <template v-else-if="activeTab === 'currencies'">
+          <div v-if="!filteredCurrencies.length" class="empty-state">
+            {{ searchQuery ? `No currencies match "${searchQuery}"` : 'No currencies tracked yet.' }}
+          </div>
+          <CurrencyList
+            v-else
+            :currencies="filteredCurrencies"
+            @update-value="handleUpdateCurrencyValue"
+            @delete="handleDeleteCurrency"
+          />
+        </template>
+      </div>
     </div>
 
     <AddCurrencyForm
@@ -323,3 +339,63 @@ async function handleAddItem(data: { name: string; description: string; quantity
     />
   </PageLayout>
 </template>
+
+<style scoped>
+.tab-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tab-strip {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  color: var(--color-muted-foreground);
+  transition: color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+
+.tab-btn:hover {
+  color: var(--color-foreground);
+}
+
+.tab-btn.active {
+  color: var(--color-foreground);
+  border-bottom-color: var(--color-primary);
+}
+
+.tab-count {
+  font-size: 0.75rem;
+  font-weight: 400;
+  background-color: var(--color-accent);
+  color: var(--color-muted-foreground);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  min-width: 1.25rem;
+  text-align: center;
+}
+
+.tab-btn.active .tab-count {
+  background-color: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+}
+
+.tab-panel {
+  min-height: 6rem;
+}
+</style>

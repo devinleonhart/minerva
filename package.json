@@ -23,6 +23,7 @@
     "lint:fix": "eslint . --fix",
     "tsc": "nuxt typecheck",
     "quality": "pnpm run test && pnpm run lint && pnpm run tsc",
+    "db:migrate": "tsx server/db/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",

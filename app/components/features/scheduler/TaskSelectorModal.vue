@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { TaskType, TaskDefinition, TimeSlot } from '@/types/store/scheduler'
+import type { TaskType, TimeSlot, ScheduledTask } from '@/types/store/scheduler'
+import { TASK_META, getAvailableTaskTypes } from '@/lib/schedulerMeta'
 import {
   Dialog,
   DialogContent,
@@ -8,16 +9,18 @@ import {
   DialogFooter
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 
 interface Props {
   open: boolean
   dayName: string
   timeSlot: TimeSlot
-  availableUnits: number
-  tasks: TaskDefinition[]
-  canSchedule: (taskType: TaskType) => boolean
+  tasks: {
+    MORNING: ScheduledTask | null
+    AFTERNOON: ScheduledTask | null
+    EVENING: ScheduledTask | null
+  }
 }
 
 const props = defineProps<Props>()
@@ -27,9 +30,19 @@ const emit = defineEmits<{
   select: [taskType: TaskType]
 }>()
 
-function handleSelect(taskType: TaskType) {
-  if (!props.canSchedule(taskType)) return
-  emit('select', taskType)
+const ALL_TASK_TYPES = Object.keys(TASK_META) as TaskType[]
+
+function availableTypes() {
+  return getAvailableTaskTypes(props.tasks, props.timeSlot)
+}
+
+function isAvailable(type: TaskType) {
+  return availableTypes().includes(type)
+}
+
+function handleSelect(type: TaskType) {
+  if (!isAvailable(type)) return
+  emit('select', type)
   emit('update:open', false)
 }
 </script>
@@ -39,39 +52,28 @@ function handleSelect(taskType: TaskType) {
     <template #content>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Select Task</DialogTitle>
+          <DialogTitle>Add Task — {{ dayName }}, {{ timeSlot.charAt(0) + timeSlot.slice(1).toLowerCase() }}</DialogTitle>
         </DialogHeader>
 
-        <div class="modal-body">
-          <div class="context-info">
-            <div class="context-item"><span class="context-label">Day</span><span>{{ dayName }}</span></div>
-            <div class="context-item"><span class="context-label">Time</span><span>{{ timeSlot }}</span></div>
-            <div class="context-item"><span class="context-label">Available</span><span>{{ availableUnits }} units</span></div>
-          </div>
-
-          <div class="task-list">
-            <Card
-              v-for="task in tasks"
-              :key="task.type"
-              :class="'task-card' + (!canSchedule(task.type) ? ' disabled' : '')"
-              @click="handleSelect(task.type)"
-            >
-              <div class="task-card-inner">
-                <div class="task-color-dot" :style="{ backgroundColor: task.color }" />
-                <div class="info-cell">
-                  <div class="name">{{ task.name }}</div>
-                  <div class="sub">{{ task.description }}</div>
-                </div>
-                <Badge variant="secondary">{{ task.timeUnits }} unit(s)</Badge>
+        <div class="task-list">
+          <Card
+            v-for="type in ALL_TASK_TYPES"
+            :key="type"
+            :class="'task-card' + (!isAvailable(type) ? ' disabled' : '')"
+            @click="handleSelect(type)"
+          >
+            <div class="task-card-inner">
+              <span class="task-emoji">{{ TASK_META[type].emoji }}</span>
+              <div class="info-cell">
+                <span class="name">{{ TASK_META[type].label }}</span>
               </div>
-            </Card>
-          </div>
+              <Badge variant="secondary">{{ TASK_META[type].units }} unit{{ TASK_META[type].units > 1 ? 's' : '' }}</Badge>
+            </div>
+          </Card>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" @click="emit('update:open', false)">
-            Cancel
-          </Button>
+          <Button variant="outline" @click="emit('update:open', false)">Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </template>
@@ -79,40 +81,11 @@ function handleSelect(taskType: TaskType) {
 </template>
 
 <style scoped>
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 0 1.375rem;
-}
-
-.context-info {
-  display: flex;
-  gap: 1.5rem;
-  padding: 0.625rem 0.75rem;
-  background-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-}
-
-.context-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.0625rem;
-}
-
-.context-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-muted-foreground);
-}
-
 .task-list {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
+  padding: 0 1.375rem;
 }
 
 .task-card {
@@ -125,7 +98,7 @@ function handleSelect(taskType: TaskType) {
 }
 
 .task-card.disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
@@ -133,13 +106,12 @@ function handleSelect(taskType: TaskType) {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 0.875rem;
+  padding: 0.625rem 0.875rem;
 }
 
-.task-color-dot {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 50%;
+.task-emoji {
+  font-size: 1.125rem;
+  line-height: 1;
   flex-shrink: 0;
 }
 </style>

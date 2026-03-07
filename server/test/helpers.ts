@@ -66,12 +66,12 @@ import recipesCraftableById from '../api/recipes/[id]/craftable.get.js'
 import recipesDeletableById from '../api/recipes/[id]/deletable.get.js'
 
 // ── Scheduler ─────────────────────────────────────────────────────────────────
-import schedulerGetAll from '../api/scheduler/index.get.js'
-import schedulerDeleteAll from '../api/scheduler/index.delete.js'
-import schedulerDeleteById from '../api/scheduler/[id].delete.js'
-import schedulerSave from '../api/scheduler/save.post.js'
-import schedulerCleanup from '../api/scheduler/cleanup.post.js'
-import schedulerLoad from '../api/scheduler/load/[weekStartDate].get.js'
+import schedulerWeekGet from '../api/scheduler/week/index.get.js'
+import schedulerWeekPost from '../api/scheduler/week/index.post.js'
+import schedulerWeekDelete from '../api/scheduler/week/index.delete.js'
+import schedulerTasksPost from '../api/scheduler/tasks/index.post.js'
+import schedulerTasksPatch from '../api/scheduler/tasks/[id].patch.js'
+import schedulerTasksDelete from '../api/scheduler/tasks/[id].delete.js'
 
 export function createTestApp() {
   const app = createApp()
@@ -142,13 +142,13 @@ export function createTestApp() {
   router.put('/api/recipes/:id', recipesPutById)
   router.delete('/api/recipes/:id', recipesDeleteById)
 
-  // Scheduler — static sub-paths before dynamic :id
-  router.get('/api/scheduler', schedulerGetAll)
-  router.post('/api/scheduler/save', schedulerSave)
-  router.post('/api/scheduler/cleanup', schedulerCleanup)
-  router.get('/api/scheduler/load/:weekStartDate', schedulerLoad)
-  router.delete('/api/scheduler/:id', schedulerDeleteById)
-  router.delete('/api/scheduler', schedulerDeleteAll)
+  // Scheduler
+  router.get('/api/scheduler/week', schedulerWeekGet)
+  router.post('/api/scheduler/week', schedulerWeekPost)
+  router.delete('/api/scheduler/week', schedulerWeekDelete)
+  router.post('/api/scheduler/tasks', schedulerTasksPost)
+  router.patch('/api/scheduler/tasks/:id', schedulerTasksPatch)
+  router.delete('/api/scheduler/tasks/:id', schedulerTasksDelete)
 
   app.use(router)
   return toNodeListener(app)

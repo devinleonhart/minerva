@@ -1,55 +1,52 @@
 <script setup lang="ts">
-import type { DaySchedule, TaskDefinition, TimeSlot } from '@/types/store/scheduler'
+import type { DaySchedule, TimeSlot } from '@/types/store/scheduler'
+import { getSlotState } from '@/lib/schedulerMeta'
 import TimeSlotCard from './TimeSlotCard.vue'
 
 interface Props {
   day: DaySchedule
-  dayIndex: number
-  taskDefinitions: TaskDefinition[]
-  canAdd: boolean
 }
 
 defineProps<Props>()
 
 const emit = defineEmits<{
-  addTask: [dayIndex: number, timeSlot: TimeSlot]
-  updateNotes: [dayIndex: number, timeSlot: TimeSlot, notes: string]
+  addTask: [day: number, timeSlot: TimeSlot]
+  removeTask: [taskId: number]
+  updateNotes: [taskId: number, notes: string]
 }>()
+
+function fwdNotes(taskId: number, notes: string) {
+  emit('updateNotes', taskId, notes)
+}
 </script>
 
 <template>
   <div class="day-col">
     <div class="day-header">
-      <h3 class="day-name">{{ day.dayName }}</h3>
-      <span class="day-units">{{ day.totalUnits }}/3</span>
+      <span class="day-name">{{ day.dayName.slice(0, 3) }}</span>
     </div>
 
     <div class="day-slots">
       <TimeSlotCard
         slot-name="Morning"
-        :task="day.morning"
-        :task-definitions="taskDefinitions"
-        :can-add="canAdd"
-        @add-task="emit('addTask', dayIndex, 'MORNING')"
-        @update-notes="(notes) => emit('updateNotes', dayIndex, 'MORNING', notes)"
+        :state="getSlotState(day.tasks, 'MORNING')"
+        @add-task="emit('addTask', day.day, 'MORNING')"
+        @remove-task="emit('removeTask', $event)"
+        @update-notes="fwdNotes"
       />
-
       <TimeSlotCard
         slot-name="Afternoon"
-        :task="day.afternoon"
-        :task-definitions="taskDefinitions"
-        :can-add="canAdd"
-        @add-task="emit('addTask', dayIndex, 'AFTERNOON')"
-        @update-notes="(notes) => emit('updateNotes', dayIndex, 'AFTERNOON', notes)"
+        :state="getSlotState(day.tasks, 'AFTERNOON')"
+        @add-task="emit('addTask', day.day, 'AFTERNOON')"
+        @remove-task="emit('removeTask', $event)"
+        @update-notes="fwdNotes"
       />
-
       <TimeSlotCard
         slot-name="Evening"
-        :task="day.evening"
-        :task-definitions="taskDefinitions"
-        :can-add="canAdd"
-        @add-task="emit('addTask', dayIndex, 'EVENING')"
-        @update-notes="(notes) => emit('updateNotes', dayIndex, 'EVENING', notes)"
+        :state="getSlotState(day.tasks, 'EVENING')"
+        @add-task="emit('addTask', day.day, 'EVENING')"
+        @remove-task="emit('removeTask', $event)"
+        @update-notes="fwdNotes"
       />
     </div>
   </div>
@@ -63,22 +60,16 @@ const emit = defineEmits<{
 }
 
 .day-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.625rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--color-border);
   background-color: color-mix(in srgb, var(--color-card) 60%, var(--color-background));
 }
 
 .day-name {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  margin: 0;
-}
-
-.day-units {
-  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--color-muted-foreground);
 }
 

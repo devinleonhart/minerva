@@ -1,29 +1,26 @@
 <script setup lang="ts">
-import type { ScheduledTask, TaskDefinition } from '@/types/store/scheduler'
+import type { ScheduledTask } from '@/types/store/scheduler'
+import type { SlotState } from '@/lib/schedulerMeta'
+import { TASK_META } from '@/lib/schedulerMeta'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Plus } from 'lucide-vue-next'
+import { Plus, X } from 'lucide-vue-next'
 
 interface Props {
   slotName: string
-  task?: ScheduledTask
-  taskDefinitions: TaskDefinition[]
-  canAdd: boolean
+  state: SlotState
 }
 
 defineProps<Props>()
 
 const emit = defineEmits<{
   addTask: []
-  updateNotes: [notes: string]
+  removeTask: [taskId: number]
+  updateNotes: [taskId: number, notes: string]
 }>()
 
-function getTaskColor(type: string, definitions: TaskDefinition[]): string {
-  return definitions.find(t => t.type === type)?.color || '#666'
-}
-
-function getTaskName(type: string, definitions: TaskDefinition[]): string {
-  return definitions.find(t => t.type === type)?.name || type
+function taskMeta(task: ScheduledTask) {
+  return TASK_META[task.type]
 }
 </script>
 
@@ -31,33 +28,40 @@ function getTaskName(type: string, definitions: TaskDefinition[]): string {
   <div class="slot">
     <div class="slot-header">
       <span class="slot-name">{{ slotName }}</span>
-      <span class="slot-unit">1 unit</span>
     </div>
 
     <div
-      v-if="task"
+      v-if="state.kind === 'task'"
       class="slot-task"
-      :style="{ borderLeftColor: getTaskColor(task.type, taskDefinitions) }"
+      :style="{ borderLeftColor: taskMeta(state.task).color }"
     >
-      <div class="task-name">{{ getTaskName(task.type, taskDefinitions) }}</div>
-      <div class="task-units">{{ task.timeUnits }} unit(s)</div>
+      <div class="task-top">
+        <span class="task-label">{{ taskMeta(state.task).emoji }} {{ taskMeta(state.task).label }}</span>
+        <Button variant="ghost" size="icon" class="remove-btn" @click="emit('removeTask', state.task.id)">
+          <X />
+        </Button>
+      </div>
       <Textarea
-        :model-value="task.notes || ''"
-        placeholder="Add notes..."
+        :model-value="state.task.notes ?? ''"
+        placeholder="Notes..."
         :rows="2"
-        @update:model-value="emit('updateNotes', $event as string)"
+        @change="emit('updateNotes', state.task.id, ($event.target as HTMLTextAreaElement).value)"
       />
     </div>
 
-    <div v-else-if="canAdd" class="slot-empty">
+    <div
+      v-else-if="state.kind === 'continuation'"
+      class="slot-continuation"
+      :style="{ borderLeftColor: taskMeta(state.sourceTask).color }"
+    >
+      <span>↑ {{ taskMeta(state.sourceTask).label }}</span>
+    </div>
+
+    <div v-else class="slot-empty">
       <Button size="sm" variant="ghost" @click="emit('addTask')">
         <Plus />
         Add Task
       </Button>
-    </div>
-
-    <div v-else class="slot-unavailable">
-      <span>Unavailable</span>
     </div>
   </div>
 </template>
@@ -72,53 +76,55 @@ function getTaskName(type: string, definitions: TaskDefinition[]): string {
 }
 
 .slot-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 0.75rem;
+  padding: 0.4375rem 0.75rem;
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
 }
 
 .slot-name {
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--color-muted-foreground);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.slot-unit {
-  font-size: 0.75rem;
-  color: var(--color-muted-foreground);
+  letter-spacing: 0.05em;
 }
 
 .slot-task {
-  padding: 0.625rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border-left: 3px solid var(--color-primary);
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
 }
 
-.task-name {
-  font-size: 0.875rem;
-  font-weight: 500;
+.task-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
 }
 
-.task-units {
-  font-size: 0.75rem;
+.task-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.remove-btn {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
   color: var(--color-muted-foreground);
 }
 
-.slot-empty {
-  padding: 0.5rem 0.75rem;
-  display: flex;
-}
-
-.slot-unavailable {
+.slot-continuation {
   padding: 0.625rem 0.75rem;
+  border-left: 3px solid var(--color-primary);
   font-size: 0.8125rem;
   color: var(--color-muted-foreground);
   font-style: italic;
+}
+
+.slot-empty {
+  padding: 0.375rem 0.5rem;
 }
 </style>

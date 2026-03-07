@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { Plus, Minus, Search } from 'lucide-vue-next'
+import { Plus, Minus, Search, X } from 'lucide-vue-next'
 
 interface Props {
   open: boolean
@@ -147,22 +147,20 @@ function handleSubmit() {
             <div v-if="selectedIngredients.length === 0" class="empty-state">
               No ingredients selected. Add some from below.
             </div>
-            <div v-else class="badge-group">
-              <Badge
+            <div v-else class="selected-list">
+              <div
                 v-for="ing in selectedIngredients"
                 :key="ing.ingredientId"
+                class="selected-chip"
               >
-                {{ ingredients.find(i => i.id === ing.ingredientId)?.name }}
-                <div class="qty-ctrl">
-                  <button class="icon-btn" type="button" @click="updateQuantity(ing.ingredientId, -1)">
-                    <Minus />
-                  </button>
-                  <span class="qty">{{ ing.quantity }}</span>
-                  <button class="icon-btn" type="button" @click="updateQuantity(ing.ingredientId, 1)">
-                    <Plus />
-                  </button>
+                <span class="chip-name">{{ ingredients.find(i => i.id === ing.ingredientId)?.name }}</span>
+                <div class="chip-controls">
+                  <button class="chip-btn" type="button" :disabled="ing.quantity <= 1" @click="updateQuantity(ing.ingredientId, -1)"><Minus /></button>
+                  <span class="chip-qty">{{ ing.quantity }}</span>
+                  <button class="chip-btn" type="button" @click="updateQuantity(ing.ingredientId, 1)"><Plus /></button>
+                  <button class="chip-btn chip-remove" type="button" @click="toggleIngredient(ing.ingredientId)"><X /></button>
                 </div>
-              </Badge>
+              </div>
             </div>
           </div>
 
@@ -210,6 +208,79 @@ function handleSubmit() {
 </template>
 
 <style scoped>
+.selected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.selected-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3125rem 0.5rem 0.3125rem 0.75rem;
+  background-color: var(--color-accent);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.chip-name {
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+.chip-qty {
+  min-width: 1.5rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.chip-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.1875rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: background-color 0.1s;
+}
+
+.chip-btn:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-foreground) 12%, transparent);
+}
+
+.chip-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.chip-remove {
+  margin-left: 0.25rem;
+  color: var(--color-muted-foreground);
+}
+
+.chip-remove:hover {
+  color: var(--color-destructive);
+  background-color: color-mix(in srgb, var(--color-destructive) 12%, transparent) !important;
+}
+
 .search-row {
   display: flex;
   align-items: center;

@@ -13,10 +13,20 @@ interface RecipeIngredientInput {
 export default eventHandler(async (event) => {
   try {
     const id = parseId(getRouterParam(event, 'id'))
-    const { name, description, ingredients } = await readBody(event) as {
+    const {
+      name, description, ingredients,
+      fireEssence, airEssence, waterEssence, lightningEssence, earthEssence, lifeEssence, deathEssence
+    } = await readBody(event) as {
       name?: string
       description?: string
       ingredients?: RecipeIngredientInput[]
+      fireEssence?: string | null
+      airEssence?: string | null
+      waterEssence?: string | null
+      lightningEssence?: string | null
+      earthEssence?: string | null
+      lifeEssence?: string | null
+      deathEssence?: string | null
     }
 
     if (id === null) {
@@ -67,6 +77,13 @@ export default eventHandler(async (event) => {
         await tx.update(recipe).set({
           ...(name !== undefined && { name: name.trim() }),
           ...(description !== undefined && { description: description.trim() }),
+          ...(fireEssence !== undefined && { fireEssence: fireEssence?.trim() || null }),
+          ...(airEssence !== undefined && { airEssence: airEssence?.trim() || null }),
+          ...(waterEssence !== undefined && { waterEssence: waterEssence?.trim() || null }),
+          ...(lightningEssence !== undefined && { lightningEssence: lightningEssence?.trim() || null }),
+          ...(earthEssence !== undefined && { earthEssence: earthEssence?.trim() || null }),
+          ...(lifeEssence !== undefined && { lifeEssence: lifeEssence?.trim() || null }),
+          ...(deathEssence !== undefined && { deathEssence: deathEssence?.trim() || null }),
           updatedAt: new Date().toISOString()
         }).where(eq(recipe.id, id))
 

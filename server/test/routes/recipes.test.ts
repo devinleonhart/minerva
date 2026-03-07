@@ -344,6 +344,41 @@ describe('Recipes Routes', () => {
         error: 'One or more ingredients not found'
       })
     })
+
+    it('should save crystal cauldron essence fields when provided', async () => {
+      const ingredient = await createTestIngredient({ name: 'Ingredient', description: 'Test' })
+
+      const response = await request(app)
+        .post('/api/recipes')
+        .send({
+          name: 'Essence Recipe',
+          description: 'Test',
+          ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
+          fireEssence: 'Grants fire resistance',
+          waterEssence: 'Heals over time',
+        })
+        .expect(201)
+
+      expect(response.body.fireEssence).toBe('Grants fire resistance')
+      expect(response.body.waterEssence).toBe('Heals over time')
+      expect(response.body.airEssence).toBeNull()
+    })
+
+    it('should treat empty string essence fields as null on create', async () => {
+      const ingredient = await createTestIngredient({ name: 'Ingredient', description: 'Test' })
+
+      const response = await request(app)
+        .post('/api/recipes')
+        .send({
+          name: 'Empty Essence Recipe',
+          description: 'Test',
+          ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
+          fireEssence: '   ',
+        })
+        .expect(201)
+
+      expect(response.body.fireEssence).toBeNull()
+    })
   })
 
   describe('PUT /api/recipes/:id', () => {
@@ -554,6 +589,36 @@ describe('Recipes Routes', () => {
       expect(response.body).toMatchObject({
         error: 'Recipe not found'
       })
+    })
+
+    it('should update crystal cauldron essence fields', async () => {
+      const response = await request(app)
+        .put(`/api/recipes/${recipe.id}`)
+        .send({
+          fireEssence: 'Burns enemies',
+          lifeEssence: 'Restores health',
+        })
+        .expect(200)
+
+      expect(response.body.fireEssence).toBe('Burns enemies')
+      expect(response.body.lifeEssence).toBe('Restores health')
+      expect(response.body.name).toBe('Original Recipe')
+    })
+
+    it('should clear an essence field when empty string is sent', async () => {
+      // First set an essence
+      await request(app)
+        .put(`/api/recipes/${recipe.id}`)
+        .send({ fireEssence: 'Some effect' })
+        .expect(200)
+
+      // Then clear it
+      const response = await request(app)
+        .put(`/api/recipes/${recipe.id}`)
+        .send({ fireEssence: '' })
+        .expect(200)
+
+      expect(response.body.fireEssence).toBeNull()
     })
   })
 

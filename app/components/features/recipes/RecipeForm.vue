@@ -36,6 +36,23 @@ const emit = defineEmits<{
 const name = ref('')
 const description = ref('')
 const selectedIngredients = ref<Array<{ ingredientId: number; quantity: number }>>([])
+const fireEssence = ref('')
+const airEssence = ref('')
+const waterEssence = ref('')
+const lightningEssence = ref('')
+const earthEssence = ref('')
+const lifeEssence = ref('')
+const deathEssence = ref('')
+
+const ESSENCES = [
+  { key: 'fireEssence', label: 'Fire', ref: fireEssence },
+  { key: 'airEssence', label: 'Air', ref: airEssence },
+  { key: 'waterEssence', label: 'Water', ref: waterEssence },
+  { key: 'lightningEssence', label: 'Lightning', ref: lightningEssence },
+  { key: 'earthEssence', label: 'Earth', ref: earthEssence },
+  { key: 'lifeEssence', label: 'Life', ref: lifeEssence },
+  { key: 'deathEssence', label: 'Death', ref: deathEssence },
+] as const
 const ingredientFilter = ref('')
 
 const isEditing = computed(() => !!props.recipe)
@@ -64,10 +81,24 @@ watch(() => props.open, (open) => {
       ingredientId: ing.ingredientId,
       quantity: ing.quantity
     }))
+    fireEssence.value = props.recipe.fireEssence ?? ''
+    airEssence.value = props.recipe.airEssence ?? ''
+    waterEssence.value = props.recipe.waterEssence ?? ''
+    lightningEssence.value = props.recipe.lightningEssence ?? ''
+    earthEssence.value = props.recipe.earthEssence ?? ''
+    lifeEssence.value = props.recipe.lifeEssence ?? ''
+    deathEssence.value = props.recipe.deathEssence ?? ''
   } else if (open) {
     name.value = ''
     description.value = ''
     selectedIngredients.value = []
+    fireEssence.value = ''
+    airEssence.value = ''
+    waterEssence.value = ''
+    lightningEssence.value = ''
+    earthEssence.value = ''
+    lifeEssence.value = ''
+    deathEssence.value = ''
   }
   ingredientFilter.value = ''
 })
@@ -101,7 +132,14 @@ function handleSubmit() {
   const data = {
     name: name.value.trim(),
     description: description.value.trim(),
-    ingredients: selectedIngredients.value
+    ingredients: selectedIngredients.value,
+    fireEssence: fireEssence.value.trim() || undefined,
+    airEssence: airEssence.value.trim() || undefined,
+    waterEssence: waterEssence.value.trim() || undefined,
+    lightningEssence: lightningEssence.value.trim() || undefined,
+    earthEssence: earthEssence.value.trim() || undefined,
+    lifeEssence: lifeEssence.value.trim() || undefined,
+    deathEssence: deathEssence.value.trim() || undefined,
   }
 
   if (isEditing.value && props.recipe) {
@@ -140,6 +178,20 @@ function handleSubmit() {
               placeholder="Enter recipe description"
               :rows="3"
             />
+          </div>
+
+          <div class="field">
+            <Label class="optional-label">Crystal Cauldron Effects <span class="optional-tag">optional</span></Label>
+            <div class="essence-grid">
+              <div v-for="essence in ESSENCES" :key="essence.key" class="essence-field">
+                <Label :for="essence.key">{{ essence.label }}</Label>
+                <Input
+                  :id="essence.key"
+                  v-model="essence.ref.value"
+                  placeholder="Effect description..."
+                />
+              </div>
+            </div>
           </div>
 
           <div class="field">
@@ -279,6 +331,31 @@ function handleSubmit() {
 .chip-remove:hover {
   color: var(--color-destructive);
   background-color: color-mix(in srgb, var(--color-destructive) 12%, transparent) !important;
+}
+
+.optional-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.optional-tag {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--color-muted-foreground);
+  text-transform: lowercase;
+}
+
+.essence-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 0.75rem;
+}
+
+.essence-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .search-row {

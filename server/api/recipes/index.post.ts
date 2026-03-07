@@ -11,10 +11,20 @@ interface RecipeIngredientInput {
 
 export default eventHandler(async (event) => {
   try {
-    const { name, description, ingredients } = (await readBody(event) ?? {}) as {
+    const {
+      name, description, ingredients,
+      fireEssence, airEssence, waterEssence, lightningEssence, earthEssence, lifeEssence, deathEssence
+    } = (await readBody(event) ?? {}) as {
       name: string
       description: string
       ingredients: RecipeIngredientInput[]
+      fireEssence?: string | null
+      airEssence?: string | null
+      waterEssence?: string | null
+      lightningEssence?: string | null
+      earthEssence?: string | null
+      lifeEssence?: string | null
+      deathEssence?: string | null
     }
 
     // Validate required fields
@@ -61,6 +71,13 @@ export default eventHandler(async (event) => {
       const [createdRecipe] = await tx.insert(recipe).values({
         name: name.trim(),
         description: description.trim(),
+        fireEssence: fireEssence?.trim() || null,
+        airEssence: airEssence?.trim() || null,
+        waterEssence: waterEssence?.trim() || null,
+        lightningEssence: lightningEssence?.trim() || null,
+        earthEssence: earthEssence?.trim() || null,
+        lifeEssence: lifeEssence?.trim() || null,
+        deathEssence: deathEssence?.trim() || null,
         updatedAt: new Date().toISOString()
       }).returning()
 

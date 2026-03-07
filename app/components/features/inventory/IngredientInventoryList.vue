@@ -21,12 +21,8 @@ const emit = defineEmits<{
   delete: [id: number]
 }>()
 
-function getQualityVariant(quality: string): 'default' | 'secondary' | 'destructive' {
-  switch (quality) {
-    case 'HQ': return 'default'
-    case 'LQ': return 'destructive'
-    default: return 'secondary'
-  }
+function getQualityVariant(): 'secondary' {
+  return 'secondary'
 }
 </script>
 
@@ -41,7 +37,7 @@ function getQualityVariant(quality: string): 'default' | 'secondary' | 'destruct
           </div>
         </TableCell>
         <TableCell>
-          <Badge :variant="getQualityVariant(item.quality)">
+          <Badge :variant="getQualityVariant()">
             {{ item.quality }}
           </Badge>
         </TableCell>

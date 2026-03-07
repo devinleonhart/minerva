@@ -43,8 +43,9 @@ jobs:
       - name: Run tests
         run: |
           docker run --rm --network minerva-test-net \
-            -e MINERVA_DATABASE_URL=postgresql://postgres:postgres@postgres-test:5432/minerva_test \
-            minerva:test sh -c "pnpm prisma db push --schema=./server/prisma/schema.prisma --config=./server/prisma/prisma.config.ts && pnpm run test:server"
+            -e TEST_DATABASE_URL=postgresql://postgres:postgres@postgres-test:5432/minerva_test \
+            -e NODE_ENV=test \
+            minerva:test sh -c "pnpm run test"
 
       - name: Cleanup
         if: always()

@@ -1,49 +1,16 @@
 services:
-  client:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
-    working_dir: /app
-    command: pnpm run dev:client
-    ports:
-      - "8080:5173"
-    volumes:
-      - ./client:/app/client
-      - /app/node_modules
-    environment:
-      - VITE_API_BASE=/api
-    depends_on:
-      - server
-
-  server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: base
-    working_dir: /app
-    command: ["sh", "-c", "pnpm run prisma:generate && pnpm tsx server/index.ts"]
+      target: production
     ports:
       - "3000:3000"
-    volumes:
-      - ./server:/app/server
-      - /app/node_modules
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/minerva
     depends_on:
-      - postgres
-
-  prisma:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
-    working_dir: /app
-    command: ["tail", "-f", "/dev/null"]
-    volumes:
-      - ./server:/app/server
-    depends_on:
-      - postgres
-    ports:
-      - "5555:5555"
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:17.4
@@ -56,19 +23,11 @@ services:
       POSTGRES_DB: minerva
     volumes:
       - pgdata:/var/lib/postgresql/data
-
-  postgres-test:
-    image: postgres:17.4
-    restart: always
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: minerva_test
-    volumes:
-      - pgdata-test:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
-  pgdata-test:

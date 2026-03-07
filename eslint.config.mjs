@@ -6,7 +6,7 @@ import pluginVue from 'eslint-plugin-vue'
 
 export default defineConfig([
   {
-    ignores: ['dist/**', 'server/src/generated/**', 'node_modules/**']
+    ignores: ['dist/**', '.nuxt/**', '.output/**', 'server/src/generated/**', 'node_modules/**']
   },
   { files: ['**/*.{js,mjs,cjs,ts,d.ts,vue}'] },
   { files: ['**/*.{js,mjs,cjs,ts,d.ts,vue}'], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
@@ -29,9 +29,23 @@ export default defineConfig([
   },
   {
     // UI primitives are intentionally single-word (Badge, Button, Card, etc.)
-    files: ['client/src/components/ui/**/*.vue'],
+    files: ['app/components/ui/**/*.vue'],
     rules: {
       'vue/multi-word-component-names': 'off'
+    }
+  },
+  {
+    // Nuxt pages are route entry points, not reusable components — single-word names are fine
+    files: ['app/pages/**/*.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off'
+    }
+  },
+  {
+    // Nuxt auto-imports composables, stores, and utils — no-undef produces false positives
+    files: ['app/**/*.{ts,vue}'],
+    rules: {
+      'no-undef': 'off'
     }
   },
   {

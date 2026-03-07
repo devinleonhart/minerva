@@ -9,7 +9,7 @@ import {
   scheduledTask, taskDefinition, itemInventoryItem
 } from '../db/index.js'
 import { sql } from 'drizzle-orm'
-import { getTestDatabaseUrl } from '../src/config/databaseUrls.js'
+import { getTestDatabaseUrl } from '../utils/databaseUrls.js'
 
 const { Pool } = pg
 const testConnectionString = getTestDatabaseUrl()

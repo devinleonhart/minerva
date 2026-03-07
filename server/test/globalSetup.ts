@@ -1,7 +1,7 @@
 import { execSync } from 'child_process'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { getTestDatabaseUrl } from '../src/config/databaseUrls.js'
+import { getTestDatabaseUrl } from '../utils/databaseUrls.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

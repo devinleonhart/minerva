@@ -1,6 +1,3 @@
--- Current sql file was generated after introspecting the database
--- If you want to run this migration please uncomment this code before executing migrations
-/*
 CREATE TYPE "public"."IngredientQuality" AS ENUM('NORMAL', 'HQ', 'LQ');--> statement-breakpoint
 CREATE TYPE "public"."PotionQuality" AS ENUM('NORMAL', 'HQ', 'LQ');--> statement-breakpoint
 CREATE TYPE "public"."TaskType" AS ENUM('GATHER_INGREDIENT', 'BREWING', 'SECURE_INGREDIENTS', 'RESEARCH_RECIPES', 'RESEARCH_SPELL', 'FREE_TIME');--> statement-breakpoint
@@ -183,4 +180,3 @@ CREATE UNIQUE INDEX "ScheduledTask_dayScheduleId_timeSlot_key" ON "ScheduledTask
 CREATE UNIQUE INDEX "Currency_name_key" ON "Currency" USING btree ("name" text_ops);--> statement-breakpoint
 CREATE UNIQUE INDEX "Skill_name_key" ON "Skill" USING btree ("name" text_ops);--> statement-breakpoint
 CREATE UNIQUE INDEX "Spell_name_key" ON "Spell" USING btree ("name" text_ops);
-*/

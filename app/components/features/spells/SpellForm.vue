@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import type { Spell, CreateSpellRequest, UpdateSpellRequest } from '@/types/store/spells'
+import type { Spell } from '@/types/store/spells'
 import {
   Dialog,
   DialogContent,
@@ -23,13 +23,12 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  create: [data: CreateSpellRequest]
-  update: [id: number, data: UpdateSpellRequest]
+  create: [data: { name: string; neededStars: number }]
+  update: [id: number, data: { name: string; neededStars: number }]
 }>()
 
 const name = ref('')
 const neededStars = ref(5)
-const currentStars = ref(0)
 
 const isEditing = computed(() => !!props.spell)
 const title = computed(() => isEditing.value ? 'Edit Spell' : 'Add New Spell')
@@ -38,29 +37,20 @@ watch(() => props.open, (open) => {
   if (open && props.spell) {
     name.value = props.spell.name
     neededStars.value = props.spell.neededStars
-    currentStars.value = props.spell.currentStars
   } else if (open) {
     name.value = ''
     neededStars.value = 5
-    currentStars.value = 0
   }
 })
 
 function handleSubmit() {
   if (!name.value.trim()) return
 
+  const data = { name: name.value.trim(), neededStars: neededStars.value }
   if (isEditing.value && props.spell) {
-    emit('update', props.spell.id, {
-      name: name.value.trim(),
-      neededStars: neededStars.value,
-      currentStars: currentStars.value
-    })
+    emit('update', props.spell.id, data)
   } else {
-    emit('create', {
-      name: name.value.trim(),
-      neededStars: neededStars.value,
-      currentStars: currentStars.value
-    })
+    emit('create', data)
   }
 
   emit('update:open', false)
@@ -85,28 +75,15 @@ function handleSubmit() {
             />
           </div>
 
-          <div class="field-row">
-            <div class="field">
-              <Label for="neededStars">Stars Needed</Label>
-              <Input
-                id="neededStars"
-                v-model.number="neededStars"
-                type="number"
-                min="1"
-                max="10"
-              />
-            </div>
-
-            <div class="field">
-              <Label for="currentStars">Current Stars</Label>
-              <Input
-                id="currentStars"
-                v-model.number="currentStars"
-                type="number"
-                min="0"
-                :max="neededStars"
-              />
-            </div>
+          <div class="field">
+            <Label for="neededStars">Stars Needed</Label>
+            <Input
+              id="neededStars"
+              v-model.number="neededStars"
+              type="number"
+              min="1"
+              max="10"
+            />
           </div>
 
           <DialogFooter>

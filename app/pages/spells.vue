@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import type { Spell, CreateSpellRequest, UpdateSpellRequest } from '@/types/store/spells'
+import type { Spell } from '@/types/store/spells'
 import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -48,7 +48,7 @@ function handleEditSpell(spell: Spell) {
   showForm.value = true
 }
 
-async function handleCreateSpell(data: CreateSpellRequest) {
+async function handleCreateSpell(data: { name: string; neededStars: number }) {
   try {
     await spellsStore.createSpell(data)
     toast.success('Spell added successfully')
@@ -57,12 +57,20 @@ async function handleCreateSpell(data: CreateSpellRequest) {
   }
 }
 
-async function handleUpdateSpell(id: number, data: UpdateSpellRequest) {
+async function handleUpdateSpell(id: number, data: { name: string; neededStars: number }) {
   try {
     await spellsStore.updateSpell(id, data)
     toast.success('Spell updated successfully')
   } catch {
     toast.error('Failed to update spell')
+  }
+}
+
+async function handleUpdateProgress(id: number, currentStars: number) {
+  try {
+    await spellsStore.updateSpellProgress(id, currentStars)
+  } catch {
+    toast.error('Failed to update progress')
   }
 }
 
@@ -118,6 +126,7 @@ async function handleDeleteSpell(id: number) {
           :spells="sortedSpells"
           @edit="handleEditSpell"
           @delete="handleDeleteSpell"
+          @update-progress="handleUpdateProgress"
         />
       </CardContent>
     </Card>

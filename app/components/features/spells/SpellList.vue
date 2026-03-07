@@ -18,6 +18,7 @@ defineProps<Props>()
 const emit = defineEmits<{
   edit: [spell: Spell]
   delete: [id: number]
+  updateProgress: [id: number, currentStars: number]
 }>()
 </script>
 
@@ -32,7 +33,15 @@ const emit = defineEmits<{
         </TableCell>
         <TableCell>
           <div class="stars">
-            <Star v-for="i in spell.neededStars" :key="i" :class="i <= spell.currentStars ? 'star-filled' : 'star-empty'" />
+            <button
+              v-for="i in spell.neededStars"
+              :key="i"
+              class="star-btn"
+              :title="`Set progress to ${i}/${spell.neededStars}`"
+              @click="emit('updateProgress', spell.id, i === spell.currentStars ? i - 1 : i)"
+            >
+              <Star :class="i <= spell.currentStars ? 'star-filled' : 'star-empty'" />
+            </button>
           </div>
         </TableCell>
         <TableCell>
@@ -63,6 +72,21 @@ const emit = defineEmits<{
   display: flex;
   gap: 0.125rem;
   font-size: 0.75rem;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  padding: 0.125rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.1s;
+}
+
+.star-btn:hover {
+  background-color: var(--color-accent);
 }
 
 .star-filled {

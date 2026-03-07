@@ -43,19 +43,15 @@ export default eventHandler(async (event) => {
     }
 
     const newNeededStars = neededStars !== undefined ? neededStars as number : currentSpell.neededStars
-    const newCurrentStars = currentStars !== undefined ? currentStars as number : currentSpell.currentStars
-
-    if (newCurrentStars > newNeededStars) {
-      setResponseStatus(event, 400)
-      return { error: 'Current stars cannot exceed needed stars' }
-    }
+    const rawCurrentStars = currentStars !== undefined ? currentStars as number : currentSpell.currentStars
+    const newCurrentStars = Math.min(rawCurrentStars, newNeededStars)
 
     const isLearned = newCurrentStars >= newNeededStars
 
     const [row] = await db.update(spell).set({
       ...(name !== undefined && { name: (name as string).trim() }),
-      ...(neededStars !== undefined && { neededStars: newNeededStars }),
-      ...(currentStars !== undefined && { currentStars: newCurrentStars }),
+      neededStars: newNeededStars,
+      currentStars: newCurrentStars,
       isLearned,
       updatedAt: new Date().toISOString()
     }).where(eq(spell.id, id)).returning()

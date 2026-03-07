@@ -48,7 +48,8 @@ export const useSpellsStore = defineStore('spells', {
     },
     async updateSpellProgress(id: number, currentStars: number) {
       try {
-        await this.updateSpell(id, { currentStars })
+        await axios.patch(`/api/spells/${id}/progress`, { currentStars })
+        await this.getSpells()
       } catch (error) {
         console.error('Error updating spell progress:', error)
         throw error

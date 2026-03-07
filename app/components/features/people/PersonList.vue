@@ -38,7 +38,8 @@ const emit = defineEmits<{
         </TableCell>
         <TableCell>
           <div class="info-cell">
-            <span class="name">{{ person.name }}</span>
+            <a v-if="person.url" class="name name-link" :href="person.url" target="_blank" rel="noopener noreferrer">{{ person.name }}</a>
+            <span v-else class="name">{{ person.name }}</span>
             <span v-if="person.relationship" class="sub">{{ person.relationship }}</span>
           </div>
         </TableCell>
@@ -70,3 +71,15 @@ const emit = defineEmits<{
     </TableBody>
   </Table>
 </template>
+
+<style scoped>
+.name-link {
+  color: var(--color-foreground);
+  text-decoration: none;
+}
+
+.name-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+</style>

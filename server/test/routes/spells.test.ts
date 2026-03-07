@@ -571,30 +571,29 @@ describe('Spells Routes', () => {
       })
     })
 
-    it('should return 400 when currentStars would exceed neededStars', async () => {
+    it('should clamp currentStars to neededStars when currentStars exceeds it', async () => {
       const response = await request(app)
         .put(`/api/spells/${spell.id}`)
         .send({
-          currentStars: 10 // Exceeds neededStars of 5
+          currentStars: 10 // Exceeds neededStars of 5 — should clamp to 5
         })
-        .expect(400)
+        .expect(200)
 
-      expect(response.body).toMatchObject({
-        error: 'Current stars cannot exceed needed stars'
-      })
+      expect(response.body.currentStars).toBe(5)
+      expect(response.body.isLearned).toBe(true)
     })
 
-    it('should return 400 when updating neededStars would make currentStars exceed it', async () => {
+    it('should clamp currentStars when reducing neededStars below it', async () => {
       const response = await request(app)
         .put(`/api/spells/${spell.id}`)
         .send({
-          neededStars: 1 // CurrentStars is 2, which exceeds 1
+          neededStars: 1 // CurrentStars is 2, should clamp to 1
         })
-        .expect(400)
+        .expect(200)
 
-      expect(response.body).toMatchObject({
-        error: 'Current stars cannot exceed needed stars'
-      })
+      expect(response.body.currentStars).toBe(1)
+      expect(response.body.neededStars).toBe(1)
+      expect(response.body.isLearned).toBe(true)
     })
 
     it('should return 404 for non-existent spell', async () => {

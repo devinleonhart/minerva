@@ -173,10 +173,10 @@ ALTER TABLE "ScheduledTask" ADD CONSTRAINT "ScheduledTask_dayScheduleId_fkey" FO
 ALTER TABLE "ItemInventoryItem" ADD CONSTRAINT "ItemInventoryItem_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "public"."Item"("id") ON DELETE restrict ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "RecipeIngredient" ADD CONSTRAINT "RecipeIngredient_recipeId_fkey" FOREIGN KEY ("recipeId") REFERENCES "public"."Recipe"("id") ON DELETE restrict ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "RecipeIngredient" ADD CONSTRAINT "RecipeIngredient_ingredientId_fkey" FOREIGN KEY ("ingredientId") REFERENCES "public"."Ingredient"("id") ON DELETE restrict ON UPDATE cascade;--> statement-breakpoint
-CREATE UNIQUE INDEX "TaskDefinition_type_key" ON "TaskDefinition" USING btree ("type" enum_ops);--> statement-breakpoint
-CREATE UNIQUE INDEX "WeekSchedule_weekStartDate_key" ON "WeekSchedule" USING btree ("weekStartDate" timestamp_ops);--> statement-breakpoint
-CREATE UNIQUE INDEX "DaySchedule_weekScheduleId_day_key" ON "DaySchedule" USING btree ("weekScheduleId" int4_ops,"day" int4_ops);--> statement-breakpoint
-CREATE UNIQUE INDEX "ScheduledTask_dayScheduleId_timeSlot_key" ON "ScheduledTask" USING btree ("dayScheduleId" int4_ops,"timeSlot" int4_ops);--> statement-breakpoint
-CREATE UNIQUE INDEX "Currency_name_key" ON "Currency" USING btree ("name" text_ops);--> statement-breakpoint
-CREATE UNIQUE INDEX "Skill_name_key" ON "Skill" USING btree ("name" text_ops);--> statement-breakpoint
-CREATE UNIQUE INDEX "Spell_name_key" ON "Spell" USING btree ("name" text_ops);
+CREATE UNIQUE INDEX "TaskDefinition_type_key" ON "TaskDefinition" USING btree ("type");--> statement-breakpoint
+CREATE UNIQUE INDEX "WeekSchedule_weekStartDate_key" ON "WeekSchedule" USING btree ("weekStartDate");--> statement-breakpoint
+CREATE UNIQUE INDEX "DaySchedule_weekScheduleId_day_key" ON "DaySchedule" USING btree ("weekScheduleId","day");--> statement-breakpoint
+CREATE UNIQUE INDEX "ScheduledTask_dayScheduleId_timeSlot_key" ON "ScheduledTask" USING btree ("dayScheduleId","timeSlot");--> statement-breakpoint
+CREATE UNIQUE INDEX "Currency_name_key" ON "Currency" USING btree ("name");--> statement-breakpoint
+CREATE UNIQUE INDEX "Skill_name_key" ON "Skill" USING btree ("name");--> statement-breakpoint
+CREATE UNIQUE INDEX "Spell_name_key" ON "Spell" USING btree ("name");

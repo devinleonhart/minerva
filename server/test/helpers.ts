@@ -1,5 +1,4 @@
-import { createApp } from 'h3'
-import { toNodeHandler } from 'h3/node'
+import { createApp, createRouter, toNodeListener } from 'h3'
 
 // ── Skills ───────────────────────────────────────────────────────────────────
 import skillsGetAll from '../api/skills/index.get.js'
@@ -76,79 +75,81 @@ import schedulerLoad from '../api/scheduler/load/[weekStartDate].get.js'
 
 export function createTestApp() {
   const app = createApp()
+  const router = createRouter()
 
   // Skills
-  app.on('GET', '/api/skills', skillsGetAll)
-  app.on('GET', '/api/skills/:id', skillsGetById)
-  app.on('POST', '/api/skills', skillsPost)
-  app.on('DELETE', '/api/skills/:id', skillsDeleteById)
+  router.get('/api/skills', skillsGetAll)
+  router.get('/api/skills/:id', skillsGetById)
+  router.post('/api/skills', skillsPost)
+  router.delete('/api/skills/:id', skillsDeleteById)
 
   // Spells — static sub-paths before dynamic :id
-  app.on('GET', '/api/spells', spellsGetAll)
-  app.on('POST', '/api/spells', spellsPost)
-  app.on('PATCH', '/api/spells/:id/progress', spellsProgressById)
-  app.on('GET', '/api/spells/:id', spellsGetById)
-  app.on('PUT', '/api/spells/:id', spellsPutById)
-  app.on('DELETE', '/api/spells/:id', spellsDeleteById)
+  router.get('/api/spells', spellsGetAll)
+  router.post('/api/spells', spellsPost)
+  router.patch('/api/spells/:id/progress', spellsProgressById)
+  router.get('/api/spells/:id', spellsGetById)
+  router.put('/api/spells/:id', spellsPutById)
+  router.delete('/api/spells/:id', spellsDeleteById)
 
   // People — static sub-paths before dynamic :id
-  app.on('GET', '/api/people', peopleGetAll)
-  app.on('POST', '/api/people', peoplePost)
-  app.on('PATCH', '/api/people/:id/favorite', peopleFavoriteById)
-  app.on('GET', '/api/people/:id', peopleGetById)
-  app.on('PUT', '/api/people/:id', peoplePutById)
-  app.on('DELETE', '/api/people/:id', peopleDeleteById)
+  router.get('/api/people', peopleGetAll)
+  router.post('/api/people', peoplePost)
+  router.patch('/api/people/:id/favorite', peopleFavoriteById)
+  router.get('/api/people/:id', peopleGetById)
+  router.put('/api/people/:id', peoplePutById)
+  router.delete('/api/people/:id', peopleDeleteById)
 
   // Items
-  app.on('GET', '/api/items', itemsGetAll)
-  app.on('POST', '/api/items', itemsPost)
-  app.on('GET', '/api/items/:id', itemsGetById)
-  app.on('DELETE', '/api/items/:id', itemsDeleteById)
+  router.get('/api/items', itemsGetAll)
+  router.post('/api/items', itemsPost)
+  router.get('/api/items/:id', itemsGetById)
+  router.delete('/api/items/:id', itemsDeleteById)
 
   // Potions — static 'direct' before dynamic ':id' (not needed here but good habit)
-  app.on('GET', '/api/potions', potionsGetAll)
-  app.on('POST', '/api/potions/direct', potionsDirect)
-  app.on('POST', '/api/potions', potionsPost)
+  router.get('/api/potions', potionsGetAll)
+  router.post('/api/potions/direct', potionsDirect)
+  router.post('/api/potions', potionsPost)
 
   // Ingredients — static sub-paths registered before dynamic :id
-  app.on('GET', '/api/ingredients', ingredientsGetAll)
-  app.on('POST', '/api/ingredients', ingredientsPost)
-  app.on('GET', '/api/ingredients/:id/deletable', ingredientsDeletable)
-  app.on('GET', '/api/ingredients/:id', ingredientsGetById)
-  app.on('PUT', '/api/ingredients/:id', ingredientsPutById)
-  app.on('DELETE', '/api/ingredients/:id', ingredientsDeleteById)
+  router.get('/api/ingredients', ingredientsGetAll)
+  router.post('/api/ingredients', ingredientsPost)
+  router.get('/api/ingredients/:id/deletable', ingredientsDeletable)
+  router.get('/api/ingredients/:id', ingredientsGetById)
+  router.put('/api/ingredients/:id', ingredientsPutById)
+  router.delete('/api/ingredients/:id', ingredientsDeleteById)
 
   // Inventory — static sub-paths before generic :id
-  app.on('GET', '/api/inventory', inventoryGetAll)
-  app.on('POST', '/api/inventory', inventoryPost)
-  app.on('POST', '/api/inventory/currency', inventoryCurrencyPost)
-  app.on('PUT', '/api/inventory/currency/:id', inventoryCurrencyPutById)
-  app.on('DELETE', '/api/inventory/currency/:id', inventoryCurrencyDeleteById)
-  app.on('POST', '/api/inventory/item', inventoryItemPost)
-  app.on('PUT', '/api/inventory/item/:id', inventoryItemPutById)
-  app.on('DELETE', '/api/inventory/item/:id', inventoryItemDeleteById)
-  app.on('PUT', '/api/inventory/potion/:id', inventoryPotionPutById)
-  app.on('DELETE', '/api/inventory/potion/:id', inventoryPotionDeleteById)
-  app.on('PUT', '/api/inventory/:id', inventoryPutById)
-  app.on('DELETE', '/api/inventory/:id', inventoryDeleteById)
+  router.get('/api/inventory', inventoryGetAll)
+  router.post('/api/inventory', inventoryPost)
+  router.post('/api/inventory/currency', inventoryCurrencyPost)
+  router.put('/api/inventory/currency/:id', inventoryCurrencyPutById)
+  router.delete('/api/inventory/currency/:id', inventoryCurrencyDeleteById)
+  router.post('/api/inventory/item', inventoryItemPost)
+  router.put('/api/inventory/item/:id', inventoryItemPutById)
+  router.delete('/api/inventory/item/:id', inventoryItemDeleteById)
+  router.put('/api/inventory/potion/:id', inventoryPotionPutById)
+  router.delete('/api/inventory/potion/:id', inventoryPotionDeleteById)
+  router.put('/api/inventory/:id', inventoryPutById)
+  router.delete('/api/inventory/:id', inventoryDeleteById)
 
   // Recipes — static 'craftable' before dynamic :id
-  app.on('GET', '/api/recipes', recipesGetAll)
-  app.on('POST', '/api/recipes', recipesPost)
-  app.on('GET', '/api/recipes/craftable', recipesCraftable)
-  app.on('GET', '/api/recipes/:id/craftable', recipesCraftableById)
-  app.on('GET', '/api/recipes/:id/deletable', recipesDeletableById)
-  app.on('GET', '/api/recipes/:id', recipesGetById)
-  app.on('PUT', '/api/recipes/:id', recipesPutById)
-  app.on('DELETE', '/api/recipes/:id', recipesDeleteById)
+  router.get('/api/recipes', recipesGetAll)
+  router.post('/api/recipes', recipesPost)
+  router.get('/api/recipes/craftable', recipesCraftable)
+  router.get('/api/recipes/:id/craftable', recipesCraftableById)
+  router.get('/api/recipes/:id/deletable', recipesDeletableById)
+  router.get('/api/recipes/:id', recipesGetById)
+  router.put('/api/recipes/:id', recipesPutById)
+  router.delete('/api/recipes/:id', recipesDeleteById)
 
   // Scheduler — static sub-paths before dynamic :id
-  app.on('GET', '/api/scheduler', schedulerGetAll)
-  app.on('POST', '/api/scheduler/save', schedulerSave)
-  app.on('POST', '/api/scheduler/cleanup', schedulerCleanup)
-  app.on('GET', '/api/scheduler/load/:weekStartDate', schedulerLoad)
-  app.on('DELETE', '/api/scheduler/:id', schedulerDeleteById)
-  app.on('DELETE', '/api/scheduler', schedulerDeleteAll)
+  router.get('/api/scheduler', schedulerGetAll)
+  router.post('/api/scheduler/save', schedulerSave)
+  router.post('/api/scheduler/cleanup', schedulerCleanup)
+  router.get('/api/scheduler/load/:weekStartDate', schedulerLoad)
+  router.delete('/api/scheduler/:id', schedulerDeleteById)
+  router.delete('/api/scheduler', schedulerDeleteAll)
 
-  return toNodeHandler(app)
+  app.use(router)
+  return toNodeListener(app)
 }

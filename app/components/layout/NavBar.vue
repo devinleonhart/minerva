@@ -39,8 +39,9 @@ function navigateTo(path: string) {
 </script>
 
 <template>
-  <header>
-    <nav>
+  <header class="navbar">
+    <div class="navbar-brand">Minerva</div>
+    <nav class="navbar-nav">
       <Button
         v-for="navRoute in routes"
         :key="navRoute.path"
@@ -54,3 +55,35 @@ function navigateTo(path: string) {
     </nav>
   </header>
 </template>
+
+<style scoped>
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0 1.5rem;
+  background-color: color-mix(in srgb, var(--color-background) 85%, transparent);
+  border-bottom: 1px solid var(--color-border);
+  backdrop-filter: blur(8px);
+}
+
+.navbar-brand {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+</style>

@@ -122,8 +122,8 @@ function handleSubmit() {
           <DialogTitle>{{ title }}</DialogTitle>
         </DialogHeader>
 
-        <form @submit.prevent="handleSubmit">
-          <div>
+        <form class="form" @submit.prevent="handleSubmit">
+          <div class="field">
             <Label for="name">Recipe Name</Label>
             <Input
               id="name"
@@ -132,7 +132,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label for="description">Description</Label>
             <Textarea
               id="description"
@@ -142,23 +142,23 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label>Selected Ingredients</Label>
-            <div v-if="selectedIngredients.length === 0">
+            <div v-if="selectedIngredients.length === 0" class="empty-state">
               No ingredients selected. Add some from below.
             </div>
-            <div v-else>
+            <div v-else class="badge-group">
               <Badge
                 v-for="ing in selectedIngredients"
                 :key="ing.ingredientId"
               >
                 {{ ingredients.find(i => i.id === ing.ingredientId)?.name }}
-                <div>
-                  <button type="button" @click="updateQuantity(ing.ingredientId, -1)">
+                <div class="qty-ctrl">
+                  <button class="icon-btn" type="button" @click="updateQuantity(ing.ingredientId, -1)">
                     <Minus />
                   </button>
-                  <span>{{ ing.quantity }}</span>
-                  <button type="button" @click="updateQuantity(ing.ingredientId, 1)">
+                  <span class="qty">{{ ing.quantity }}</span>
+                  <button class="icon-btn" type="button" @click="updateQuantity(ing.ingredientId, 1)">
                     <Plus />
                   </button>
                 </div>
@@ -166,25 +166,26 @@ function handleSubmit() {
             </div>
           </div>
 
-          <div>
+          <div class="field">
             <Label>Available Ingredients</Label>
-            <div>
+            <div class="search-row">
               <Search />
               <Input
                 v-model="ingredientFilter"
                 placeholder="Filter ingredients..."
               />
             </div>
-            <div>
+            <div class="ingredient-picker">
               <Card
                 v-for="ingredient in filteredIngredients"
                 :key="ingredient.id"
+                :class="'ingredient-card' + (isSelected(ingredient.id) ? ' selected' : '')"
                 @click="toggleIngredient(ingredient.id)"
               >
-                <div>
-                  <div>
-                    <div>{{ ingredient.name }}</div>
-                    <div>{{ ingredient.description }}</div>
+                <div class="ingredient-card-inner">
+                  <div class="info-cell">
+                    <div class="name">{{ ingredient.name }}</div>
+                    <div class="sub">{{ ingredient.description }}</div>
                   </div>
                   <Badge v-if="isSelected(ingredient.id)" variant="default">
                     x{{ getQuantity(ingredient.id) }}
@@ -207,3 +208,44 @@ function handleSubmit() {
     </template>
   </Dialog>
 </template>
+
+<style scoped>
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-muted-foreground);
+  margin-bottom: 0.5rem;
+}
+
+.ingredient-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  max-height: 14rem;
+  overflow-y: auto;
+  padding-right: 0.125rem;
+}
+
+.ingredient-card {
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.ingredient-card:hover {
+  border-color: var(--color-primary);
+}
+
+.ingredient-card.selected {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 8%, var(--color-card));
+}
+
+.ingredient-card-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+}
+</style>

@@ -17,6 +17,6 @@ const { toasts, dismissToast } = useToast()
       :open="toast.open"
       @update:open="dismissToast(toast.id)"
     />
-    <ToastViewport />
+    <ToastViewport class="toast-viewport" />
   </ToastProvider>
 </template>

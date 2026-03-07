@@ -56,8 +56,8 @@ function handleSubmit() {
           <DialogTitle>Add New Item</DialogTitle>
         </DialogHeader>
 
-        <form @submit.prevent="handleSubmit">
-          <div>
+        <form class="form" @submit.prevent="handleSubmit">
+          <div class="field">
             <Label for="name">Item Name</Label>
             <Input
               id="name"
@@ -66,7 +66,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label for="description">Description</Label>
             <Textarea
               id="description"
@@ -76,7 +76,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label for="quantity">Quantity</Label>
             <Input
               id="quantity"

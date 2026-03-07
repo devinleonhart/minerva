@@ -75,8 +75,8 @@ function handleSubmit() {
           <DialogTitle>{{ title }}</DialogTitle>
         </DialogHeader>
 
-        <form @submit.prevent="handleSubmit">
-          <div>
+        <form class="form" @submit.prevent="handleSubmit">
+          <div class="field">
             <Label for="name">Spell Name</Label>
             <Input
               id="name"
@@ -85,8 +85,8 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
-            <div>
+          <div class="field-row">
+            <div class="field">
               <Label for="neededStars">Stars Needed</Label>
               <Input
                 id="neededStars"
@@ -97,7 +97,7 @@ function handleSubmit() {
               />
             </div>
 
-            <div>
+            <div class="field">
               <Label for="currentStars">Current Stars</Label>
               <Input
                 id="currentStars"

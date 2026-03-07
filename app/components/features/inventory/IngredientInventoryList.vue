@@ -35,9 +35,9 @@ function getQualityVariant(quality: string): 'default' | 'secondary' | 'destruct
     <TableBody>
       <TableRow v-for="item in items" :key="item.id">
         <TableCell>
-          <div>
-            <span>{{ item.ingredient.name }}</span>
-            <span v-if="item.ingredient.description">{{ item.ingredient.description }}</span>
+          <div class="info-cell">
+            <span class="name">{{ item.ingredient.name }}</span>
+            <span v-if="item.ingredient.description" class="sub">{{ item.ingredient.description }}</span>
           </div>
         </TableCell>
         <TableCell>
@@ -46,7 +46,7 @@ function getQualityVariant(quality: string): 'default' | 'secondary' | 'destruct
           </Badge>
         </TableCell>
         <TableCell>
-          <div>
+          <div class="qty-ctrl">
             <Button
               variant="outline"
               size="icon"
@@ -55,7 +55,7 @@ function getQualityVariant(quality: string): 'default' | 'secondary' | 'destruct
             >
               <Minus />
             </Button>
-            <span>{{ item.quantity }}</span>
+            <span class="qty">{{ item.quantity }}</span>
             <Button
               variant="outline"
               size="icon"

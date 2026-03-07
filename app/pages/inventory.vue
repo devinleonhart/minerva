@@ -241,8 +241,8 @@ async function handleAddItem(data: { name: string; description: string; quantity
 <template>
   <PageLayout title="Inventory" description="This is the worst knapsack I've ever had!">
     <template #actions>
-      <div>
-        <div>
+      <div class="action-bar">
+        <div class="search-group">
           <Search />
           <Input
             v-model="searchQuery"
@@ -260,15 +260,15 @@ async function handleAddItem(data: { name: string; description: string; quantity
       </div>
     </template>
 
-    <div v-if="isLoading">
+    <div v-if="isLoading" class="loading-center">
       <Loader2 />
     </div>
 
-    <div v-else-if="isEmpty">
+    <div v-else-if="isEmpty" class="empty-state">
       {{ searchQuery ? `No items match "${searchQuery}"` : 'Your inventory is empty. Add some items to get started!' }}
     </div>
 
-    <template v-else>
+    <div v-else class="page-sections">
       <InventorySection
         v-if="filteredPotions.length"
         title="Potions"
@@ -312,7 +312,7 @@ async function handleAddItem(data: { name: string; description: string; quantity
           @delete="handleDeleteCurrency"
         />
       </InventorySection>
-    </template>
+    </div>
 
     <AddCurrencyForm
       :open="showAddCurrencyForm"

@@ -27,10 +27,10 @@ const emit = defineEmits<{
     <TableBody>
       <TableRow v-for="spell in spells" :key="spell.id">
         <TableCell>
-          <div>
-            <span>{{ spell.name }}</span>
-            <div v-if="!spell.isLearned">
-              <Star v-for="i in spell.neededStars" :key="i" />
+          <div class="info-cell">
+            <span class="name">{{ spell.name }}</span>
+            <div v-if="!spell.isLearned" class="stars">
+              <Star v-for="i in spell.neededStars" :key="i" :class="i <= spell.currentStars ? 'star-filled' : 'star-empty'" />
             </div>
           </div>
         </TableCell>
@@ -40,7 +40,7 @@ const emit = defineEmits<{
           </Badge>
         </TableCell>
         <TableCell>
-          <div>
+          <div class="actions">
             <Button
               variant="ghost"
               size="icon"
@@ -61,3 +61,19 @@ const emit = defineEmits<{
     </TableBody>
   </Table>
 </template>
+
+<style scoped>
+.stars {
+  display: flex;
+  gap: 0.125rem;
+  font-size: 0.75rem;
+}
+
+.star-filled {
+  color: #f59e0b;
+}
+
+.star-empty {
+  color: var(--color-border);
+}
+</style>

@@ -53,8 +53,8 @@ function handleSubmit() {
           <DialogTitle>Add New Currency</DialogTitle>
         </DialogHeader>
 
-        <form @submit.prevent="handleSubmit">
-          <div>
+        <form class="form" @submit.prevent="handleSubmit">
+          <div class="field">
             <Label for="name">Currency Name</Label>
             <Input
               id="name"
@@ -63,7 +63,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label for="value">Initial Value</Label>
             <Input
               id="value"

@@ -7,7 +7,13 @@ const props = defineProps<Props>()
 </script>
 
 <template>
-  <div :class="props.class">
+  <div class="dialog-header" :class="props.class">
     <slot />
   </div>
 </template>
+
+<style scoped>
+.dialog-header {
+  padding: 1.375rem 1.375rem 1rem;
+}
+</style>

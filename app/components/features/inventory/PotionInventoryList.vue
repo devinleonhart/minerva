@@ -33,16 +33,16 @@ function getDisplayName(item: PotionInventoryItem): string {
     <TableBody>
       <TableRow v-for="item in items" :key="item.id">
         <TableCell>
-          <div>
-            <span>{{ getDisplayName(item) }}</span>
-            <span v-if="item.potion.recipe?.description">{{ item.potion.recipe.description }}</span>
+          <div class="info-cell">
+            <span class="name">{{ getDisplayName(item) }}</span>
+            <span v-if="item.potion.recipe?.description" class="sub">{{ item.potion.recipe.description }}</span>
           </div>
         </TableCell>
         <TableCell>
           <Badge variant="secondary">{{ item.potion.quality }}</Badge>
         </TableCell>
         <TableCell>
-          <div>
+          <div class="qty-ctrl">
             <Button
               variant="outline"
               size="icon"
@@ -51,7 +51,7 @@ function getDisplayName(item: PotionInventoryItem): string {
             >
               <Minus />
             </Button>
-            <span>{{ item.quantity }}</span>
+            <span class="qty">{{ item.quantity }}</span>
             <Button
               variant="outline"
               size="icon"

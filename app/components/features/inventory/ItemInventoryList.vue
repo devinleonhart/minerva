@@ -26,13 +26,13 @@ const emit = defineEmits<{
     <TableBody>
       <TableRow v-for="item in items" :key="item.id">
         <TableCell>
-          <div>
-            <span>{{ item.item.name }}</span>
-            <span v-if="item.item.description">{{ item.item.description }}</span>
+          <div class="info-cell">
+            <span class="name">{{ item.item.name }}</span>
+            <span v-if="item.item.description" class="sub">{{ item.item.description }}</span>
           </div>
         </TableCell>
         <TableCell>
-          <div>
+          <div class="qty-ctrl">
             <Button
               variant="outline"
               size="icon"
@@ -41,7 +41,7 @@ const emit = defineEmits<{
             >
               <Minus />
             </Button>
-            <span>{{ item.quantity }}</span>
+            <span class="qty">{{ item.quantity }}</span>
             <Button
               variant="outline"
               size="icon"

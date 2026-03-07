@@ -20,7 +20,7 @@ function handleSubmit() {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit">
+  <form class="add-skill-form" @submit.prevent="handleSubmit">
     <Input
       v-model="skillName"
       placeholder="Enter skill name (e.g., Rapid Brewing)"
@@ -32,3 +32,11 @@ function handleSubmit() {
     </Button>
   </form>
 </template>
+
+<style scoped>
+.add-skill-form {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+}
+</style>

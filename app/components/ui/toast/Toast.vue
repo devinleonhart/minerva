@@ -22,16 +22,17 @@ const emit = defineEmits<{
 
 <template>
   <ToastRoot
+    class="toast"
+    :class="[`toast-${variant}`, props.class]"
     :open="open"
-    :class="props.class"
     @update:open="emit('update:open', $event)"
   >
-    <div>
-      <ToastTitle v-if="title">{{ title }}</ToastTitle>
-      <ToastDescription v-if="description">{{ description }}</ToastDescription>
+    <div class="toast-body">
+      <ToastTitle v-if="title" class="toast-title">{{ title }}</ToastTitle>
+      <ToastDescription v-if="description" class="toast-description">{{ description }}</ToastDescription>
       <slot />
     </div>
-    <ToastClose>
+    <ToastClose class="toast-close">
       <X />
     </ToastClose>
   </ToastRoot>

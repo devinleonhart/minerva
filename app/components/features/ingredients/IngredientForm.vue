@@ -70,8 +70,8 @@ function handleSubmit() {
           <DialogTitle>{{ title }}</DialogTitle>
         </DialogHeader>
 
-        <form @submit.prevent="handleSubmit">
-          <div>
+        <form class="form" @submit.prevent="handleSubmit">
+          <div class="field">
             <Label for="name">Name</Label>
             <Input
               id="name"
@@ -80,7 +80,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label for="description">Description</Label>
             <Textarea
               id="description"

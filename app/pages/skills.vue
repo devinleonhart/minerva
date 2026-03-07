@@ -65,7 +65,7 @@ async function handleDeleteSkill(id: number) {
 <template>
   <PageLayout title="Skills" description="This should do the trick!">
     <template #actions>
-      <div>
+      <div class="search-group">
         <Search />
         <Input
           v-model="searchQuery"
@@ -82,11 +82,11 @@ async function handleDeleteSkill(id: number) {
 
     <Card>
       <CardContent>
-        <div v-if="isLoading">
+        <div v-if="isLoading" class="loading-center">
           <Loader2 />
         </div>
 
-        <div v-else-if="sortedSkills.length === 0">
+        <div v-else-if="sortedSkills.length === 0" class="empty-state">
           {{ searchQuery ? `No skills match "${searchQuery}"` : 'No skills yet. Add your first skill!' }}
         </div>
 

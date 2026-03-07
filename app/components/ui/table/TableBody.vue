@@ -11,3 +11,9 @@ const props = defineProps<Props>()
     <slot />
   </tbody>
 </template>
+
+<style scoped>
+tbody {
+  background-color: var(--color-card);
+}
+</style>

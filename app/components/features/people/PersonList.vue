@@ -28,6 +28,8 @@ const emit = defineEmits<{
       <TableRow v-for="person in people" :key="person.id">
         <TableCell>
           <button
+            class="icon-btn"
+            :class="{ active: person.isFavorited }"
             @click="emit('toggleFavorite', person.id, !person.isFavorited)"
             :title="person.isFavorited ? 'Unfavorite' : 'Favorite'"
           >
@@ -35,19 +37,19 @@ const emit = defineEmits<{
           </button>
         </TableCell>
         <TableCell>
-          <div>
-            <span>{{ person.name }}</span>
-            <span v-if="person.relationship">{{ person.relationship }}</span>
+          <div class="info-cell">
+            <span class="name">{{ person.name }}</span>
+            <span v-if="person.relationship" class="sub">{{ person.relationship }}</span>
           </div>
         </TableCell>
         <TableCell>
-          <div>
-            <span v-if="person.description" :title="person.description">{{ person.description }}</span>
-            <span v-if="person.notableEvents" :title="person.notableEvents">{{ person.notableEvents }}</span>
+          <div class="info-cell">
+            <span v-if="person.description" class="sub" :title="person.description">{{ person.description }}</span>
+            <span v-if="person.notableEvents" class="sub" :title="person.notableEvents">{{ person.notableEvents }}</span>
           </div>
         </TableCell>
         <TableCell>
-          <div>
+          <div class="actions">
             <Button
               variant="ghost"
               size="icon"

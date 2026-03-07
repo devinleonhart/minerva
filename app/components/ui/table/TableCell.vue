@@ -11,3 +11,10 @@ const props = defineProps<Props>()
     <slot />
   </td>
 </template>
+
+<style scoped>
+td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+</style>

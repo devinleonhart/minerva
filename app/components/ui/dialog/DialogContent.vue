@@ -10,9 +10,9 @@ const props = defineProps<Props>()
 </script>
 
 <template>
-  <DialogContent :class="props.class">
+  <DialogContent class="dialog-content" :class="props.class">
     <slot />
-    <DialogClose>
+    <DialogClose class="dialog-close">
       <X />
       <span class="sr-only">Close</span>
     </DialogClose>

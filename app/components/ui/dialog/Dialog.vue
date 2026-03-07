@@ -16,7 +16,7 @@ const emit = defineEmits<{
   <DialogRoot :open="open" @update:open="emit('update:open', $event)">
     <slot />
     <DialogPortal>
-      <DialogOverlay />
+      <DialogOverlay class="dialog-overlay" />
       <slot name="content" />
     </DialogPortal>
   </DialogRoot>

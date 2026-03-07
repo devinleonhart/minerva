@@ -10,7 +10,16 @@ const props = defineProps<Props>()
 </script>
 
 <template>
-  <Label :for="props.for" :class="props.class">
+  <Label class="label" :for="props.for" :class="props.class">
     <slot />
   </Label>
 </template>
+
+<style scoped>
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+}
+</style>

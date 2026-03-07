@@ -82,8 +82,8 @@ function handleSubmit() {
           <DialogTitle>{{ title }}</DialogTitle>
         </DialogHeader>
 
-        <form @submit.prevent="handleSubmit">
-          <div>
+        <form class="form" @submit.prevent="handleSubmit">
+          <div class="field">
             <Label for="name">Name</Label>
             <Input
               id="name"
@@ -92,7 +92,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label for="relationship">Relationship</Label>
             <Input
               id="relationship"
@@ -101,7 +101,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label for="description">Description</Label>
             <Textarea
               id="description"
@@ -111,7 +111,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label for="notableEvents">Notable Events</Label>
             <Textarea
               id="notableEvents"
@@ -121,7 +121,7 @@ function handleSubmit() {
             />
           </div>
 
-          <div>
+          <div class="field">
             <Label for="url">URL</Label>
             <Input
               id="url"

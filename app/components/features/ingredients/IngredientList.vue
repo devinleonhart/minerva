@@ -31,6 +31,8 @@ const emit = defineEmits<{
       <TableRow v-for="ingredient in ingredients" :key="ingredient.id">
         <TableCell>
           <button
+            class="icon-btn"
+            :class="{ active: ingredient.secured }"
             @click="emit('toggleSecured', ingredient.id, !ingredient.secured)"
             :title="ingredient.secured ? 'Unsecure' : 'Secure'"
           >
@@ -38,9 +40,9 @@ const emit = defineEmits<{
           </button>
         </TableCell>
         <TableCell>
-          <div>
-            <span>{{ ingredient.name }}</span>
-            <span v-if="ingredient.description">{{ ingredient.description }}</span>
+          <div class="info-cell">
+            <span class="name">{{ ingredient.name }}</span>
+            <span v-if="ingredient.description" class="sub">{{ ingredient.description }}</span>
           </div>
         </TableCell>
         <TableCell>
@@ -49,7 +51,7 @@ const emit = defineEmits<{
           </Badge>
         </TableCell>
         <TableCell>
-          <div>
+          <div class="actions">
             <Button
               variant="outline"
               size="sm"
@@ -77,7 +79,7 @@ const emit = defineEmits<{
           </div>
         </TableCell>
         <TableCell>
-          <div>
+          <div class="actions">
             <Button
               variant="ghost"
               size="icon"

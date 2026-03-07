@@ -123,6 +123,30 @@ function handleUpdateNotes(dayIndex: number, timeSlot: TimeSlot, notes: string) 
 }
 </script>
 
+<style scoped>
+.week-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.day-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.day-grid > * {
+  border-right: 1px solid var(--color-border);
+}
+
+.day-grid > *:last-child {
+  border-right: none;
+}
+</style>
+
 <template>
   <PageLayout title="Scheduler" description="That's it! Now I'm mad!">
     <template #actions>
@@ -150,10 +174,10 @@ function handleUpdateNotes(dayIndex: number, timeSlot: TimeSlot, notes: string) 
       No week schedule created yet. Click "New Week" to get started!
     </div>
 
-    <div v-else>
+    <div v-else class="week-view">
       <WeekSummary :week="currentWeek" />
 
-      <div>
+      <div class="day-grid">
         <DayColumn
           v-for="(day, index) in currentWeek.days"
           :key="day.day"

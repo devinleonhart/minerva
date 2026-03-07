@@ -5,12 +5,24 @@ import ConfirmDialog from './ConfirmDialog.vue'
 </script>
 
 <template>
-  <div>
+  <div class="app">
     <NavBar />
-    <main>
+    <main class="app-main">
       <slot />
     </main>
     <Toaster />
     <ConfirmDialog />
   </div>
 </template>
+
+<style scoped>
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+}
+</style>

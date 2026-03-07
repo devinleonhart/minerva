@@ -93,30 +93,30 @@ function handleCraft() {
           <DialogTitle>Craft {{ recipe?.name }}</DialogTitle>
         </DialogHeader>
 
-        <div v-if="craftability">
-          <div>
+        <div v-if="craftability" class="craft-body">
+          <div class="craft-status" :class="craftability.isCraftable ? 'status-ok' : 'status-err'">
             <component :is="craftability.isCraftable ? Check : X" />
             <span>{{ craftability.isCraftable ? 'Recipe is craftable!' : 'Insufficient ingredients' }}</span>
           </div>
 
-          <div>
-            <label>Potion Quality</label>
+          <div class="field">
+            <label class="field-label">Potion Quality</label>
             <Select
               v-model="selectedQuality"
               :options="qualityOptions"
             />
           </div>
 
-          <div>
-            <label>Select Ingredients</label>
-            <div>
+          <div class="field">
+            <label class="field-label">Select Ingredients</label>
+            <div class="card-list">
               <Card
                 v-for="ing in craftability.ingredients"
                 :key="ing.ingredientId"
               >
-                <div>
-                  <div>
-                    <span>{{ ing.ingredientName }}</span>
+                <div class="ing-row">
+                  <div class="ing-header">
+                    <span class="ing-name">{{ ing.ingredientName }}</span>
                     <Badge :variant="ing.isCraftable ? 'secondary' : 'destructive'">
                       {{ ing.availableQuantity }} / {{ ing.requiredQuantity }}
                     </Badge>
@@ -132,7 +132,7 @@ function handleCraft() {
                     placeholder="Select quality..."
                     @update:model-value="(val: string) => ingredientSelections[ing.ingredientId] = Number(val)"
                   />
-                  <div v-else>
+                  <div v-else class="shortage">
                     Need {{ ing.requiredQuantity - ing.availableQuantity }} more
                   </div>
                 </div>
@@ -141,8 +141,8 @@ function handleCraft() {
           </div>
         </div>
 
-        <div v-else>
-          Loading recipe information...
+        <div v-else class="craft-body">
+          <p class="empty-state">Loading recipe information...</p>
         </div>
 
         <DialogFooter>
@@ -157,3 +157,63 @@ function handleCraft() {
     </template>
   </Dialog>
 </template>
+
+<style scoped>
+.craft-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 1.375rem;
+}
+
+.craft-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-ok {
+  background-color: color-mix(in srgb, #22c55e 12%, transparent);
+  color: #4ade80;
+}
+
+.status-err {
+  background-color: color-mix(in srgb, var(--color-destructive) 12%, transparent);
+  color: var(--color-destructive);
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.375rem;
+  display: block;
+}
+
+.ing-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+.ing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ing-name {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.shortage {
+  font-size: 0.8125rem;
+  color: var(--color-destructive);
+}
+</style>

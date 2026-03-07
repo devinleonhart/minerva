@@ -18,16 +18,13 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div>
-    <div>
-      <h3>{{ day.dayName }}</h3>
-      <div>
-        <span>Units:</span>
-        <span>{{ day.totalUnits }}/3</span>
-      </div>
+  <div class="day-col">
+    <div class="day-header">
+      <h3 class="day-name">{{ day.dayName }}</h3>
+      <span class="day-units">{{ day.totalUnits }}/3</span>
     </div>
 
-    <div>
+    <div class="day-slots">
       <TimeSlotCard
         slot-name="Morning"
         :task="day.morning"
@@ -57,3 +54,37 @@ const emit = defineEmits<{
     </div>
   </div>
 </template>
+
+<style scoped>
+.day-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  background-color: color-mix(in srgb, var(--color-card) 60%, var(--color-background));
+}
+
+.day-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.day-units {
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+}
+
+.day-slots {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+</style>

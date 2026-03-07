@@ -181,8 +181,8 @@ async function handleCraft(data: {
 <template>
   <PageLayout title="Recipes" description="Hey, my little camping cauldron!">
     <template #actions>
-      <div>
-        <div>
+      <div class="action-bar">
+        <div class="search-group">
           <Search />
           <Input
             v-model="searchQuery"
@@ -196,11 +196,11 @@ async function handleCraft(data: {
       </div>
     </template>
 
-    <div v-if="isLoading">
+    <div v-if="isLoading" class="loading-center">
       <Loader2 />
     </div>
 
-    <div v-else-if="filteredRecipes.length === 0">
+    <div v-else-if="filteredRecipes.length === 0" class="empty-state">
       {{ searchQuery ? `No recipes match "${searchQuery}"` : 'No recipes yet. Create your first recipe!' }}
     </div>
 

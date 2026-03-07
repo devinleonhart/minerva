@@ -88,8 +88,8 @@ async function handleDeleteSpell(id: number) {
 <template>
   <PageLayout title="Spells" description="I accidentally burned it down...">
     <template #actions>
-      <div>
-        <div>
+      <div class="action-bar">
+        <div class="search-group">
           <Search />
           <Input
             v-model="searchQuery"
@@ -105,11 +105,11 @@ async function handleDeleteSpell(id: number) {
 
     <Card>
       <CardContent>
-        <div v-if="isLoading">
+        <div v-if="isLoading" class="loading-center">
           <Loader2 />
         </div>
 
-        <div v-else-if="sortedSpells.length === 0">
+        <div v-else-if="sortedSpells.length === 0" class="empty-state">
           {{ searchQuery ? `No spells match "${searchQuery}"` : 'No spells yet. Add your first spell!' }}
         </div>
 

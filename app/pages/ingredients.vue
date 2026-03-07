@@ -125,8 +125,8 @@ async function handleAddToInventory(ingredientId: number, quality: 'HQ' | 'NORMA
 <template>
   <PageLayout title="Ingredients" description="Why only have one when I can have two?">
     <template #actions>
-      <div>
-        <div>
+      <div class="action-bar">
+        <div class="search-group">
           <Search />
           <Input
             v-model="searchQuery"
@@ -142,11 +142,11 @@ async function handleAddToInventory(ingredientId: number, quality: 'HQ' | 'NORMA
 
     <Card>
       <CardContent>
-        <div v-if="isLoading">
+        <div v-if="isLoading" class="loading-center">
           <Loader2 />
         </div>
 
-        <div v-else-if="sortedIngredients.length === 0">
+        <div v-else-if="sortedIngredients.length === 0" class="empty-state">
           {{ searchQuery ? `No ingredients match "${searchQuery}"` : 'No ingredients yet. Add your first ingredient!' }}
         </div>
 

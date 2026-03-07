@@ -36,7 +36,7 @@ const cls = computed(() => [
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
   border-radius: var(--radius-md);
   font-size: 0.875rem;
   font-weight: 500;

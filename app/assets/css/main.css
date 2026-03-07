@@ -101,7 +101,7 @@ svg {
 .actions {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: .5rem;
 }
 
 .qty-ctrl {

@@ -289,10 +289,7 @@ function handleSubmit() {
                 @click="toggleIngredient(ingredient.id)"
               >
                 <div class="ingredient-card-inner">
-                  <div class="info-cell">
-                    <div class="name">{{ ingredient.name }}</div>
-                    <div class="sub">{{ ingredient.description }}</div>
-                  </div>
+                  <span class="name">{{ ingredient.name }}</span>
                   <Badge v-if="isSelected(ingredient.id)" variant="default">
                     x{{ getQuantity(ingredient.id) }}
                   </Badge>
@@ -474,6 +471,6 @@ function handleSubmit() {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.625rem 0.875rem;
+  padding: 0.375rem 0.75rem;
 }
 </style>

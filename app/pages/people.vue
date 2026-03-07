@@ -5,7 +5,6 @@ import type { Person, CreatePersonRequest, UpdatePersonRequest } from '@/types/s
 import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { PersonList, PersonForm } from '@/components/features/people'
 import { Search, Loader2, Plus } from 'lucide-vue-next'
 
@@ -118,25 +117,21 @@ async function handleToggleFavorite(id: number, isFavorited: boolean) {
       </div>
     </template>
 
-    <Card>
-      <CardContent>
-        <div v-if="isLoading" class="loading-center">
-          <Loader2 />
-        </div>
+    <div v-if="isLoading" class="loading-center">
+      <Loader2 />
+    </div>
 
-        <div v-else-if="sortedPeople.length === 0" class="empty-state">
-          {{ searchQuery ? `No people match "${searchQuery}"` : 'No people yet. Add your first contact!' }}
-        </div>
+    <div v-else-if="sortedPeople.length === 0" class="empty-state">
+      {{ searchQuery ? `No people match "${searchQuery}"` : 'No people yet. Add your first contact!' }}
+    </div>
 
-        <PersonList
-          v-else
-          :people="sortedPeople"
-          @edit="handleEditPerson"
-          @delete="handleDeletePerson"
-          @toggle-favorite="handleToggleFavorite"
-        />
-      </CardContent>
-    </Card>
+    <PersonList
+      v-else
+      :people="sortedPeople"
+      @edit="handleEditPerson"
+      @delete="handleDeletePerson"
+      @toggle-favorite="handleToggleFavorite"
+    />
 
     <PersonForm
       :open="showForm"

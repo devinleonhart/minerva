@@ -17,7 +17,6 @@ const POTION_QUALITIES = [
   { value: 'HQ', label: 'HQ' },
 ]
 import { Card } from '@/components/ui/card'
-import { Check, X } from 'lucide-vue-next'
 
 interface CraftabilityIngredient {
   ingredientId: number
@@ -140,12 +139,7 @@ function handleCraft() {
         </DialogHeader>
 
         <div v-if="craftability" class="craft-body">
-          <div class="craft-status" :class="craftability.isCraftable ? 'status-ok' : 'status-err'">
-            <component :is="craftability.isCraftable ? Check : X" />
-            <span>{{ craftability.isCraftable ? 'Recipe is craftable!' : 'Insufficient ingredients' }}</span>
-          </div>
-
-          <div class="field">
+<div class="field">
             <label class="field-label">Potion Quality</label>
             <div class="quality-toggle">
               <button
@@ -253,26 +247,6 @@ function handleCraft() {
   flex-direction: column;
   gap: 1rem;
   padding: 0 1.375rem;
-}
-
-.craft-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 0.75rem;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.status-ok {
-  background-color: color-mix(in srgb, #22c55e 12%, transparent);
-  color: #4ade80;
-}
-
-.status-err {
-  background-color: color-mix(in srgb, var(--color-destructive) 12%, transparent);
-  color: var(--color-destructive);
 }
 
 .field-label {

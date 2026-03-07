@@ -9,7 +9,6 @@ import {
   DialogFooter
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Check, X } from 'lucide-vue-next'
@@ -65,12 +64,45 @@ const qualityOptions = [
   { value: 'LQ', label: 'Low Quality' }
 ]
 
+const QUALITY_PRIORITY = ['NORMAL', 'LQ', 'HQ']
+
+function qualityLabel(q: string): string {
+  if (q === 'NORMAL') return 'Normal'
+  if (q === 'HQ') return 'HQ'
+  if (q === 'LQ') return 'LQ'
+  return q
+}
+
+function pickDefault(options: CraftabilityIngredient['availableOptions']): number | null {
+  for (const q of QUALITY_PRIORITY) {
+    const match = options.find(o => o.quality === q)
+    if (match) return match.inventoryItemId
+  }
+  return options[0]?.inventoryItemId ?? null
+}
+
+function autoSelectIngredients() {
+  if (!props.craftability) return
+  const selections: Record<number, number> = {}
+  for (const ing of props.craftability.ingredients) {
+    if (ing.isCraftable) {
+      const id = pickDefault(ing.availableOptions)
+      if (id !== null) selections[ing.ingredientId] = id
+    }
+  }
+  ingredientSelections.value = selections
+}
+
 watch(() => props.open, (open) => {
   if (open) {
     selectedQuality.value = 'NORMAL'
     selectedEssenceType.value = null
-    ingredientSelections.value = {}
+    autoSelectIngredients()
   }
+})
+
+watch(() => props.craftability, () => {
+  if (props.open) autoSelectIngredients()
 })
 
 const canCraft = computed(() => {
@@ -167,16 +199,19 @@ function handleCraft() {
                     </Badge>
                   </div>
 
-                  <Select
-                    v-if="ing.isCraftable"
-                    :model-value="String(ingredientSelections[ing.ingredientId] || '')"
-                    :options="ing.availableOptions.map(opt => ({
-                      value: String(opt.inventoryItemId),
-                      label: `${opt.quality} (${opt.totalAvailable} available)`
-                    }))"
-                    placeholder="Select quality..."
-                    @update:model-value="(val: string) => ingredientSelections[ing.ingredientId] = Number(val)"
-                  />
+                  <div v-if="ing.isCraftable" class="quality-toggle">
+                    <button
+                      v-for="opt in ing.availableOptions"
+                      :key="opt.inventoryItemId"
+                      type="button"
+                      class="quality-btn"
+                      :class="ingredientSelections[ing.ingredientId] === opt.inventoryItemId ? 'quality-btn-active' : ''"
+                      @click="ingredientSelections[ing.ingredientId] = opt.inventoryItemId"
+                    >
+                      {{ qualityLabel(opt.quality) }}
+                      <span class="quality-count">{{ opt.totalAvailable }}</span>
+                    </button>
+                  </div>
                   <div v-else class="shortage">
                     Need {{ ing.requiredQuantity - ing.availableQuantity }} more
                   </div>
@@ -260,6 +295,42 @@ function handleCraft() {
 .shortage {
   font-size: 0.8125rem;
   color: var(--color-destructive);
+}
+
+.quality-toggle {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.quality-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: var(--color-foreground);
+  transition: border-color 0.1s, background-color 0.1s;
+}
+
+.quality-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.quality-btn-active {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-background));
+  font-weight: 500;
+}
+
+.quality-count {
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
 }
 
 .field-optional {

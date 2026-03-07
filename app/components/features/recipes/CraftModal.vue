@@ -10,6 +10,12 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+
+const POTION_QUALITIES = [
+  { value: 'NORMAL', label: 'Normal' },
+  { value: 'LQ', label: 'LQ' },
+  { value: 'HQ', label: 'HQ' },
+]
 import { Card } from '@/components/ui/card'
 import { Check, X } from 'lucide-vue-next'
 
@@ -58,11 +64,6 @@ const selectedQuality = ref('NORMAL')
 const selectedEssenceType = ref<string | null>(null)
 const ingredientSelections = ref<Record<number, number>>({})
 
-const qualityOptions = [
-  { value: 'NORMAL', label: 'Normal Quality' },
-  { value: 'HQ', label: 'High Quality' },
-  { value: 'LQ', label: 'Low Quality' }
-]
 
 const QUALITY_PRIORITY = ['NORMAL', 'LQ', 'HQ']
 
@@ -146,10 +147,18 @@ function handleCraft() {
 
           <div class="field">
             <label class="field-label">Potion Quality</label>
-            <Select
-              v-model="selectedQuality"
-              :options="qualityOptions"
-            />
+            <div class="quality-toggle">
+              <button
+                v-for="q in POTION_QUALITIES"
+                :key="q.value"
+                type="button"
+                class="quality-btn"
+                :class="selectedQuality === q.value ? 'quality-btn-active' : ''"
+                @click="selectedQuality = q.value"
+              >
+                {{ q.label }}
+              </button>
+            </div>
           </div>
 
           <div v-if="craftability.cauldronVariants && craftability.cauldronVariants.length > 0" class="field">

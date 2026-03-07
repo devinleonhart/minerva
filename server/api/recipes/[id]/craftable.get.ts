@@ -12,12 +12,15 @@ export default eventHandler(async (event) => {
       return { error: 'Invalid recipe ID' }
     }
 
-    // Get recipe with ingredients
+    // Get recipe with ingredients and cauldron variants
     const recipeRow = await db.query.recipe.findFirst({
       where: (r, { eq }) => eq(r.id, id),
       with: {
         ingredients: {
           with: { ingredient: true }
+        },
+        cauldronVariants: {
+          with: { essenceIngredient: true }
         }
       }
     })
@@ -86,11 +89,31 @@ export default eventHandler(async (event) => {
 
     const isRecipeCraftable = craftability.every((ing: { isCraftable: boolean }) => ing.isCraftable)
 
+    // Check availability for each cauldron variant
+    type CauldronVariantRow = { essenceType: string; variantName: string; essenceIngredientId: number; essenceIngredient: { id: number; name: string } }
+    const cauldronVariants = await Promise.all(
+      (recipeRow.cauldronVariants as CauldronVariantRow[]).map(async (variant) => {
+        const essenceInventory = await db.query.inventoryItem.findMany({
+          where: (inv, { eq }) => eq(inv.ingredientId, variant.essenceIngredientId)
+        })
+        const totalAvailable = essenceInventory.reduce((sum, inv) => sum + inv.quantity, 0)
+        return {
+          essenceType: variant.essenceType,
+          variantName: variant.variantName,
+          essenceIngredientId: variant.essenceIngredientId,
+          essenceIngredientName: variant.essenceIngredient.name,
+          essenceAvailable: totalAvailable,
+          isAvailable: isRecipeCraftable && totalAvailable >= 1
+        }
+      })
+    )
+
     return {
       recipeId: id,
       recipeName: recipeRow.name,
       isCraftable: isRecipeCraftable,
-      ingredients: craftability
+      ingredients: craftability,
+      cauldronVariants
     }
   } catch (error) {
     return handleUnknownError(event, 'checking recipe craftability', error)

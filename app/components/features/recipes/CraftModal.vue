@@ -27,9 +27,19 @@ interface CraftabilityIngredient {
   }>
 }
 
+interface CauldronVariantCraftability {
+  essenceType: string
+  variantName: string
+  essenceIngredientId: number
+  essenceIngredientName: string
+  essenceAvailable: number
+  isAvailable: boolean
+}
+
 interface Craftability {
   isCraftable: boolean
   ingredients: CraftabilityIngredient[]
+  cauldronVariants: CauldronVariantCraftability[]
 }
 
 interface Props {
@@ -42,10 +52,11 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  craft: [data: { recipeId: number; quality: string; ingredientSelections: Array<{ ingredientId: number; inventoryItemId: number; quantity: number }> }]
+  craft: [data: { recipeId: number; quality: string; essenceType?: string; ingredientSelections: Array<{ ingredientId: number; inventoryItemId: number; quantity: number }> }]
 }>()
 
 const selectedQuality = ref('NORMAL')
+const selectedEssenceType = ref<string | null>(null)
 const ingredientSelections = ref<Record<number, number>>({})
 
 const qualityOptions = [
@@ -57,6 +68,7 @@ const qualityOptions = [
 watch(() => props.open, (open) => {
   if (open) {
     selectedQuality.value = 'NORMAL'
+    selectedEssenceType.value = null
     ingredientSelections.value = {}
   }
 })
@@ -74,6 +86,7 @@ function handleCraft() {
   emit('craft', {
     recipeId: props.recipe.id,
     quality: selectedQuality.value,
+    ...(selectedEssenceType.value ? { essenceType: selectedEssenceType.value } : {}),
     ingredientSelections: props.craftability.ingredients.map(ing => ({
       ingredientId: ing.ingredientId,
       inventoryItemId: ingredientSelections.value[ing.ingredientId]!,
@@ -105,6 +118,38 @@ function handleCraft() {
               v-model="selectedQuality"
               :options="qualityOptions"
             />
+          </div>
+
+          <div v-if="craftability.cauldronVariants && craftability.cauldronVariants.length > 0" class="field">
+            <label class="field-label">Crystal Cauldron <span class="field-optional">(optional)</span></label>
+            <div class="variant-options">
+              <button
+                class="variant-btn"
+                :class="selectedEssenceType === null ? 'variant-btn-active' : ''"
+                type="button"
+                @click="selectedEssenceType = null"
+              >
+                Standard (no cauldron)
+              </button>
+              <button
+                v-for="variant in craftability.cauldronVariants"
+                :key="variant.essenceType"
+                class="variant-btn"
+                :class="[
+                  selectedEssenceType === variant.essenceType ? 'variant-btn-active' : '',
+                  !variant.isAvailable ? 'variant-btn-disabled' : ''
+                ]"
+                type="button"
+                :disabled="!variant.isAvailable"
+                @click="selectedEssenceType = variant.isAvailable ? variant.essenceType : selectedEssenceType"
+              >
+                <span class="variant-btn-name">{{ variant.variantName }}</span>
+                <span class="variant-btn-meta">{{ variant.essenceType.charAt(0) + variant.essenceType.slice(1).toLowerCase() }} · {{ variant.essenceIngredientName }}</span>
+                <Badge :variant="variant.isAvailable ? 'secondary' : 'destructive'" class="variant-badge">
+                  {{ variant.essenceAvailable }} avail.
+                </Badge>
+              </button>
+            </div>
           </div>
 
           <div class="field">
@@ -215,5 +260,62 @@ function handleCraft() {
 .shortage {
   font-size: 0.8125rem;
   color: var(--color-destructive);
+}
+
+.field-optional {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-muted-foreground);
+}
+
+.variant-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.variant-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--color-foreground);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.variant-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.variant-btn-active {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 8%, var(--color-card));
+}
+
+.variant-btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.variant-btn-name {
+  font-weight: 500;
+  flex: 1;
+}
+
+.variant-btn-meta {
+  font-size: 0.8125rem;
+  color: var(--color-muted-foreground);
+  flex-shrink: 0;
+}
+
+.variant-badge {
+  flex-shrink: 0;
 }
 </style>

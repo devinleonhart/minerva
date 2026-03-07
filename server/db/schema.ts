@@ -62,6 +62,7 @@ export const potion = pgTable('Potion', {
   updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
   quality: potionQuality().default('NORMAL').notNull(),
   recipeId: integer().notNull(),
+  cauldronName: text(),
 })
 
 export const potionInventoryItem = pgTable('PotionInventoryItem', {
@@ -176,13 +177,6 @@ export const recipe = pgTable('Recipe', {
   updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
   name: varchar({ length: 255 }).notNull(),
   description: text().notNull(),
-  fireEssence: text(),
-  airEssence: text(),
-  waterEssence: text(),
-  lightningEssence: text(),
-  earthEssence: text(),
-  lifeEssence: text(),
-  deathEssence: text(),
 })
 
 export const skill = pgTable('Skill', {
@@ -204,6 +198,28 @@ export const spell = pgTable('Spell', {
   isLearned: boolean().default(false).notNull(),
 }, (table) => [
   uniqueIndex('Spell_name_key').using('btree', table.name.asc().nullsLast().op('text_ops')),
+])
+
+export const recipeCauldronVariant = pgTable('RecipeCauldronVariant', {
+  id: serial().primaryKey().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
+  recipeId: integer().notNull(),
+  essenceType: varchar({ length: 20 }).notNull(),
+  variantName: varchar({ length: 255 }).notNull(),
+  essenceIngredientId: integer().notNull(),
+}, (table) => [
+  uniqueIndex('RecipeCauldronVariant_recipeId_essenceType_key').using('btree', table.recipeId.asc().nullsLast().op('int4_ops'), table.essenceType.asc().nullsLast().op('text_ops')),
+  foreignKey({
+    columns: [table.recipeId],
+    foreignColumns: [recipe.id],
+    name: 'RecipeCauldronVariant_recipeId_fkey'
+  }).onUpdate('cascade').onDelete('cascade'),
+  foreignKey({
+    columns: [table.essenceIngredientId],
+    foreignColumns: [ingredient.id],
+    name: 'RecipeCauldronVariant_essenceIngredientId_fkey'
+  }).onUpdate('cascade').onDelete('restrict'),
 ])
 
 export const recipeIngredient = pgTable('RecipeIngredient', {

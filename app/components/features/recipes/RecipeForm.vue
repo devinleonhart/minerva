@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import type { Recipe, CreateRecipeRequest, UpdateRecipeRequest } from '@/types/store/recipe'
+import type { Recipe, CreateRecipeRequest, UpdateRecipeRequest, CauldronVariantInput } from '@/types/store/recipe'
 import type { Ingredient } from '@/types/store/ingredient'
 import {
   Dialog,
@@ -15,7 +15,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+import { Select } from '@/components/ui/select'
 import { Plus, Minus, Search, X } from 'lucide-vue-next'
+
+const ESSENCE_TYPES = ['FIRE', 'AIR', 'WATER', 'LIGHTNING', 'EARTH', 'LIFE', 'DEATH'] as const
+type EssenceType = typeof ESSENCE_TYPES[number]
 
 interface Props {
   open: boolean
@@ -36,27 +40,25 @@ const emit = defineEmits<{
 const name = ref('')
 const description = ref('')
 const selectedIngredients = ref<Array<{ ingredientId: number; quantity: number }>>([])
-const fireEssence = ref('')
-const airEssence = ref('')
-const waterEssence = ref('')
-const lightningEssence = ref('')
-const earthEssence = ref('')
-const lifeEssence = ref('')
-const deathEssence = ref('')
-
-const ESSENCES = [
-  { key: 'fireEssence', label: 'Fire', ref: fireEssence },
-  { key: 'airEssence', label: 'Air', ref: airEssence },
-  { key: 'waterEssence', label: 'Water', ref: waterEssence },
-  { key: 'lightningEssence', label: 'Lightning', ref: lightningEssence },
-  { key: 'earthEssence', label: 'Earth', ref: earthEssence },
-  { key: 'lifeEssence', label: 'Life', ref: lifeEssence },
-  { key: 'deathEssence', label: 'Death', ref: deathEssence },
-] as const
+const cauldronVariants = ref<CauldronVariantInput[]>([])
 const ingredientFilter = ref('')
 
 const isEditing = computed(() => !!props.recipe)
 const title = computed(() => isEditing.value ? 'Edit Recipe' : 'Create New Recipe')
+
+const usedEssenceTypes = computed(() => new Set(cauldronVariants.value.map(v => v.essenceType)))
+
+const availableEssenceTypes = computed(() =>
+  ESSENCE_TYPES.filter(t => !usedEssenceTypes.value.has(t))
+)
+
+const essenceOptions = computed(() =>
+  ESSENCE_TYPES.map(t => ({ value: t, label: t.charAt(0) + t.slice(1).toLowerCase() }))
+)
+
+const ingredientOptions = computed(() =>
+  props.ingredients.map(i => ({ value: String(i.id), label: i.name }))
+)
 
 const filteredIngredients = computed(() => {
   const filter = ingredientFilter.value.toLowerCase()
@@ -70,7 +72,8 @@ const filteredIngredients = computed(() => {
 const canSubmit = computed(() =>
   name.value.trim() &&
   description.value.trim() &&
-  selectedIngredients.value.length > 0
+  selectedIngredients.value.length > 0 &&
+  cauldronVariants.value.every(v => v.essenceType && v.variantName.trim() && v.essenceIngredientId)
 )
 
 watch(() => props.open, (open) => {
@@ -81,24 +84,16 @@ watch(() => props.open, (open) => {
       ingredientId: ing.ingredientId,
       quantity: ing.quantity
     }))
-    fireEssence.value = props.recipe.fireEssence ?? ''
-    airEssence.value = props.recipe.airEssence ?? ''
-    waterEssence.value = props.recipe.waterEssence ?? ''
-    lightningEssence.value = props.recipe.lightningEssence ?? ''
-    earthEssence.value = props.recipe.earthEssence ?? ''
-    lifeEssence.value = props.recipe.lifeEssence ?? ''
-    deathEssence.value = props.recipe.deathEssence ?? ''
+    cauldronVariants.value = props.recipe.cauldronVariants.map(v => ({
+      essenceType: v.essenceType,
+      variantName: v.variantName,
+      essenceIngredientId: v.essenceIngredientId
+    }))
   } else if (open) {
     name.value = ''
     description.value = ''
     selectedIngredients.value = []
-    fireEssence.value = ''
-    airEssence.value = ''
-    waterEssence.value = ''
-    lightningEssence.value = ''
-    earthEssence.value = ''
-    lifeEssence.value = ''
-    deathEssence.value = ''
+    cauldronVariants.value = []
   }
   ingredientFilter.value = ''
 })
@@ -126,6 +121,33 @@ function updateQuantity(ingredientId: number, delta: number) {
   }
 }
 
+function addVariant() {
+  const nextType = availableEssenceTypes.value[0]
+  if (!nextType) return
+  cauldronVariants.value.push({ essenceType: nextType, variantName: '', essenceIngredientId: 0 })
+}
+
+function removeVariant(index: number) {
+  cauldronVariants.value.splice(index, 1)
+}
+
+function setVariantEssenceType(index: number, value: string) {
+  const variant = cauldronVariants.value[index]
+  if (variant) variant.essenceType = value as EssenceType
+}
+
+function setVariantIngredient(index: number, value: string) {
+  const variant = cauldronVariants.value[index]
+  if (variant) variant.essenceIngredientId = parseInt(value)
+}
+
+function variantEssenceOptions(index: number) {
+  const current = cauldronVariants.value[index]?.essenceType
+  return essenceOptions.value.filter(o =>
+    !usedEssenceTypes.value.has(o.value as EssenceType) || o.value === current
+  )
+}
+
 function handleSubmit() {
   if (!canSubmit.value) return
 
@@ -133,13 +155,7 @@ function handleSubmit() {
     name: name.value.trim(),
     description: description.value.trim(),
     ingredients: selectedIngredients.value,
-    fireEssence: fireEssence.value.trim() || undefined,
-    airEssence: airEssence.value.trim() || undefined,
-    waterEssence: waterEssence.value.trim() || undefined,
-    lightningEssence: lightningEssence.value.trim() || undefined,
-    earthEssence: earthEssence.value.trim() || undefined,
-    lifeEssence: lifeEssence.value.trim() || undefined,
-    deathEssence: deathEssence.value.trim() || undefined,
+    cauldronVariants: cauldronVariants.value.length > 0 ? cauldronVariants.value : undefined
   }
 
   if (isEditing.value && props.recipe) {
@@ -181,15 +197,45 @@ function handleSubmit() {
           </div>
 
           <div class="field">
-            <Label class="optional-label">Crystal Cauldron Effects <span class="optional-tag">optional</span></Label>
-            <div class="essence-grid">
-              <div v-for="essence in ESSENCES" :key="essence.key" class="essence-field">
-                <Label :for="essence.key">{{ essence.label }}</Label>
-                <Input
-                  :id="essence.key"
-                  v-model="essence.ref.value"
-                  placeholder="Effect description..."
+            <div class="section-header">
+              <Label class="optional-label">Crystal Cauldron Variants <span class="optional-tag">optional</span></Label>
+              <Button
+                type="button"
+                variant="outline"
+                :disabled="availableEssenceTypes.length === 0"
+                @click="addVariant"
+              >
+                <Plus />
+                Add Variant
+              </Button>
+            </div>
+            <div v-if="cauldronVariants.length === 0" class="empty-state">
+              No cauldron variants. Add one to enable Crystal Cauldron crafting.
+            </div>
+            <div v-else class="variant-list">
+              <div v-for="(variant, index) in cauldronVariants" :key="index" class="variant-row">
+                <Select
+                  :model-value="variant.essenceType"
+                  :options="variantEssenceOptions(index)"
+                  placeholder="Essence type"
+                  class="variant-essence-select"
+                  @update:model-value="setVariantEssenceType(index, $event)"
                 />
+                <Input
+                  v-model="variant.variantName"
+                  placeholder="Variant name (e.g. Fire Tonic)"
+                  class="variant-name-input"
+                />
+                <Select
+                  :model-value="variant.essenceIngredientId ? String(variant.essenceIngredientId) : ''"
+                  :options="ingredientOptions"
+                  placeholder="Essence ingredient"
+                  class="variant-ingredient-select"
+                  @update:model-value="setVariantIngredient(index, $event)"
+                />
+                <button class="chip-btn chip-remove" type="button" @click="removeVariant(index)">
+                  <X />
+                </button>
               </div>
             </div>
           </div>
@@ -260,6 +306,37 @@ function handleSubmit() {
 </template>
 
 <style scoped>
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.375rem;
+}
+
+.variant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.variant-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.variant-essence-select {
+  flex: 0 0 8rem;
+}
+
+.variant-name-input {
+  flex: 1;
+}
+
+.variant-ingredient-select {
+  flex: 0 0 10rem;
+}
+
 .selected-list {
   display: flex;
   flex-direction: column;
@@ -344,18 +421,6 @@ function handleSubmit() {
   font-weight: 400;
   color: var(--color-muted-foreground);
   text-transform: lowercase;
-}
-
-.essence-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem 0.75rem;
-}
-
-.essence-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
 }
 
 .search-row {

@@ -16,6 +16,9 @@ export default eventHandler(async (event) => {
       with: {
         ingredients: {
           with: { ingredient: true }
+        },
+        cauldronVariants: {
+          with: { essenceIngredient: true }
         }
       }
     })

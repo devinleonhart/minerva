@@ -7,11 +7,12 @@ import { eq } from 'drizzle-orm'
 interface DirectPotionRequest {
   recipeId: number
   quality?: string
+  cauldronName?: string | null
 }
 
 export default eventHandler(async (event) => {
   try {
-    const { recipeId, quality = 'NORMAL' } = (await readBody(event) ?? {}) as DirectPotionRequest
+    const { recipeId, quality = 'NORMAL', cauldronName = null } = (await readBody(event) ?? {}) as DirectPotionRequest
 
     if (quality !== undefined && (
       quality === null ||
@@ -36,7 +37,9 @@ export default eventHandler(async (event) => {
 
     const resultPotion = await db.transaction(async (tx) => {
       const existingPotion = await tx.query.potion.findFirst({
-        where: (p, { eq, and }) => and(eq(p.recipeId, recipeId), eq(p.quality, quality as 'NORMAL' | 'HQ' | 'LQ')),
+        where: (p, { eq, and, isNull }) => cauldronName
+          ? and(eq(p.recipeId, recipeId), eq(p.quality, quality as 'NORMAL' | 'HQ' | 'LQ'), eq(p.cauldronName, cauldronName!))
+          : and(eq(p.recipeId, recipeId), eq(p.quality, quality as 'NORMAL' | 'HQ' | 'LQ'), isNull(p.cauldronName)),
         with: { inventoryItems: true }
       })
 
@@ -52,6 +55,7 @@ export default eventHandler(async (event) => {
         const [newPotion] = await tx.insert(potion).values({
           quality: quality as 'NORMAL' | 'HQ' | 'LQ',
           recipeId: recipeId,
+          cauldronName,
           updatedAt: new Date().toISOString()
         }).returning()
 

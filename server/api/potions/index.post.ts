@@ -1,12 +1,13 @@
 import { eventHandler, readBody, setResponseStatus } from 'h3'
 import { db } from '../../utils/db.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
-import { potion, potionInventoryItem, inventoryItem, ingredient } from '../../db/index.js'
-import { eq, inArray } from 'drizzle-orm'
+import { potion, potionInventoryItem, inventoryItem, ingredient, recipeCauldronVariant } from '../../db/index.js'
+import { eq, inArray, and } from 'drizzle-orm'
 
 interface CraftPotionRequest {
   recipeId: number
   quality?: string
+  essenceType?: string
   ingredientSelections: Array<{
     ingredientId: number
     inventoryItemId: number
@@ -16,7 +17,7 @@ interface CraftPotionRequest {
 
 export default eventHandler(async (event) => {
   try {
-    const { recipeId, quality = 'NORMAL', ingredientSelections } = (await readBody(event) ?? {}) as CraftPotionRequest
+    const { recipeId, quality = 'NORMAL', essenceType, ingredientSelections } = (await readBody(event) ?? {}) as CraftPotionRequest
 
     if (quality !== undefined && (
       quality === null ||
@@ -86,6 +87,32 @@ export default eventHandler(async (event) => {
       return { error: 'One or more inventory items not found' }
     }
 
+    // Resolve cauldron variant if essenceType provided
+    let cauldronName: string | null = null
+    let essenceInventoryItemId: number | null = null
+
+    if (essenceType) {
+      const [variant] = await db.select().from(recipeCauldronVariant).where(
+        and(eq(recipeCauldronVariant.recipeId, recipeId), eq(recipeCauldronVariant.essenceType, essenceType))
+      )
+      if (!variant) {
+        setResponseStatus(event, 400)
+        return { error: `No cauldron variant found for essence type: ${essenceType}` }
+      }
+
+      const essenceInvItems = await db.select().from(inventoryItem)
+        .where(eq(inventoryItem.ingredientId, variant.essenceIngredientId))
+      const totalEssence = essenceInvItems.reduce((sum, inv) => sum + inv.quantity, 0)
+      if (totalEssence < 1) {
+        setResponseStatus(event, 400)
+        return { error: 'Insufficient essence ingredient in inventory' }
+      }
+
+      cauldronName = variant.variantName
+      const essenceInv = essenceInvItems.find(inv => inv.quantity > 0)!
+      essenceInventoryItemId = essenceInv.id
+    }
+
     const resultPotion = await db.transaction(async (tx) => {
       for (const selection of ingredientSelections) {
         const invItem = invItemsWithIngredient.find((i) => i.id === selection.inventoryItemId)
@@ -109,8 +136,28 @@ export default eventHandler(async (event) => {
         }
       }
 
+      // Consume essence ingredient if using cauldron variant
+      if (essenceInventoryItemId !== null) {
+        const essenceInv = await tx.select().from(inventoryItem).where(eq(inventoryItem.id, essenceInventoryItemId))
+        const essenceRow = essenceInv[0]
+        if (!essenceRow || essenceRow.quantity < 1) {
+          throw new Error('Essence ingredient no longer available')
+        }
+        if (essenceRow.quantity === 1) {
+          await tx.delete(inventoryItem).where(eq(inventoryItem.id, essenceInventoryItemId))
+        } else {
+          await tx.update(inventoryItem).set({
+            quantity: essenceRow.quantity - 1,
+            updatedAt: new Date().toISOString()
+          }).where(eq(inventoryItem.id, essenceInventoryItemId))
+        }
+      }
+
+      // Stack potions by (recipeId, quality, cauldronName)
       const existingPotion = await tx.query.potion.findFirst({
-        where: (p, { eq, and }) => and(eq(p.recipeId, recipeId), eq(p.quality, quality as 'NORMAL' | 'HQ' | 'LQ')),
+        where: (p, { eq, and, isNull }) => cauldronName
+          ? and(eq(p.recipeId, recipeId), eq(p.quality, quality as 'NORMAL' | 'HQ' | 'LQ'), eq(p.cauldronName, cauldronName!))
+          : and(eq(p.recipeId, recipeId), eq(p.quality, quality as 'NORMAL' | 'HQ' | 'LQ'), isNull(p.cauldronName)),
         with: { inventoryItems: true }
       })
 
@@ -126,6 +173,7 @@ export default eventHandler(async (event) => {
         const [newPotion] = await tx.insert(potion).values({
           quality: quality as 'NORMAL' | 'HQ' | 'LQ',
           recipeId: recipeId,
+          cauldronName,
           updatedAt: new Date().toISOString()
         }).returning()
 

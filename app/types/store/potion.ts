@@ -1,6 +1,7 @@
 export interface CraftPotionRequest {
   recipeId: number
   quality: string
+  essenceType?: string
   ingredientSelections: Array<{
     ingredientId: number
     inventoryItemId: number
@@ -24,6 +25,14 @@ export interface RecipeCraftability {
       quantity: number
       totalAvailable: number
     }>
+  }>
+  cauldronVariants: Array<{
+    essenceType: string
+    variantName: string
+    essenceIngredientId: number
+    essenceIngredientName: string
+    essenceAvailable: number
+    isAvailable: boolean
   }>
 }
 

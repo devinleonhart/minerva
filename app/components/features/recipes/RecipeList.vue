@@ -110,18 +110,18 @@ function getIngredientStatus(ingredientId: number, required: number): 'sufficien
       </div>
 
       <div
-        v-if="recipe.fireEssence || recipe.airEssence || recipe.waterEssence || recipe.lightningEssence || recipe.earthEssence || recipe.lifeEssence || recipe.deathEssence"
+        v-if="recipe.cauldronVariants && recipe.cauldronVariants.length > 0"
         class="recipe-section"
       >
-        <div class="section-label">Crystal Cauldron Effects</div>
-        <div class="essence-grid">
-          <div v-if="recipe.fireEssence" class="essence-item"><span class="essence-name">Fire</span><span>{{ recipe.fireEssence }}</span></div>
-          <div v-if="recipe.airEssence" class="essence-item"><span class="essence-name">Air</span><span>{{ recipe.airEssence }}</span></div>
-          <div v-if="recipe.waterEssence" class="essence-item"><span class="essence-name">Water</span><span>{{ recipe.waterEssence }}</span></div>
-          <div v-if="recipe.lightningEssence" class="essence-item"><span class="essence-name">Lightning</span><span>{{ recipe.lightningEssence }}</span></div>
-          <div v-if="recipe.earthEssence" class="essence-item"><span class="essence-name">Earth</span><span>{{ recipe.earthEssence }}</span></div>
-          <div v-if="recipe.lifeEssence" class="essence-item"><span class="essence-name">Life</span><span>{{ recipe.lifeEssence }}</span></div>
-          <div v-if="recipe.deathEssence" class="essence-item"><span class="essence-name">Death</span><span>{{ recipe.deathEssence }}</span></div>
+        <div class="section-label">Crystal Cauldron Variants</div>
+        <div class="badge-group">
+          <Badge
+            v-for="variant in recipe.cauldronVariants"
+            :key="variant.essenceType"
+            variant="secondary"
+          >
+            {{ variant.essenceType.charAt(0) + variant.essenceType.slice(1).toLowerCase() }}: {{ variant.variantName }}
+          </Badge>
         </div>
       </div>
     </Card>
@@ -184,19 +184,4 @@ function getIngredientStatus(ingredientId: number, required: number): 'sufficien
   margin-bottom: 0.5rem;
 }
 
-.essence-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.essence-item {
-  display: flex;
-  gap: 0.25rem;
-  font-size: 0.8125rem;
-}
-
-.essence-name {
-  color: var(--color-muted-foreground);
-}
 </style>

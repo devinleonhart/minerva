@@ -18,20 +18,12 @@ export interface PotionInventoryItem {
   potionId: number
   potion: {
     id: number
-    name: string
-    description: string
     quality: PotionQuality
+    cauldronName: string | null
     recipe: {
       id: number
       name: string
       description: string
-      fireEssence?: string | null
-      airEssence?: string | null
-      waterEssence?: string | null
-      lightningEssence?: string | null
-      earthEssence?: string | null
-      lifeEssence?: string | null
-      deathEssence?: string | null
     }
   }
   quantity: number

@@ -4,7 +4,7 @@ import pg from 'pg'
 import * as schema from '../db/index.js'
 import {
   ingredient, item, currency, person, spell, skill,
-  inventoryItem, recipe, recipeIngredient, potion,
+  inventoryItem, recipe, recipeIngredient, recipeCauldronVariant, potion,
   potionInventoryItem, weekSchedule, daySchedule,
   scheduledTask, taskDefinition, itemInventoryItem
 } from '../db/index.js'
@@ -39,6 +39,7 @@ export async function cleanDatabase() {
   await testDb.delete(potionInventoryItem).catch(() => {})
   await testDb.delete(currency).catch(() => {})
   await testDb.delete(potion).catch(() => {})
+  await testDb.delete(recipeCauldronVariant).catch(() => {})
   await testDb.delete(recipeIngredient).catch(() => {})
   await testDb.delete(recipe).catch(() => {})
   await testDb.delete(ingredient).catch(() => {})
@@ -66,6 +67,7 @@ export async function cleanDatabase() {
         ALTER SEQUENCE "DaySchedule_id_seq" RESTART WITH 1;
         ALTER SEQUENCE "ScheduledTask_id_seq" RESTART WITH 1;
         ALTER SEQUENCE "TaskDefinition_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "RecipeCauldronVariant_id_seq" RESTART WITH 1;
       END $$;
     `)
   } catch (error) {

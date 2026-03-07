@@ -1,3 +1,21 @@
+export interface RecipeCauldronVariant {
+  id: number
+  recipeId: number
+  essenceType: string
+  variantName: string
+  essenceIngredientId: number
+  essenceIngredient: {
+    id: number
+    name: string
+    description: string
+    secured: boolean
+    createdAt: string
+    updatedAt: string
+  }
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Recipe {
   id: number
   name: string
@@ -5,14 +23,8 @@ export interface Recipe {
   potionId: number
   createdAt: string
   updatedAt: string
-  fireEssence?: string | null
-  airEssence?: string | null
-  waterEssence?: string | null
-  lightningEssence?: string | null
-  earthEssence?: string | null
-  lifeEssence?: string | null
-  deathEssence?: string | null
   ingredients: RecipeIngredient[]
+  cauldronVariants: RecipeCauldronVariant[]
 }
 
 export interface RecipeIngredient {
@@ -29,30 +41,24 @@ export interface RecipeIngredient {
   }
 }
 
+export interface CauldronVariantInput {
+  essenceType: string
+  variantName: string
+  essenceIngredientId: number
+}
+
 export interface CreateRecipeRequest {
   name: string
   description: string
   ingredients: Array<{ ingredientId: number; quantity: number }>
-  fireEssence?: string
-  airEssence?: string
-  waterEssence?: string
-  lightningEssence?: string
-  earthEssence?: string
-  lifeEssence?: string
-  deathEssence?: string
+  cauldronVariants?: CauldronVariantInput[]
 }
 
 export interface UpdateRecipeRequest {
   name?: string
   description?: string
   ingredients?: Array<{ ingredientId: number; quantity: number }>
-  fireEssence?: string
-  airEssence?: string
-  waterEssence?: string
-  lightningEssence?: string
-  earthEssence?: string
-  lifeEssence?: string
-  deathEssence?: string
+  cauldronVariants?: CauldronVariantInput[]
 }
 
 export interface RecipeDeletability {

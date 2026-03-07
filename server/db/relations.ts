@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm/relations'
-import { ingredient, inventoryItem, potion, potionInventoryItem, weekSchedule, daySchedule, scheduledTask, item, itemInventoryItem, recipe, recipeIngredient } from './schema.js'
+import { ingredient, inventoryItem, potion, potionInventoryItem, weekSchedule, daySchedule, scheduledTask, item, itemInventoryItem, recipe, recipeIngredient, recipeCauldronVariant } from './schema.js'
 
 export const inventoryItemRelations = relations(inventoryItem, ({one}) => ({
   ingredient: one(ingredient, {
@@ -11,6 +11,7 @@ export const inventoryItemRelations = relations(inventoryItem, ({one}) => ({
 export const ingredientRelations = relations(ingredient, ({many}) => ({
   inventoryItems: many(inventoryItem),
   recipeIngredients: many(recipeIngredient),
+  cauldronVariants: many(recipeCauldronVariant),
 }))
 
 export const potionInventoryItemRelations = relations(potionInventoryItem, ({one}) => ({
@@ -69,7 +70,19 @@ export const recipeIngredientRelations = relations(recipeIngredient, ({one}) => 
   }),
 }))
 
+export const recipeCauldronVariantRelations = relations(recipeCauldronVariant, ({one}) => ({
+  recipe: one(recipe, {
+    fields: [recipeCauldronVariant.recipeId],
+    references: [recipe.id]
+  }),
+  essenceIngredient: one(ingredient, {
+    fields: [recipeCauldronVariant.essenceIngredientId],
+    references: [ingredient.id]
+  }),
+}))
+
 export const recipeRelations = relations(recipe, ({many}) => ({
   ingredients: many(recipeIngredient),
   potions: many(potion),
+  cauldronVariants: many(recipeCauldronVariant),
 }))

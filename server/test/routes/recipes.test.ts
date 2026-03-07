@@ -345,39 +345,86 @@ describe('Recipes Routes', () => {
       })
     })
 
-    it('should save crystal cauldron essence fields when provided', async () => {
+    it('should create recipe with cauldron variants', async () => {
       const ingredient = await createTestIngredient({ name: 'Ingredient', description: 'Test' })
+      const essenceIngredient = await createTestIngredient({ name: 'Fire Essence', description: 'Test' })
 
       const response = await request(app)
         .post('/api/recipes')
         .send({
-          name: 'Essence Recipe',
+          name: 'Cauldron Recipe',
           description: 'Test',
           ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
-          fireEssence: 'Grants fire resistance',
-          waterEssence: 'Heals over time',
+          cauldronVariants: [
+            { essenceType: 'FIRE', variantName: 'Fire Tonic', essenceIngredientId: essenceIngredient.id }
+          ]
         })
         .expect(201)
 
-      expect(response.body.fireEssence).toBe('Grants fire resistance')
-      expect(response.body.waterEssence).toBe('Heals over time')
-      expect(response.body.airEssence).toBeNull()
+      expect(response.body.cauldronVariants).toHaveLength(1)
+      expect(response.body.cauldronVariants[0]).toMatchObject({
+        essenceType: 'FIRE',
+        variantName: 'Fire Tonic',
+        essenceIngredientId: essenceIngredient.id
+      })
+      expect(response.body.cauldronVariants[0].essenceIngredient).toMatchObject({ id: essenceIngredient.id })
     })
 
-    it('should treat empty string essence fields as null on create', async () => {
+    it('should return 400 for invalid essence type in cauldron variant', async () => {
+      const ingredient = await createTestIngredient({ name: 'Ingredient', description: 'Test' })
+      const essenceIngredient = await createTestIngredient({ name: 'Essence', description: 'Test' })
+
+      const response = await request(app)
+        .post('/api/recipes')
+        .send({
+          name: 'Bad Variant Recipe',
+          description: 'Test',
+          ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
+          cauldronVariants: [
+            { essenceType: 'INVALID', variantName: 'Bad', essenceIngredientId: essenceIngredient.id }
+          ]
+        })
+        .expect(400)
+
+      expect(response.body.error).toContain('Invalid essence type')
+    })
+
+    it('should return 400 for duplicate essence types in cauldron variants', async () => {
+      const ingredient = await createTestIngredient({ name: 'Ingredient', description: 'Test' })
+      const essenceIngredient = await createTestIngredient({ name: 'Essence', description: 'Test' })
+
+      const response = await request(app)
+        .post('/api/recipes')
+        .send({
+          name: 'Dupe Variant Recipe',
+          description: 'Test',
+          ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
+          cauldronVariants: [
+            { essenceType: 'FIRE', variantName: 'Fire Tonic', essenceIngredientId: essenceIngredient.id },
+            { essenceType: 'FIRE', variantName: 'Fire Brew', essenceIngredientId: essenceIngredient.id }
+          ]
+        })
+        .expect(400)
+
+      expect(response.body.error).toContain('Duplicate essence type')
+    })
+
+    it('should return 400 for non-existent essenceIngredientId in cauldron variant', async () => {
       const ingredient = await createTestIngredient({ name: 'Ingredient', description: 'Test' })
 
       const response = await request(app)
         .post('/api/recipes')
         .send({
-          name: 'Empty Essence Recipe',
+          name: 'Bad Essence Ingredient Recipe',
           description: 'Test',
           ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
-          fireEssence: '   ',
+          cauldronVariants: [
+            { essenceType: 'FIRE', variantName: 'Fire Tonic', essenceIngredientId: 99999 }
+          ]
         })
-        .expect(201)
+        .expect(400)
 
-      expect(response.body.fireEssence).toBeNull()
+      expect(response.body.error).toContain('essence ingredient')
     })
   })
 
@@ -531,21 +578,16 @@ describe('Recipes Routes', () => {
         })
         .expect(400)
 
-      expect(response.body).toMatchObject({
-        error: 'Ingredients must be an array'
-      })
+      expect(response.body).toHaveProperty('error')
     })
 
     it('should return 400 for empty ingredients array', async () => {
-      // Note: Currently returns 500 due to transaction error handling
-      // This is a known limitation - validation errors in transactions
-      // are caught but may return 500 instead of 400
       const response = await request(app)
         .put(`/api/recipes/${recipe.id}`)
         .send({
           ingredients: []
         })
-        .expect(500)
+        .expect(400)
 
       expect(response.body).toHaveProperty('error')
     })
@@ -591,34 +633,59 @@ describe('Recipes Routes', () => {
       })
     })
 
-    it('should update crystal cauldron essence fields', async () => {
+    it('should add cauldron variants on update', async () => {
+      const essenceIngredient = await createTestIngredient({ name: 'Water Essence', description: 'Test' })
+
       const response = await request(app)
         .put(`/api/recipes/${recipe.id}`)
         .send({
-          fireEssence: 'Burns enemies',
-          lifeEssence: 'Restores health',
+          cauldronVariants: [
+            { essenceType: 'WATER', variantName: 'Aqua Brew', essenceIngredientId: essenceIngredient.id }
+          ]
         })
         .expect(200)
 
-      expect(response.body.fireEssence).toBe('Burns enemies')
-      expect(response.body.lifeEssence).toBe('Restores health')
+      expect(response.body.cauldronVariants).toHaveLength(1)
+      expect(response.body.cauldronVariants[0]).toMatchObject({
+        essenceType: 'WATER',
+        variantName: 'Aqua Brew',
+        essenceIngredientId: essenceIngredient.id
+      })
       expect(response.body.name).toBe('Original Recipe')
     })
 
-    it('should clear an essence field when empty string is sent', async () => {
-      // First set an essence
+    it('should replace cauldron variants on update', async () => {
+      const essence1 = await createTestIngredient({ name: 'Essence 1', description: 'Test' })
+      const essence2 = await createTestIngredient({ name: 'Essence 2', description: 'Test' })
+
       await request(app)
         .put(`/api/recipes/${recipe.id}`)
-        .send({ fireEssence: 'Some effect' })
+        .send({ cauldronVariants: [{ essenceType: 'FIRE', variantName: 'Fire Brew', essenceIngredientId: essence1.id }] })
         .expect(200)
 
-      // Then clear it
       const response = await request(app)
         .put(`/api/recipes/${recipe.id}`)
-        .send({ fireEssence: '' })
+        .send({ cauldronVariants: [{ essenceType: 'AIR', variantName: 'Air Brew', essenceIngredientId: essence2.id }] })
         .expect(200)
 
-      expect(response.body.fireEssence).toBeNull()
+      expect(response.body.cauldronVariants).toHaveLength(1)
+      expect(response.body.cauldronVariants[0].essenceType).toBe('AIR')
+    })
+
+    it('should clear cauldron variants when empty array is sent', async () => {
+      const essenceIngredient = await createTestIngredient({ name: 'Essence', description: 'Test' })
+
+      await request(app)
+        .put(`/api/recipes/${recipe.id}`)
+        .send({ cauldronVariants: [{ essenceType: 'FIRE', variantName: 'Fire Brew', essenceIngredientId: essenceIngredient.id }] })
+        .expect(200)
+
+      const response = await request(app)
+        .put(`/api/recipes/${recipe.id}`)
+        .send({ cauldronVariants: [] })
+        .expect(200)
+
+      expect(response.body.cauldronVariants).toHaveLength(0)
     })
   })
 

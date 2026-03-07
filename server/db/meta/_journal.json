@@ -8,6 +8,13 @@
       "when": 1772432872442,
       "tag": "0000_true_cyclops",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772910423606,
+      "tag": "0001_hard_devos",
+      "breakpoints": true
     }
   ]
 }

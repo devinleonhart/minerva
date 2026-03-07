@@ -246,7 +246,7 @@ async function handleAddItem(data: { name: string; description: string; quantity
             placeholder="Search inventory..."
           />
         </div>
-        <Button v-if="activeTab === 'currencies'" variant="outline" @click="showAddCurrencyForm = true">
+        <Button v-if="activeTab === 'currencies'" @click="showAddCurrencyForm = true">
           <Coins />
           Add Currency
         </Button>

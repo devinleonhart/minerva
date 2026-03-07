@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Ingredient, IngredientDeletability } from '@/types/store/ingredient'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -44,11 +43,6 @@ const emit = defineEmits<{
             <span class="name">{{ ingredient.name }}</span>
             <span v-if="ingredient.description" class="sub">{{ ingredient.description }}</span>
           </div>
-        </TableCell>
-        <TableCell>
-          <Badge :variant="ingredient.secured ? 'default' : 'secondary'">
-            {{ ingredient.secured ? 'Secured' : 'Unsecured' }}
-          </Badge>
         </TableCell>
         <TableCell>
           <div class="actions">

@@ -26,6 +26,7 @@ export const useIngredientStore = defineStore('ingredient', {
     async updateIngredient(id: number, ingredient: UpdateIngredientRequest) {
       try {
         await axios.put(`/api/ingredients/${id}`, ingredient)
+        await this.getIngredients()
       } catch (error) {
         console.error('Error updating ingredient:', error)
         throw error

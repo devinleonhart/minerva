@@ -13,6 +13,8 @@ FROM base AS development
 
 COPY . .
 
+RUN pnpm nuxt prepare
+
 CMD ["pnpm", "run", "dev"]
 
 # Build stage

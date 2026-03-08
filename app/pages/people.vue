@@ -19,7 +19,16 @@ const selectedPerson = ref<Person | null>(null)
 
 const { searchQuery, filteredItems } = useSearch({
   items: people,
-  searchFields: ['name', 'relationship', 'description', 'notableEvents']
+  searchFields: ['name', 'relationship', 'description'],
+  customFilter: (person, query) => {
+    const q = query.toLowerCase()
+    return (
+      person.name.toLowerCase().includes(q) ||
+      (person.relationship?.toLowerCase().includes(q) ?? false) ||
+      (person.description?.toLowerCase().includes(q) ?? false) ||
+      person.notableEvents.some(e => e.description.toLowerCase().includes(q))
+    )
+  }
 })
 
 const sortedPeople = computed(() =>

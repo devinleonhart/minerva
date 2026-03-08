@@ -45,8 +45,10 @@ const emit = defineEmits<{
         </TableCell>
         <TableCell>
           <div class="info-cell">
-            <span v-if="person.description" class="sub" :title="person.description">{{ person.description }}</span>
-            <span v-if="person.notableEvents" class="sub" :title="person.notableEvents">{{ person.notableEvents }}</span>
+            <span v-if="person.description" class="sub">{{ person.description }}</span>
+            <ul v-if="person.notableEvents.length > 0" class="events-list">
+              <li v-for="event in person.notableEvents" :key="event.id">{{ event.description }}</li>
+            </ul>
           </div>
         </TableCell>
         <TableCell>
@@ -73,6 +75,16 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
+.events-list {
+  margin: 0.25rem 0 0 1rem;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: var(--color-muted-foreground);
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
 .name-link {
   color: var(--color-foreground);
   text-decoration: none;

@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm/relations'
-import { ingredient, inventoryItem, potion, potionInventoryItem, weekSchedule, daySchedule, scheduledTask, item, itemInventoryItem, recipe, recipeIngredient, recipeCauldronVariant } from './schema.js'
+import { ingredient, inventoryItem, potion, potionInventoryItem, weekSchedule, daySchedule, scheduledTask, item, itemInventoryItem, recipe, recipeIngredient, recipeCauldronVariant, person, personNotableEvent } from './schema.js'
 
 export const inventoryItemRelations = relations(inventoryItem, ({one}) => ({
   ingredient: one(ingredient, {
@@ -85,4 +85,15 @@ export const recipeRelations = relations(recipe, ({many}) => ({
   ingredients: many(recipeIngredient),
   potions: many(potion),
   cauldronVariants: many(recipeCauldronVariant),
+}))
+
+export const personRelations = relations(person, ({many}) => ({
+  notableEvents: many(personNotableEvent),
+}))
+
+export const personNotableEventRelations = relations(personNotableEvent, ({one}) => ({
+  person: one(person, {
+    fields: [personNotableEvent.personId],
+    references: [person.id]
+  }),
 }))

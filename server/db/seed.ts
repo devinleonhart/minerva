@@ -6,7 +6,7 @@ import * as schema from './index.js'
 import {
   ingredient, inventoryItem, recipe, recipeIngredient, recipeCauldronVariant,
   potion, potionInventoryItem, item, itemInventoryItem, currency,
-  person, skill, spell, taskDefinition,
+  person, personNotableEvent, skill, spell, taskDefinition,
   scheduledTask, daySchedule, weekSchedule
 } from './index.js'
 import { getDatabaseUrl } from '../utils/databaseUrls.js'
@@ -200,12 +200,11 @@ await db.insert(currency).values([
 // People
 // ---------------------------------------------------------------------------
 console.log('Seeding people...')
-await db.insert(person).values([
+const people = await db.insert(person).values([
   {
     name: 'Elysia Dawnbreaker',
     description: 'The town\'s renowned healer and alchemist. Warm, patient, and possessed of an encyclopedic knowledge of medicinal herbs. She trained half the apothecaries in the region.',
     relationship: 'Mentor and trusted colleague',
-    notableEvents: 'Provided rare Glowcap Mushrooms at no charge during the fever outbreak. Taught advanced distillation techniques.',
     url: null,
     isFavorited: true,
     updatedAt: now,
@@ -214,7 +213,6 @@ await db.insert(person).values([
     name: 'Garron Ashsmith',
     description: 'The town blacksmith and former soldier. Gruff exterior, deeply loyal to those who earn his trust. Has an unusual interest in alchemical coatings for weapons.',
     relationship: 'Occasional client and dependable ally',
-    notableEvents: 'Forged a custom distillation stand in exchange for a batch of Strength Draughts. Reliable in a crisis.',
     url: null,
     isFavorited: false,
     updatedAt: now,
@@ -223,7 +221,6 @@ await db.insert(person).values([
     name: 'Lady Vesper',
     description: 'A mysterious noble with rumoured connections to shadow guilds and the city council. Dangerous to cross, invaluable to know. Always polite, never trustworthy.',
     relationship: 'Ambiguous patron',
-    notableEvents: 'Commissioned a large order of Shadow Veils. Paid well above market rate. No questions asked — which raises questions.',
     url: null,
     isFavorited: false,
     updatedAt: now,
@@ -232,7 +229,6 @@ await db.insert(person).values([
     name: 'Thorne',
     description: 'A well-traveled merchant specializing in rare ingredients, unusual cargo, and information. Charming, evasive, and surprisingly well-connected.',
     relationship: 'Supplier and informant',
-    notableEvents: 'Primary source for essence crystals. Has never failed a delivery. Named his price in favours as often as coin.',
     url: null,
     isFavorited: true,
     updatedAt: now,
@@ -241,7 +237,6 @@ await db.insert(person).values([
     name: 'Mirela Stoneleaf',
     description: 'A reclusive herbalist living deep in the Greenwood. Knows plants that don\'t appear in any published almanac. Speaks sparingly; every word counts.',
     relationship: 'Knowledgeable contact',
-    notableEvents: 'Identified the Thornwood Dowsing Rod\'s properties. Occasionally leaves rare herb bundles at the workshop door with no note.',
     url: null,
     isFavorited: false,
     updatedAt: now,
@@ -250,11 +245,26 @@ await db.insert(person).values([
     name: 'Captain Aldric',
     description: 'Commander of the town guard. By-the-book, suspicious of alchemists by default, but respectful when shown concrete results. Values practical outcomes over elegance.',
     relationship: 'Uneasy authority figure',
-    notableEvents: 'Accepted a batch of Healing Tonics for the garrison after the border skirmish. Hasn\'t caused trouble since.',
     url: null,
     isFavorited: false,
     updatedAt: now,
   },
+]).returning()
+
+const ppl = Object.fromEntries(people.map(p => [p.name, p]))
+await db.insert(personNotableEvent).values([
+  { personId: ppl['Elysia Dawnbreaker']!.id, description: 'Provided rare Glowcap Mushrooms at no charge during the fever outbreak.', updatedAt: now },
+  { personId: ppl['Elysia Dawnbreaker']!.id, description: 'Taught advanced distillation techniques.',                                updatedAt: now },
+  { personId: ppl['Garron Ashsmith']!.id,     description: 'Forged a custom distillation stand in exchange for a batch of Strength Draughts.', updatedAt: now },
+  { personId: ppl['Garron Ashsmith']!.id,     description: 'Reliable in a crisis.',                                                   updatedAt: now },
+  { personId: ppl['Lady Vesper']!.id,         description: 'Commissioned a large order of Shadow Veils.',                             updatedAt: now },
+  { personId: ppl['Lady Vesper']!.id,         description: 'Paid well above market rate — no questions asked, which raises questions.', updatedAt: now },
+  { personId: ppl['Thorne']!.id,              description: 'Primary source for essence crystals. Has never failed a delivery.',        updatedAt: now },
+  { personId: ppl['Thorne']!.id,              description: 'Named his price in favours as often as coin.',                             updatedAt: now },
+  { personId: ppl['Mirela Stoneleaf']!.id,    description: 'Identified the Thornwood Dowsing Rod\'s properties.',                     updatedAt: now },
+  { personId: ppl['Mirela Stoneleaf']!.id,    description: 'Occasionally leaves rare herb bundles at the workshop door with no note.', updatedAt: now },
+  { personId: ppl['Captain Aldric']!.id,      description: 'Accepted a batch of Healing Tonics for the garrison after the border skirmish.', updatedAt: now },
+  { personId: ppl['Captain Aldric']!.id,      description: 'Hasn\'t caused trouble since.',                                            updatedAt: now },
 ])
 
 // ---------------------------------------------------------------------------

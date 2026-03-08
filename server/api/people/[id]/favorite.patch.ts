@@ -17,11 +17,13 @@ export default eventHandler(async (event) => {
       setResponseStatus(event, 404)
       return { error: 'Person not found' }
     }
-    const [row] = await db.update(person)
+    await db.update(person)
       .set({ isFavorited: !existing.isFavorited, updatedAt: new Date().toISOString() })
       .where(eq(person.id, id))
-      .returning()
-    return row
+    return db.query.person.findFirst({
+      where: (p, { eq }) => eq(p.id, id),
+      with: { notableEvents: true }
+    })
   } catch (error) {
     return handleUnknownError(event, 'toggling person favorite', error)
   }

@@ -4,10 +4,11 @@ export interface SearchOptions<T> {
   items: Ref<T[]>
   searchFields: (keyof T)[]
   debounceMs?: number
+  customFilter?: (item: T, query: string) => boolean
 }
 
 export function useSearch<T>(options: SearchOptions<T>) {
-  const { items, searchFields, debounceMs = 300 } = options
+  const { items, searchFields, debounceMs = 300, customFilter } = options
 
   const searchQuery = ref('')
   const debouncedQuery = ref('')
@@ -31,6 +32,7 @@ export function useSearch<T>(options: SearchOptions<T>) {
     }
 
     return items.value.filter(item => {
+      if (customFilter) return customFilter(item, query)
       return searchFields.some(field => {
         const value = item[field]
         if (typeof value === 'string') {

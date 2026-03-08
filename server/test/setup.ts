@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
 import * as schema from '../db/index.js'
 import {
-  ingredient, item, currency, person, spell, skill,
+  ingredient, item, currency, person, personNotableEvent, spell, skill,
   inventoryItem, recipe, recipeIngredient, recipeCauldronVariant, potion,
   potionInventoryItem, weekSchedule, daySchedule,
   scheduledTask, taskDefinition, itemInventoryItem
@@ -44,6 +44,7 @@ export async function cleanDatabase() {
   await testDb.delete(recipe).catch(() => {})
   await testDb.delete(ingredient).catch(() => {})
   await testDb.delete(item).catch(() => {})
+  await testDb.delete(personNotableEvent).catch(() => {})
   await testDb.delete(person).catch(() => {})
   await testDb.delete(skill).catch(() => {})
   await testDb.delete(spell).catch(() => {})
@@ -61,6 +62,7 @@ export async function cleanDatabase() {
         ALTER SEQUENCE "ItemInventoryItem_id_seq" RESTART WITH 1;
         ALTER SEQUENCE "Currency_id_seq" RESTART WITH 1;
         ALTER SEQUENCE "Person_id_seq" RESTART WITH 1;
+        ALTER SEQUENCE "PersonNotableEvent_id_seq" RESTART WITH 1;
         ALTER SEQUENCE "Skill_id_seq" RESTART WITH 1;
         ALTER SEQUENCE "Spell_id_seq" RESTART WITH 1;
         ALTER SEQUENCE "WeekSchedule_id_seq" RESTART WITH 1;
@@ -117,7 +119,7 @@ export async function createTestPerson(data: {
   name: string
   description?: string | null
   relationship?: string | null
-  notableEvents?: string | null
+  notableEvents?: string[]
   url?: string | null
   isFavorited?: boolean
 }) {
@@ -125,11 +127,19 @@ export async function createTestPerson(data: {
     name: data.name,
     description: data.description ?? null,
     relationship: data.relationship ?? null,
-    notableEvents: data.notableEvents ?? null,
     url: data.url ?? null,
     isFavorited: data.isFavorited ?? false,
     updatedAt: new Date().toISOString()
   }).returning()
+  if (data.notableEvents && data.notableEvents.length > 0) {
+    await testDb.insert(personNotableEvent).values(
+      data.notableEvents.map(description => ({
+        personId: row!.id,
+        description,
+        updatedAt: new Date().toISOString()
+      }))
+    )
+  }
   return row
 }
 

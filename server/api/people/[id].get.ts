@@ -2,8 +2,6 @@ import { eventHandler, getRouterParam, setResponseStatus } from 'h3'
 import { db } from '../../utils/db.js'
 import { handleUnknownError } from '../../utils/handleUnknownError.js'
 import { parseId } from '../../utils/parseId.js'
-import { person } from '../../db/index.js'
-import { eq } from 'drizzle-orm'
 
 export default eventHandler(async (event) => {
   try {
@@ -13,7 +11,11 @@ export default eventHandler(async (event) => {
       return { error: 'Invalid person ID' }
     }
 
-    const [row] = await db.select().from(person).where(eq(person.id, id))
+    const row = await db.query.person.findFirst({
+      where: (p, { eq }) => eq(p.id, id),
+      with: { notableEvents: true }
+    })
+
     if (!row) {
       setResponseStatus(event, 404)
       return { error: 'Person not found' }

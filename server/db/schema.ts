@@ -167,10 +167,23 @@ export const person = pgTable('Person', {
   name: varchar({ length: 255 }).notNull(),
   description: text(),
   relationship: varchar({ length: 255 }),
-  notableEvents: text(),
   url: varchar({ length: 255 }),
   isFavorited: boolean().default(false).notNull(),
 })
+
+export const personNotableEvent = pgTable('PersonNotableEvent', {
+  id: serial().primaryKey().notNull(),
+  createdAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
+  personId: integer().notNull(),
+  description: text().notNull(),
+}, (table) => [
+  foreignKey({
+    columns: [table.personId],
+    foreignColumns: [person.id],
+    name: 'PersonNotableEvent_personId_fkey'
+  }).onUpdate('cascade').onDelete('cascade'),
+])
 
 export const recipe = pgTable('Recipe', {
   id: serial().primaryKey().notNull(),

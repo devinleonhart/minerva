@@ -26,6 +26,7 @@ import peopleDeleteById from '../api/people/[id].delete.js'
 import itemsGetAll from '../api/items/index.get.js'
 import itemsGetById from '../api/items/[id].get.js'
 import itemsPost from '../api/items/index.post.js'
+import itemsPutById from '../api/items/[id].put.js'
 import itemsDeleteById from '../api/items/[id].delete.js'
 
 // ── Potions ───────────────────────────────────────────────────────────────────
@@ -103,6 +104,7 @@ export function createTestApp() {
   router.get('/api/items', itemsGetAll)
   router.post('/api/items', itemsPost)
   router.get('/api/items/:id', itemsGetById)
+  router.put('/api/items/:id', itemsPutById)
   router.delete('/api/items/:id', itemsDeleteById)
 
   // Potions — static 'direct' before dynamic ':id' (not needed here but good habit)

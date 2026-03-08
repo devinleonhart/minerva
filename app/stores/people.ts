@@ -7,16 +7,6 @@ export const usePeopleStore = defineStore('people', {
   state: (): PeopleStore => ({
     people: []
   }),
-  getters: {
-    favoritePeople: (state) => state.people.filter(person => person.isFavorited),
-    searchPeople: (state) => (query: string) => {
-      const lowerQuery = query.toLowerCase()
-      return state.people.filter(person =>
-        person.name.toLowerCase().includes(lowerQuery) ||
-        (person.description && person.description.toLowerCase().includes(lowerQuery))
-      )
-    }
-  },
   actions: {
     async getPeople() {
       try {
@@ -56,9 +46,10 @@ export const usePeopleStore = defineStore('people', {
         throw error
       }
     },
-    async toggleFavorite(id: number, isFavorited: boolean) {
+    async toggleFavorite(id: number) {
       try {
-        await this.updatePerson(id, { isFavorited })
+        await axios.patch(`/api/people/${id}/favorite`)
+        await this.getPeople()
       } catch (error) {
         console.error('Error toggling favorite:', error)
         throw error

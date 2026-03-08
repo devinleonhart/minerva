@@ -243,6 +243,99 @@ describe('Items Routes', () => {
     })
   })
 
+  describe('PUT /api/items/:id', () => {
+    it('should update name and description', async () => {
+      const item = await createTestItem({ name: 'Original Name', description: 'Original Description' })
+
+      const response = await request(app)
+        .put(`/api/items/${item.id}`)
+        .send({ name: 'Updated Name', description: 'Updated Description' })
+        .expect(200)
+
+      expect(response.body).toMatchObject({ id: item.id, name: 'Updated Name', description: 'Updated Description' })
+
+      const [row] = await testDb.select().from(tables.item).where(eq(tables.item.id, item.id))
+      expect(row?.name).toBe('Updated Name')
+      expect(row?.description).toBe('Updated Description')
+    })
+
+    it('should update only name when description is omitted', async () => {
+      const item = await createTestItem({ name: 'Original', description: 'Keep This' })
+
+      const response = await request(app)
+        .put(`/api/items/${item.id}`)
+        .send({ name: 'New Name' })
+        .expect(200)
+
+      expect(response.body.name).toBe('New Name')
+      expect(response.body.description).toBe('Keep This')
+    })
+
+    it('should update only description when name is omitted', async () => {
+      const item = await createTestItem({ name: 'Keep This', description: 'Original' })
+
+      const response = await request(app)
+        .put(`/api/items/${item.id}`)
+        .send({ description: 'New Description' })
+        .expect(200)
+
+      expect(response.body.name).toBe('Keep This')
+      expect(response.body.description).toBe('New Description')
+    })
+
+    it('should trim whitespace from updated fields', async () => {
+      const item = await createTestItem({ name: 'Original', description: 'Original' })
+
+      const response = await request(app)
+        .put(`/api/items/${item.id}`)
+        .send({ name: '  Trimmed Name  ', description: '  Trimmed Desc  ' })
+        .expect(200)
+
+      expect(response.body.name).toBe('Trimmed Name')
+      expect(response.body.description).toBe('Trimmed Desc')
+    })
+
+    it('should return 400 for empty name string', async () => {
+      const item = await createTestItem({ name: 'Original', description: 'Original' })
+
+      const response = await request(app)
+        .put(`/api/items/${item.id}`)
+        .send({ name: '' })
+        .expect(400)
+
+      expect(response.body).toMatchObject({ error: 'Item name is required' })
+    })
+
+    it('should return 400 for non-string description', async () => {
+      const item = await createTestItem({ name: 'Original', description: 'Original' })
+
+      const response = await request(app)
+        .put(`/api/items/${item.id}`)
+        .send({ description: 123 })
+        .expect(400)
+
+      expect(response.body).toMatchObject({ error: 'Item description must be a string' })
+    })
+
+    it('should return 400 for invalid ID', async () => {
+      const response = await request(app)
+        .put('/api/items/abc')
+        .send({ name: 'Test' })
+        .expect(400)
+
+      expect(response.body).toMatchObject({ error: 'Invalid item ID' })
+    })
+
+    it('should return 404 for non-existent item', async () => {
+      const response = await request(app)
+        .put('/api/items/99999')
+        .send({ name: 'Test' })
+        .expect(404)
+
+      expect(response.body).toMatchObject({ error: 'Item not found' })
+    })
+  })
+
   describe('DELETE /api/items/:id', () => {
     it('should delete item successfully when no inventory items exist', async () => {
       const item = await createTestItem({

@@ -153,7 +153,7 @@ minerva/
 │   ├── composables/    useApi, useCrud, useSearch, useConfirm, useToast
 │   ├── stores/         Pinia stores (one per domain)
 │   ├── types/          TypeScript types (utils.ts, store/)
-│   └── lib/            api.ts (axios instance), utils.ts
+│   └── lib/            utils.ts
 ├── server/
 │   ├── api/                    # H3 route handlers (file-based routing)
 │   │   ├── ingredients/        [id].get/put/delete, index.get/post, [id]/deletable.get
@@ -164,8 +164,8 @@ minerva/
 │   │   ├── potions/            index.get/post, direct.post
 │   │   ├── recipes/            [id].get/put/delete, index.get/post,
 │   │   │                       craftable.get, [id]/craftable.get, [id]/deletable.get
-│   │   ├── scheduler/          index.get/delete, [id].delete, save.post, cleanup.post,
-│   │   │                       load/[weekStartDate].get
+│   │   ├── scheduler/          week/index.get/post/delete, tasks/index.post,
+│   │   │                       tasks/[id].patch/delete
 │   │   ├── skills/             [id].get/delete, index.get/post
 │   │   └── spells/             [id].get/put/delete, index.get/post, [id]/progress.patch
 │   ├── db/                     # Drizzle schema + migrations
@@ -223,11 +223,9 @@ All routes under `/api/`:
 | `/recipes/craftable` | GET | All craftable recipes |
 | `/recipes/:id/craftable` | GET | Craftability detail for one recipe |
 | `/recipes/:id/deletable` | GET | Check if safe to delete |
-| `/scheduler` | GET, DELETE | |
-| `/scheduler/:id` | DELETE | Delete week by ID |
-| `/scheduler/save` | POST | Persist current schedule |
-| `/scheduler/load/:weekStartDate` | GET | Load schedule by date |
-| `/scheduler/cleanup` | POST | Clean up orphaned data |
+| `/scheduler/week` | GET, POST, DELETE | Current week schedule |
+| `/scheduler/tasks` | POST | Create scheduled task |
+| `/scheduler/tasks/:id` | PATCH, DELETE | Update or delete task |
 | `/people` | GET, POST | |
 | `/people/:id` | GET, PUT, DELETE | |
 | `/people/:id/favorite` | PATCH | Toggle favorite |
@@ -257,9 +255,7 @@ All routes under `/api/`:
 One store per domain in `app/stores/`: `ingredient`, `inventory`, `item`, `people`, `potion`, `recipe`, `scheduler`, `skills`, `spells`. Stores use `axios` directly.
 
 ### Composables
-- `useApi` — Axios wrapper (uses `app/lib/api.ts` configured instance)
-- `useCrud` — Generic CRUD operations reused across features
-- `useSearch` — Search/filter logic
+- `useSearch` — Search/filter logic (supports `customFilter` for array fields)
 - `useConfirm` — Confirmation dialog integration
 - `useToast` — Toast notification integration
 

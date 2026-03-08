@@ -100,7 +100,7 @@ async function handleDeletePerson(id: number) {
 
 async function handleToggleFavorite(id: number, isFavorited: boolean) {
   try {
-    await peopleStore.toggleFavorite(id, isFavorited)
+    await peopleStore.toggleFavorite(id)
     toast.success(isFavorited ? 'Person favorited' : 'Person unfavorited')
   } catch {
     toast.error('Failed to update favorite status')

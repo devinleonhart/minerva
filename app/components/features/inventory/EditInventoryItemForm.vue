@@ -24,24 +24,22 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  submit: [id: number, name: string, description: string, quantity: number]
+  submit: [id: number, name: string, description: string]
 }>()
 
 const name = ref('')
 const description = ref('')
-const quantity = ref(1)
 
 watch(() => props.open, (open) => {
   if (open && props.item) {
     name.value = props.item.item.name
     description.value = props.item.item.description
-    quantity.value = props.item.quantity
   }
 })
 
 function handleSubmit() {
   if (!props.item || !name.value.trim()) return
-  emit('submit', props.item.item.id, name.value.trim(), description.value.trim(), quantity.value)
+  emit('submit', props.item.item.id, name.value.trim(), description.value.trim())
   emit('update:open', false)
 }
 </script>
@@ -74,21 +72,11 @@ function handleSubmit() {
             />
           </div>
 
-          <div class="field">
-            <Label for="quantity">Quantity</Label>
-            <Input
-              id="quantity"
-              v-model.number="quantity"
-              type="number"
-              min="1"
-            />
-          </div>
-
           <DialogFooter>
             <Button variant="outline" type="button" @click="emit('update:open', false)">
               Cancel
             </Button>
-            <Button type="submit" :disabled="!name.trim() || quantity < 1">
+            <Button type="submit" :disabled="!name.trim()">
               Save Changes
             </Button>
           </DialogFooter>

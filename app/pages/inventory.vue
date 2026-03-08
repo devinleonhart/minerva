@@ -166,12 +166,9 @@ function closeEditInventoryItemForm() {
   editingInventoryItem.value = null
 }
 
-async function handleEditItemSubmit(itemId: number, name: string, description: string, quantity: number) {
+async function handleEditItemSubmit(itemId: number, name: string, description: string) {
   try {
-    await Promise.all([
-      inventoryStore.updateItem(itemId, name, description),
-      inventoryStore.updateItemInventoryItem(editingInventoryItem.value!.id, quantity)
-    ])
+    await inventoryStore.updateItem(itemId, name, description)
     toast.success('Item updated')
   } catch {
     toast.error('Failed to update item')

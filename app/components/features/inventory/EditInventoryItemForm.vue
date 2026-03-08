@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { InventoryItem } from '@/types/store/inventory'
+import type { ItemInventoryItem } from '@/types/store/inventory'
 import {
   Dialog,
   DialogContent,
@@ -11,17 +11,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
-
-const QUALITY_OPTIONS = [
-  { value: 'NORMAL', label: 'Normal' },
-  { value: 'HQ', label: 'HQ' },
-  { value: 'LQ', label: 'LQ' },
-]
 
 interface Props {
   open: boolean
-  item?: InventoryItem | null
+  item?: ItemInventoryItem | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -30,22 +23,20 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  submit: [id: number, quality: string, quantity: number]
+  submit: [id: number, quantity: number]
 }>()
 
-const quality = ref('NORMAL')
 const quantity = ref(1)
 
 watch(() => props.open, (open) => {
   if (open && props.item) {
-    quality.value = props.item.quality
     quantity.value = props.item.quantity
   }
 })
 
 function handleSubmit() {
   if (!props.item) return
-  emit('submit', props.item.id, quality.value, quantity.value)
+  emit('submit', props.item.id, quantity.value)
   emit('update:open', false)
 }
 </script>
@@ -55,20 +46,11 @@ function handleSubmit() {
     <template #content>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Inventory Item</DialogTitle>
+          <DialogTitle>Edit Item</DialogTitle>
         </DialogHeader>
 
         <form class="form" @submit.prevent="handleSubmit">
-          <div v-if="item" class="item-name">{{ item.ingredient.name }}</div>
-
-          <div class="field">
-            <Label for="quality">Quality</Label>
-            <Select
-              id="quality"
-              v-model="quality"
-              :options="QUALITY_OPTIONS"
-            />
-          </div>
+          <div v-if="item" class="item-name">{{ item.item.name }}</div>
 
           <div class="field">
             <Label for="quantity">Quantity</Label>

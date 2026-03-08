@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import type { AddCurrencyRequest, InventoryItem } from '@/types/store/inventory'
+import type { AddCurrencyRequest, ItemInventoryItem } from '@/types/store/inventory'
 import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -25,7 +25,7 @@ const isLoading = ref(false)
 const searchQuery = ref('')
 const showAddCurrencyForm = ref(false)
 const showAddItemForm = ref(false)
-const editingInventoryItem = ref<InventoryItem | null>(null)
+const editingInventoryItem = ref<ItemInventoryItem | null>(null)
 const activeTab = ref<'potions' | 'ingredients' | 'items' | 'currencies'>('potions')
 
 const tabs = computed(() => [
@@ -104,19 +104,6 @@ onMounted(async () => {
 })
 
 // Ingredient handlers
-async function handleEditIngredient(item: InventoryItem) {
-  editingInventoryItem.value = item
-}
-
-async function handleEditIngredientSubmit(id: number, quality: string, quantity: number) {
-  try {
-    await inventoryStore.updateInventoryItem(id, quality, quantity)
-    toast.success('Inventory item updated')
-  } catch {
-    toast.error('Failed to update inventory item')
-  }
-}
-
 async function handleUpdateIngredientQuantity(id: number, quality: string, quantity: number) {
   try {
     await inventoryStore.updateInventoryItem(id, quality, quantity)
@@ -171,6 +158,19 @@ async function handleDeletePotion(id: number) {
 }
 
 // Item handlers
+async function handleEditItem(item: ItemInventoryItem) {
+  editingInventoryItem.value = item
+}
+
+async function handleEditItemSubmit(id: number, quantity: number) {
+  try {
+    await inventoryStore.updateItemInventoryItem(id, quantity)
+    toast.success('Item updated')
+  } catch {
+    toast.error('Failed to update item')
+  }
+}
+
 async function handleUpdateItemQuantity(id: number, quantity: number) {
   try {
     await inventoryStore.updateItemInventoryItem(id, quantity)
@@ -310,7 +310,6 @@ async function handleAddItem(data: { name: string; description: string; quantity
           <IngredientInventoryList
             v-else
             :items="filteredIngredients"
-            @edit="handleEditIngredient"
             @update-quantity="handleUpdateIngredientQuantity"
             @delete="handleDeleteIngredient"
           />
@@ -323,6 +322,7 @@ async function handleAddItem(data: { name: string; description: string; quantity
           <ItemInventoryList
             v-else
             :items="filteredItems"
+            @edit="handleEditItem"
             @update-quantity="handleUpdateItemQuantity"
             @delete="handleDeleteItem"
           />
@@ -358,7 +358,7 @@ async function handleAddItem(data: { name: string; description: string; quantity
       :open="editingInventoryItem !== null"
       :item="editingInventoryItem"
       @update:open="if (!$event) editingInventoryItem = null"
-      @submit="handleEditIngredientSubmit"
+      @submit="handleEditItemSubmit"
     />
   </PageLayout>
 </template>

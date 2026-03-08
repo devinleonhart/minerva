@@ -283,3 +283,19 @@ All composables are auto-imported by Nuxt. Explicit imports use the individual f
   - `readBody<T>(event)` returns `Promise<T | undefined>` — always use `?? {}` fallback
   - `mockEvent(url)` in tests takes URL only (no method arg)
   - `noUncheckedIndexedAccess` is on — array access returns `T | undefined`
+- Every Drizzle `insert` and `update` must set `updatedAt: new Date().toISOString()`
+- See `server/api/CLAUDE.md` for route handler boilerplate and Drizzle patterns
+- See `server/test/CLAUDE.md` for test infrastructure and how to register new routes
+
+---
+
+## Known Gotchas
+
+- **Vue template inline `if`**: `@update:open="if (!$event) foo = null"` causes a parse error. Extract a named method instead.
+- **Test router ordering**: In `server/test/helpers.ts`, register static sub-paths before dynamic `:id` routes (e.g. `/api/spells/:id/progress` before `/api/spells/:id`) or the dynamic segment swallows the static one.
+- **New test routes**: Adding a new API handler does NOT automatically appear in tests. It must be manually imported and registered in `server/test/helpers.ts`.
+- **Store refresh**: All store mutations call `get*()` after success to re-fetch from server. There are no optimistic updates.
+- **`useSearch` and arrays**: The composable only searches `string | number` fields. For array-of-object fields, pass a `customFilter` option.
+- **`db:push` column drops**: Drizzle will prompt interactively when a column is being dropped. Use `pnpm db:push --force` to bypass.
+- **Component imports**: Components are not auto-imported in this project. Always import explicitly from the barrel (`@/components/ui/button`, `@/components/features/people`, etc.).
+- See `app/CLAUDE.md` for frontend-specific patterns and gotchas.

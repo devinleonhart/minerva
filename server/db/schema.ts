@@ -207,6 +207,7 @@ export const recipeCauldronVariant = pgTable('RecipeCauldronVariant', {
   recipeId: integer().notNull(),
   essenceType: varchar({ length: 20 }).notNull(),
   variantName: varchar({ length: 255 }).notNull(),
+  description: text(),
   essenceIngredientId: integer().notNull(),
 }, (table) => [
   uniqueIndex('RecipeCauldronVariant_recipeId_essenceType_key').using('btree', table.recipeId.asc().nullsLast().op('int4_ops'), table.essenceType.asc().nullsLast().op('text_ops')),

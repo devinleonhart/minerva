@@ -114,14 +114,20 @@ function getIngredientStatus(ingredientId: number, required: number): 'sufficien
         class="recipe-section"
       >
         <div class="section-label">Crystal Cauldron Variants</div>
-        <div class="badge-group">
-          <Badge
+        <div class="variant-list">
+          <div
             v-for="variant in recipe.cauldronVariants"
             :key="variant.essenceType"
-            variant="secondary"
+            class="variant-row"
           >
-            {{ variant.essenceType.charAt(0) + variant.essenceType.slice(1).toLowerCase() }}: {{ variant.variantName }}
-          </Badge>
+            <Badge variant="secondary" class="variant-badge">
+              {{ variant.essenceType.charAt(0) + variant.essenceType.slice(1).toLowerCase() }}
+            </Badge>
+            <div class="variant-info">
+              <span class="variant-name">{{ variant.variantName }}</span>
+              <span v-if="variant.description" class="variant-desc">{{ variant.description }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </Card>
@@ -182,6 +188,40 @@ function getIngredientStatus(ingredientId: number, required: number): 'sufficien
   letter-spacing: 0.04em;
   color: var(--color-muted-foreground);
   margin-bottom: 0.5rem;
+}
+
+.variant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.variant-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.variant-badge {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.variant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.variant-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.variant-desc {
+  font-size: 0.8125rem;
+  color: var(--color-muted-foreground);
 }
 
 </style>

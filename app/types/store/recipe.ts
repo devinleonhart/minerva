@@ -3,6 +3,7 @@ export interface RecipeCauldronVariant {
   recipeId: number
   essenceType: string
   variantName: string
+  description: string | null
   essenceIngredientId: number
   essenceIngredient: {
     id: number
@@ -44,6 +45,7 @@ export interface RecipeIngredient {
 export interface CauldronVariantInput {
   essenceType: string
   variantName: string
+  description: string
   essenceIngredientId: number
 }
 

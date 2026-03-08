@@ -356,7 +356,7 @@ describe('Recipes Routes', () => {
           description: 'Test',
           ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
           cauldronVariants: [
-            { essenceType: 'FIRE', variantName: 'Fire Tonic', essenceIngredientId: essenceIngredient.id }
+            { essenceType: 'FIRE', variantName: 'Fire Tonic', description: 'A fiery variant.', essenceIngredientId: essenceIngredient.id }
           ]
         })
         .expect(201)
@@ -365,6 +365,7 @@ describe('Recipes Routes', () => {
       expect(response.body.cauldronVariants[0]).toMatchObject({
         essenceType: 'FIRE',
         variantName: 'Fire Tonic',
+        description: 'A fiery variant.',
         essenceIngredientId: essenceIngredient.id
       })
       expect(response.body.cauldronVariants[0].essenceIngredient).toMatchObject({ id: essenceIngredient.id })
@@ -381,7 +382,7 @@ describe('Recipes Routes', () => {
           description: 'Test',
           ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
           cauldronVariants: [
-            { essenceType: 'INVALID', variantName: 'Bad', essenceIngredientId: essenceIngredient.id }
+            { essenceType: 'INVALID', variantName: 'Bad', description: 'Bad variant.', essenceIngredientId: essenceIngredient.id }
           ]
         })
         .expect(400)
@@ -400,13 +401,32 @@ describe('Recipes Routes', () => {
           description: 'Test',
           ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
           cauldronVariants: [
-            { essenceType: 'FIRE', variantName: 'Fire Tonic', essenceIngredientId: essenceIngredient.id },
-            { essenceType: 'FIRE', variantName: 'Fire Brew', essenceIngredientId: essenceIngredient.id }
+            { essenceType: 'FIRE', variantName: 'Fire Tonic', description: 'First fire variant.', essenceIngredientId: essenceIngredient.id },
+            { essenceType: 'FIRE', variantName: 'Fire Brew', description: 'Second fire variant.', essenceIngredientId: essenceIngredient.id }
           ]
         })
         .expect(400)
 
       expect(response.body.error).toContain('Duplicate essence type')
+    })
+
+    it('should return 400 for missing description in cauldron variant', async () => {
+      const ingredient = await createTestIngredient({ name: 'Ingredient', description: 'Test' })
+      const essenceIngredient = await createTestIngredient({ name: 'Essence', description: 'Test' })
+
+      const response = await request(app)
+        .post('/api/recipes')
+        .send({
+          name: 'No Desc Variant Recipe',
+          description: 'Test',
+          ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
+          cauldronVariants: [
+            { essenceType: 'FIRE', variantName: 'Fire Tonic', essenceIngredientId: essenceIngredient.id }
+          ]
+        })
+        .expect(400)
+
+      expect(response.body.error).toContain('description')
     })
 
     it('should return 400 for non-existent essenceIngredientId in cauldron variant', async () => {
@@ -419,7 +439,7 @@ describe('Recipes Routes', () => {
           description: 'Test',
           ingredients: [{ ingredientId: ingredient.id, quantity: 1 }],
           cauldronVariants: [
-            { essenceType: 'FIRE', variantName: 'Fire Tonic', essenceIngredientId: 99999 }
+            { essenceType: 'FIRE', variantName: 'Fire Tonic', description: 'A fiery variant.', essenceIngredientId: 99999 }
           ]
         })
         .expect(400)
@@ -640,7 +660,7 @@ describe('Recipes Routes', () => {
         .put(`/api/recipes/${recipe.id}`)
         .send({
           cauldronVariants: [
-            { essenceType: 'WATER', variantName: 'Aqua Brew', essenceIngredientId: essenceIngredient.id }
+            { essenceType: 'WATER', variantName: 'Aqua Brew', description: 'A watery brew.', essenceIngredientId: essenceIngredient.id }
           ]
         })
         .expect(200)
@@ -649,6 +669,7 @@ describe('Recipes Routes', () => {
       expect(response.body.cauldronVariants[0]).toMatchObject({
         essenceType: 'WATER',
         variantName: 'Aqua Brew',
+        description: 'A watery brew.',
         essenceIngredientId: essenceIngredient.id
       })
       expect(response.body.name).toBe('Original Recipe')
@@ -660,12 +681,12 @@ describe('Recipes Routes', () => {
 
       await request(app)
         .put(`/api/recipes/${recipe.id}`)
-        .send({ cauldronVariants: [{ essenceType: 'FIRE', variantName: 'Fire Brew', essenceIngredientId: essence1.id }] })
+        .send({ cauldronVariants: [{ essenceType: 'FIRE', variantName: 'Fire Brew', description: 'A fire brew.', essenceIngredientId: essence1.id }] })
         .expect(200)
 
       const response = await request(app)
         .put(`/api/recipes/${recipe.id}`)
-        .send({ cauldronVariants: [{ essenceType: 'AIR', variantName: 'Air Brew', essenceIngredientId: essence2.id }] })
+        .send({ cauldronVariants: [{ essenceType: 'AIR', variantName: 'Air Brew', description: 'An air brew.', essenceIngredientId: essence2.id }] })
         .expect(200)
 
       expect(response.body.cauldronVariants).toHaveLength(1)
@@ -677,7 +698,7 @@ describe('Recipes Routes', () => {
 
       await request(app)
         .put(`/api/recipes/${recipe.id}`)
-        .send({ cauldronVariants: [{ essenceType: 'FIRE', variantName: 'Fire Brew', essenceIngredientId: essenceIngredient.id }] })
+        .send({ cauldronVariants: [{ essenceType: 'FIRE', variantName: 'Fire Brew', description: 'A fire brew.', essenceIngredientId: essenceIngredient.id }] })
         .expect(200)
 
       const response = await request(app)

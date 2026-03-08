@@ -113,16 +113,16 @@ await db.insert(recipeIngredient).values([
 console.log('Seeding cauldron variants...')
 await db.insert(recipeCauldronVariant).values([
   // Healing Tonic variants
-  { recipeId: rec['Healing Tonic']!.id, essenceType: 'FIRE', variantName: 'Blazing Healing Tonic',  essenceIngredientId: ing['Fire Essence Crystal']!.id,  updatedAt: now },
-  { recipeId: rec['Healing Tonic']!.id, essenceType: 'LIFE', variantName: 'Vital Healing Tonic',    essenceIngredientId: ing['Life Essence Crystal']!.id,  updatedAt: now },
+  { recipeId: rec['Healing Tonic']!.id, essenceType: 'FIRE', variantName: 'Blazing Healing Tonic', description: 'Heals wounds in a burst of warmth. Also temporarily grants fire resistance.', essenceIngredientId: ing['Fire Essence Crystal']!.id, updatedAt: now },
+  { recipeId: rec['Healing Tonic']!.id, essenceType: 'LIFE', variantName: 'Vital Healing Tonic',   description: 'Channels life essence for deeper, sustained healing over several minutes.',     essenceIngredientId: ing['Life Essence Crystal']!.id, updatedAt: now },
   // Strength Draught variants
-  { recipeId: rec['Strength Draught']!.id, essenceType: 'EARTH',     variantName: 'Stone Strength Draught',   essenceIngredientId: ing['Earth Essence Crystal']!.id,     updatedAt: now },
-  { recipeId: rec['Strength Draught']!.id, essenceType: 'LIGHTNING', variantName: 'Thunder Strength Draught', essenceIngredientId: ing['Lightning Essence Crystal']!.id, updatedAt: now },
+  { recipeId: rec['Strength Draught']!.id, essenceType: 'EARTH',     variantName: 'Stone Strength Draught',   description: 'Grants the endurance of stone — strength boost lasts twice as long.',          essenceIngredientId: ing['Earth Essence Crystal']!.id,     updatedAt: now },
+  { recipeId: rec['Strength Draught']!.id, essenceType: 'LIGHTNING', variantName: 'Thunder Strength Draught', description: 'Explosive burst of strength and speed — powerful but short-lived.',            essenceIngredientId: ing['Lightning Essence Crystal']!.id, updatedAt: now },
   // Clarity Potion variants
-  { recipeId: rec['Clarity Potion']!.id, essenceType: 'AIR',   variantName: 'Windborn Clarity Potion', essenceIngredientId: ing['Air Essence Crystal']!.id,   updatedAt: now },
-  { recipeId: rec['Clarity Potion']!.id, essenceType: 'WATER', variantName: 'Crystal Clarity Potion', essenceIngredientId: ing['Water Essence Crystal']!.id, updatedAt: now },
+  { recipeId: rec['Clarity Potion']!.id, essenceType: 'AIR',   variantName: 'Windborn Clarity Potion', description: 'Mental clarity enhanced with air essence — improves reaction speed as well.',    essenceIngredientId: ing['Air Essence Crystal']!.id,   updatedAt: now },
+  { recipeId: rec['Clarity Potion']!.id, essenceType: 'WATER', variantName: 'Crystal Clarity Potion', description: 'Deep, calm focus. Reduces arcane interference and improves spell retention.', essenceIngredientId: ing['Water Essence Crystal']!.id, updatedAt: now },
   // Shadow Veil variant
-  { recipeId: rec['Shadow Veil']!.id, essenceType: 'DEATH', variantName: 'Death-Kissed Shadow Veil', essenceIngredientId: ing['Death Essence Crystal']!.id, updatedAt: now },
+  { recipeId: rec['Shadow Veil']!.id, essenceType: 'DEATH', variantName: 'Death-Kissed Shadow Veil', description: 'Shrouds the drinker in death energy — effectively invisible to undead detection.', essenceIngredientId: ing['Death Essence Crystal']!.id, updatedAt: now },
 ])
 
 // ---------------------------------------------------------------------------

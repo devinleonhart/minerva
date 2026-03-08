@@ -15,6 +15,7 @@ interface RecipeIngredientInput {
 interface CauldronVariantInput {
   essenceType: string
   variantName: string
+  description: string
   essenceIngredientId: number
 }
 
@@ -86,6 +87,10 @@ export default eventHandler(async (event) => {
           setResponseStatus(event, 400)
           return { error: 'Each cauldron variant must have a variantName' }
         }
+        if (!v.description || typeof v.description !== 'string' || v.description.trim().length === 0) {
+          setResponseStatus(event, 400)
+          return { error: 'Each cauldron variant must have a description' }
+        }
         if (!v.essenceIngredientId || typeof v.essenceIngredientId !== 'number') {
           setResponseStatus(event, 400)
           return { error: 'Each cauldron variant must have an essenceIngredientId' }
@@ -135,6 +140,7 @@ export default eventHandler(async (event) => {
                 recipeId: id,
                 essenceType: v.essenceType,
                 variantName: v.variantName.trim(),
+                description: v.description.trim(),
                 essenceIngredientId: v.essenceIngredientId,
                 updatedAt: new Date().toISOString()
               })

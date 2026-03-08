@@ -15,6 +15,13 @@
       "when": 1772910423606,
       "tag": "0001_hard_devos",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772939613244,
+      "tag": "0002_abandoned_molly_hayes",
+      "breakpoints": true
     }
   ]
 }

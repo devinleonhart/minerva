@@ -73,7 +73,7 @@ const canSubmit = computed(() =>
   name.value.trim() &&
   description.value.trim() &&
   selectedIngredients.value.length > 0 &&
-  cauldronVariants.value.every(v => v.essenceType && v.variantName.trim() && v.essenceIngredientId)
+  cauldronVariants.value.every(v => v.essenceType && v.variantName.trim() && v.description.trim() && v.essenceIngredientId)
 )
 
 watch(() => props.open, (open) => {
@@ -87,6 +87,7 @@ watch(() => props.open, (open) => {
     cauldronVariants.value = props.recipe.cauldronVariants.map(v => ({
       essenceType: v.essenceType,
       variantName: v.variantName,
+      description: v.description ?? '',
       essenceIngredientId: v.essenceIngredientId
     }))
   } else if (open) {
@@ -124,7 +125,7 @@ function updateQuantity(ingredientId: number, delta: number) {
 function addVariant() {
   const nextType = availableEssenceTypes.value[0]
   if (!nextType) return
-  cauldronVariants.value = [...cauldronVariants.value, { essenceType: nextType, variantName: '', essenceIngredientId: 0 }]
+  cauldronVariants.value = [...cauldronVariants.value, { essenceType: nextType, variantName: '', description: '', essenceIngredientId: 0 }]
 }
 
 function removeVariant(index: number) {
@@ -140,6 +141,12 @@ function setVariantEssenceType(index: number, value: string) {
 function setVariantName(index: number, value: string) {
   cauldronVariants.value = cauldronVariants.value.map((v, i) =>
     i === index ? { ...v, variantName: value } : v
+  )
+}
+
+function setVariantDescription(index: number, value: string) {
+  cauldronVariants.value = cauldronVariants.value.map((v, i) =>
+    i === index ? { ...v, description: value } : v
   )
 }
 
@@ -245,6 +252,12 @@ function handleSubmit() {
                   :model-value="variant.variantName"
                   placeholder="Variant name (e.g. Fire Tonic)"
                   @update:model-value="setVariantName(index, $event)"
+                />
+                <Textarea
+                  :model-value="variant.description"
+                  placeholder="Describe the effect of this variant..."
+                  :rows="2"
+                  @update:model-value="setVariantDescription(index, $event)"
                 />
               </div>
             </div>

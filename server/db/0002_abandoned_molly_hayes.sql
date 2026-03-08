@@ -1,0 +1,1 @@
+ALTER TABLE "RecipeCauldronVariant" ADD COLUMN "description" text;

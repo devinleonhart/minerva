@@ -8,7 +8,7 @@ import {
   TableRow,
   TableCell
 } from '@/components/ui/table'
-import { Minus, Plus, Trash2 } from 'lucide-vue-next'
+import { Minus, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 
 interface Props {
   items: InventoryItem[]
@@ -18,6 +18,7 @@ defineProps<Props>()
 
 const emit = defineEmits<{
   updateQuantity: [id: number, quality: string, quantity: number]
+  edit: [item: InventoryItem]
   delete: [id: number]
 }>()
 
@@ -62,13 +63,22 @@ function getQualityVariant(): 'secondary' {
           </div>
         </TableCell>
         <TableCell>
-          <Button
-            variant="ghost"
-            size="icon"
-            @click="emit('delete', item.id)"
-          >
-            <Trash2 />
-          </Button>
+          <div class="row-actions">
+            <Button
+              variant="ghost"
+              size="icon"
+              @click="emit('edit', item)"
+            >
+              <Pencil />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              @click="emit('delete', item.id)"
+            >
+              <Trash2 />
+            </Button>
+          </div>
         </TableCell>
       </TableRow>
     </TableBody>
@@ -78,5 +88,10 @@ function getQualityVariant(): 'secondary' {
 <style scoped>
 .cell-expand {
   width: 100%;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import type { AddCurrencyRequest } from '@/types/store/inventory'
+import type { AddCurrencyRequest, InventoryItem } from '@/types/store/inventory'
 import { PageLayout } from '@/components/layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,8 @@ import {
   ItemInventoryList,
   CurrencyList,
   AddCurrencyForm,
-  AddItemForm
+  AddItemForm,
+  EditInventoryItemForm
 } from '@/components/features/inventory'
 import { Search, Loader2, Coins, Package } from 'lucide-vue-next'
 
@@ -24,6 +25,7 @@ const isLoading = ref(false)
 const searchQuery = ref('')
 const showAddCurrencyForm = ref(false)
 const showAddItemForm = ref(false)
+const editingInventoryItem = ref<InventoryItem | null>(null)
 const activeTab = ref<'potions' | 'ingredients' | 'items' | 'currencies'>('potions')
 
 const tabs = computed(() => [
@@ -102,6 +104,19 @@ onMounted(async () => {
 })
 
 // Ingredient handlers
+async function handleEditIngredient(item: InventoryItem) {
+  editingInventoryItem.value = item
+}
+
+async function handleEditIngredientSubmit(id: number, quality: string, quantity: number) {
+  try {
+    await inventoryStore.updateInventoryItem(id, quality, quantity)
+    toast.success('Inventory item updated')
+  } catch {
+    toast.error('Failed to update inventory item')
+  }
+}
+
 async function handleUpdateIngredientQuantity(id: number, quality: string, quantity: number) {
   try {
     await inventoryStore.updateInventoryItem(id, quality, quantity)
@@ -295,6 +310,7 @@ async function handleAddItem(data: { name: string; description: string; quantity
           <IngredientInventoryList
             v-else
             :items="filteredIngredients"
+            @edit="handleEditIngredient"
             @update-quantity="handleUpdateIngredientQuantity"
             @delete="handleDeleteIngredient"
           />
@@ -336,6 +352,13 @@ async function handleAddItem(data: { name: string; description: string; quantity
       :open="showAddItemForm"
       @update:open="showAddItemForm = $event"
       @submit="handleAddItem"
+    />
+
+    <EditInventoryItemForm
+      :open="editingInventoryItem !== null"
+      :item="editingInventoryItem"
+      @update:open="if (!$event) editingInventoryItem = null"
+      @submit="handleEditIngredientSubmit"
     />
   </PageLayout>
 </template>

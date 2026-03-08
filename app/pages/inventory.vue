@@ -158,8 +158,12 @@ async function handleDeletePotion(id: number) {
 }
 
 // Item handlers
-async function handleEditItem(item: ItemInventoryItem) {
+function handleEditItem(item: ItemInventoryItem) {
   editingInventoryItem.value = item
+}
+
+function closeEditInventoryItemForm() {
+  editingInventoryItem.value = null
 }
 
 async function handleEditItemSubmit(id: number, quantity: number) {
@@ -357,7 +361,7 @@ async function handleAddItem(data: { name: string; description: string; quantity
     <EditInventoryItemForm
       :open="editingInventoryItem !== null"
       :item="editingInventoryItem"
-      @update:open="if (!$event) editingInventoryItem = null"
+      @update:open="closeEditInventoryItemForm"
       @submit="handleEditItemSubmit"
     />
   </PageLayout>

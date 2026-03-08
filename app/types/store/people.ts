@@ -35,6 +35,3 @@ export interface UpdatePersonRequest {
   isFavorited?: boolean
 }
 
-export interface PeopleStore {
-  people: Person[]
-}

@@ -38,8 +38,10 @@ export default defineNitroPlugin(async () => {
 })
 
 // If the schema was previously set up via db:push (no migration tracking),
-// record every already-applied migration in the tracking table so that
-// migrate() doesn't try to re-run them and fail on existing objects.
+// record already-applied migrations in the tracking table so that migrate()
+// doesn't try to re-run them and fail on existing objects.
+// Only baselines a migration if its DDL is verifiably already in the DB —
+// unrecognised or not-yet-applied migrations are left for migrate() to run.
 async function baselineIfNeeded(
   db: ReturnType<typeof drizzle>,
   migrationsFolder: string
@@ -69,6 +71,10 @@ async function baselineIfNeeded(
     const sqlContent = fs.readFileSync(sqlFile, 'utf8')
     const hash = crypto.createHash('sha256').update(sqlContent).digest('hex')
     if (existingHashes.has(hash)) continue
+    // Only baseline if the migration's DDL is already present in the DB.
+    // If not, leave it for migrate() to apply normally.
+    const applied = await isMigrationApplied(db, sqlContent)
+    if (!applied) continue
     await db.execute(sql`
       INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
       VALUES (${hash}, ${entry.when})
@@ -78,4 +84,49 @@ async function baselineIfNeeded(
   if (baselined > 0) {
     console.log(`[migrate] Baselined ${baselined} migration(s) (schema pre-existed from db:push).`)
   }
+}
+
+// Heuristically checks whether the DDL in a migration SQL file has already
+// been applied to the database, without actually running it.
+async function isMigrationApplied(
+  db: ReturnType<typeof drizzle>,
+  sqlContent: string
+): Promise<boolean> {
+  // ADD COLUMN — check if the column already exists
+  const addColumnMatch = sqlContent.match(/ALTER TABLE "(\w+)" ADD COLUMN "(\w+)"/i)
+  if (addColumnMatch) {
+    const [, tableName, columnName] = addColumnMatch
+    const { rows } = await db.execute(sql`
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = ${tableName}
+        AND column_name = ${columnName}
+    `)
+    return rows.length > 0
+  }
+
+  // CREATE TABLE — check if the table already exists
+  const createTableMatch = sqlContent.match(/CREATE TABLE "(\w+)"/i)
+  if (createTableMatch) {
+    const [, tableName] = createTableMatch
+    const { rows } = await db.execute(sql`
+      SELECT 1 FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = ${tableName}
+    `)
+    return rows.length > 0
+  }
+
+  // CREATE TYPE — check if the enum type already exists
+  const createTypeMatch = sqlContent.match(/CREATE TYPE "public"\."(\w+)"/)
+  if (createTypeMatch) {
+    const [, typeName] = createTypeMatch
+    const { rows } = await db.execute(sql`
+      SELECT 1 FROM pg_type
+      WHERE typname = ${typeName} AND typnamespace = 'public'::regnamespace
+    `)
+    return rows.length > 0
+  }
+
+  // Unknown DDL pattern — don't baseline; let migrate() decide
+  return false
 }

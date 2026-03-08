@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 
 interface Props {
@@ -23,20 +24,24 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  submit: [id: number, quantity: number]
+  submit: [id: number, name: string, description: string, quantity: number]
 }>()
 
+const name = ref('')
+const description = ref('')
 const quantity = ref(1)
 
 watch(() => props.open, (open) => {
   if (open && props.item) {
+    name.value = props.item.item.name
+    description.value = props.item.item.description
     quantity.value = props.item.quantity
   }
 })
 
 function handleSubmit() {
-  if (!props.item) return
-  emit('submit', props.item.id, quantity.value)
+  if (!props.item || !name.value.trim()) return
+  emit('submit', props.item.item.id, name.value.trim(), description.value.trim(), quantity.value)
   emit('update:open', false)
 }
 </script>
@@ -50,7 +55,24 @@ function handleSubmit() {
         </DialogHeader>
 
         <form class="form" @submit.prevent="handleSubmit">
-          <div v-if="item" class="item-name">{{ item.item.name }}</div>
+          <div class="field">
+            <Label for="name">Name</Label>
+            <Input
+              id="name"
+              v-model="name"
+              placeholder="Item name"
+            />
+          </div>
+
+          <div class="field">
+            <Label for="description">Description</Label>
+            <Textarea
+              id="description"
+              v-model="description"
+              placeholder="Item description"
+              :rows="2"
+            />
+          </div>
 
           <div class="field">
             <Label for="quantity">Quantity</Label>
@@ -66,7 +88,7 @@ function handleSubmit() {
             <Button variant="outline" type="button" @click="emit('update:open', false)">
               Cancel
             </Button>
-            <Button type="submit" :disabled="quantity < 1">
+            <Button type="submit" :disabled="!name.trim() || quantity < 1">
               Save Changes
             </Button>
           </DialogFooter>
@@ -75,11 +97,3 @@ function handleSubmit() {
     </template>
   </Dialog>
 </template>
-
-<style scoped>
-.item-name {
-  font-weight: 600;
-  font-size: 0.9375rem;
-  margin-bottom: 0.25rem;
-}
-</style>

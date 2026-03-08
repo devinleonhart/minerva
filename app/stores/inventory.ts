@@ -97,6 +97,16 @@ export const useInventoryStore = defineStore('inventory', () => {
     }
   }
 
+  const updateItem = async (id: number, name: string, description: string) => {
+    try {
+      await axios.put(`/api/items/${id}`, { name, description })
+      await getInventory()
+    } catch (error: unknown) {
+      logStoreError('Inventory Store', `updating item (ID: ${id})`, error)
+      throw error
+    }
+  }
+
   const deletePotionFromInventory = async (id: number) => {
     try {
       await axios.delete(`/api/inventory/potion/${id}`)
@@ -195,6 +205,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     deleteInventoryItem,
     updatePotionInventoryItem,
     updateItemInventoryItem,
+    updateItem,
     deletePotionFromInventory,
     deleteItemFromInventory,
     addItemToInventory,

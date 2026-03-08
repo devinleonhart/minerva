@@ -22,6 +22,13 @@
       "when": 1772939613244,
       "tag": "0002_abandoned_molly_hayes",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772942451183,
+      "tag": "0003_left_speed",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "Potion" ADD COLUMN "cauldronDescription" text;

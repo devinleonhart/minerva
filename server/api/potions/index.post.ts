@@ -89,6 +89,7 @@ export default eventHandler(async (event) => {
 
     // Resolve cauldron variant if essenceType provided
     let cauldronName: string | null = null
+    let cauldronDescription: string | null = null
     let essenceInventoryItemId: number | null = null
 
     if (essenceType) {
@@ -109,6 +110,7 @@ export default eventHandler(async (event) => {
       }
 
       cauldronName = variant.variantName
+      cauldronDescription = variant.description ?? null
       const essenceInv = essenceInvItems.find(inv => inv.quantity > 0)!
       essenceInventoryItemId = essenceInv.id
     }
@@ -188,6 +190,7 @@ export default eventHandler(async (event) => {
           quality: quality as 'NORMAL' | 'HQ' | 'LQ',
           recipeId: recipeId,
           cauldronName,
+          cauldronDescription,
           updatedAt: new Date().toISOString()
         }).returning()
 

@@ -156,10 +156,10 @@ await db.insert(inventoryItem).values([
 // ---------------------------------------------------------------------------
 console.log('Seeding potions...')
 const potions = await db.insert(potion).values([
-  { recipeId: rec['Healing Tonic']!.id,  quality: 'NORMAL', cauldronName: null,                     updatedAt: now },
-  { recipeId: rec['Healing Tonic']!.id,  quality: 'HQ',     cauldronName: null,                     updatedAt: now },
-  { recipeId: rec['Healing Tonic']!.id,  quality: 'NORMAL', cauldronName: 'Blazing Healing Tonic',  updatedAt: now },
-  { recipeId: rec['Clarity Potion']!.id, quality: 'NORMAL', cauldronName: null,                     updatedAt: now },
+  { recipeId: rec['Healing Tonic']!.id,  quality: 'NORMAL', cauldronName: null,                    cauldronDescription: null,                                                                         updatedAt: now },
+  { recipeId: rec['Healing Tonic']!.id,  quality: 'HQ',     cauldronName: null,                    cauldronDescription: null,                                                                         updatedAt: now },
+  { recipeId: rec['Healing Tonic']!.id,  quality: 'NORMAL', cauldronName: 'Blazing Healing Tonic', cauldronDescription: 'Heals wounds in a burst of warmth. Also temporarily grants fire resistance.', updatedAt: now },
+  { recipeId: rec['Clarity Potion']!.id, quality: 'NORMAL', cauldronName: null,                    cauldronDescription: null,                                                                         updatedAt: now },
 ]).returning()
 
 await db.insert(potionInventoryItem).values([

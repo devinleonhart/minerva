@@ -20,6 +20,7 @@ export interface PotionInventoryItem {
     id: number
     quality: PotionQuality
     cauldronName: string | null
+    cauldronDescription: string | null
     recipe: {
       id: number
       name: string

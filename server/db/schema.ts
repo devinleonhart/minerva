@@ -63,6 +63,7 @@ export const potion = pgTable('Potion', {
   quality: potionQuality().default('NORMAL').notNull(),
   recipeId: integer().notNull(),
   cauldronName: text(),
+  cauldronDescription: text(),
 })
 
 export const potionInventoryItem = pgTable('PotionInventoryItem', {

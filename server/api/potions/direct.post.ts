@@ -8,11 +8,12 @@ interface DirectPotionRequest {
   recipeId: number
   quality?: string
   cauldronName?: string | null
+  cauldronDescription?: string | null
 }
 
 export default eventHandler(async (event) => {
   try {
-    const { recipeId, quality = 'NORMAL', cauldronName = null } = (await readBody(event) ?? {}) as DirectPotionRequest
+    const { recipeId, quality = 'NORMAL', cauldronName = null, cauldronDescription = null } = (await readBody(event) ?? {}) as DirectPotionRequest
 
     if (quality !== undefined && (
       quality === null ||
@@ -56,6 +57,7 @@ export default eventHandler(async (event) => {
           quality: quality as 'NORMAL' | 'HQ' | 'LQ',
           recipeId: recipeId,
           cauldronName,
+          cauldronDescription,
           updatedAt: new Date().toISOString()
         }).returning()
 
